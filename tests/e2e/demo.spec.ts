@@ -26,5 +26,15 @@ test('demo mounts representative effects and keeps interactive children usable',
   await upgrade.click();
   await expect(upgrade).toBeEnabled();
   await expect(page.getByLabel('Interactive playground').locator('.metal-fx-root')).toHaveCount(1);
+
+  const states = page.getByLabel('Interaction States');
+  const interactive = states.getByRole('button', { name: 'Hover, focus, press' });
+  await interactive.hover();
+  await interactive.focus();
+  await expect(interactive).toBeFocused();
+  await interactive.press('Space');
+  await expect(states.getByRole('button', { name: 'Disabled' })).toBeDisabled();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(states.getByTestId('motion-state')).toHaveText('Reduced motion: on');
   expect(errors).toEqual([]);
 });
