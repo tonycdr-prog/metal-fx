@@ -33,14 +33,14 @@ npm run build:demo
 | Unit | Yes | Color conversion, tweening, and glow geometry | Covers normalization, easing/clamping, and geometry branches |
 | Integration | Yes | Basic child interaction, valid prop updates, final renderer cleanup | Engine, glow, and reflection boundaries are mocked deterministically |
 | SSR/hydration | Yes | Server import/render and client hydration | Covers auto/dark/light themes, StrictMode cleanup/remount, prop updates, media-query changes, and warning-free hydration |
-| E2E/visual | Smoke | Built demo and forced no-WebGL fallback in Chromium, Firefox, and WebKit | Serves the build under the `/metal-fx/` Pages subpath and checks static assets, representative mounts, normal and fallback child interaction, and unexpected page/console errors. Traces/screenshots are retained on failure. Firefox CI explicitly permits its software WebGL renderer and forces EGL because hosted runners do not expose a supported hardware driver. |
+| E2E/visual | Chromium baseline + cross-browser smoke | Built demo and forced no-WebGL fallback in Chromium, Firefox, and WebKit | The query-selected `/metal-fx/?visual-test=1` scene has one fixed Chromium baseline. It freezes renderer time, waits for fonts/canvases, and captures only the scene. Chromium, Firefox, and WebKit retain semantic smoke tests; traces/screenshots are retained on failure. |
 | Packaging | Yes | ES/CJS exports, strict TypeScript, and tarball contents | `npm run test:package` installs only the packed artifact in isolated fixtures |
 
 ## 4) Mocking and Isolation Strategy
 
 - React tests mock renderer, glow, and reflection boundaries so they can assert component lifecycle without emulating WebGL.
 - jsdom setup supplies deterministic observer, RAF, and media-query primitives.
-- Browser smoke tests use actual browser WebGL implementations; they avoid pixel-perfect output assertions in this foundation.
+- Browser smoke tests use actual browser WebGL implementations. The Chromium visual foundation adds one fixed-time screenshot while Firefox and WebKit remain semantic coverage until stable per-engine baselines are demonstrated.
 
 ## 5) Coverage and Quality Signals
 
@@ -48,7 +48,7 @@ npm run build:demo
 - CI quality gates: `.github/workflows/quality.yml` runs `npm run check` on Node 22 and 24, plus a separate browser-smoke job that installs Chromium, Firefox, and WebKit and uploads failure artifacts.
 - The browser job verifies the Playwright-provided Chromium, Firefox, and WebKit engines; this is CI evidence, not a compatibility guarantee for every historical browser version.
 - Pages deployment runs only after the complete Quality workflow succeeds on `main` and checks out that exact tested commit.
-- Highest-value remaining gaps: context loss/restore, pause/visibility, reflection target ownership, and visual regression baselines.
+- The visual baseline is intentionally narrow: it does not establish cross-engine pixel parity, GPU compatibility, or broad visual coverage. Expand it only with repeatability evidence.
 
 ## 6) Dependency Maintenance
 

@@ -58,6 +58,7 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - The development toolchain now uses Vite 8, Vitest 4, vite-plugin-dts 5 with API Extractor 7, and Wrangler 4.110.0. Registry verification, the lockfile audit, and the production-only audit reported zero vulnerabilities on 2026-07-14; Node 22 and 24 both pass the package gate.
 - Runtime `scale` updates now recompute default shader sampling and ring thickness, rebuild glow geometry, and scale the reflection reference draw width without recreating the renderer. Engine, lifecycle, and cross-browser playground tests cover 1 → 2 → 0.5 updates and cleanup.
 - Reflection targets now explicitly track all live owners. The first live owner supplies the reflection; removing it transfers ownership deterministically, while final cleanup removes only MetalFx-created decoration and restores only styles MetalFx still owns.
+- A deterministic visual-regression foundation now captures one fixed Chromium scene containing dark/light pill and circle effects across chromatic, gold, and silver presets. It is intentionally not a cross-engine or cross-GPU compatibility guarantee; Firefox and WebKit retain semantic smoke coverage.
 
 ## 8) Evidence
 
