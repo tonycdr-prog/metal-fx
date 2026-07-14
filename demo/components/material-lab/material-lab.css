@@ -77,6 +77,14 @@
   justify-content: center;
   min-height: 325px;
 }
+.material-lab-stage-breathing {
+  animation: material-lab-breathe 2.8s ease-in-out infinite alternate;
+}
+@keyframes material-lab-breathe {
+  to {
+    filter: brightness(1.13);
+  }
+}
 .material-lab-preview p {
   border-top: 1px solid currentColor;
   font-size: 12px;
@@ -207,5 +215,10 @@
   }
   .material-lab-preview {
     min-height: 390px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .material-lab-stage-breathing {
+    animation: none;
   }
 }

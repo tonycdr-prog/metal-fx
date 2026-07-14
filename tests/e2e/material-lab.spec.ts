@@ -23,6 +23,18 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   await expect(page).toHaveURL(/preview=content/);
   await lab.getByRole('button', { name: 'Resume preview motion' }).click();
   await expect(lab.getByRole('button', { name: 'Pause preview motion' })).toHaveAttribute('aria-pressed', 'false');
+  const interaction = lab.getByRole('combobox').nth(1);
+  const stage = lab.getByTestId('interaction-stage');
+  await interaction.selectOption('pointer-position');
+  await stage.hover({ position: { x: 4, y: 10 } });
+  await expect(stage).toHaveAttribute('data-interaction-mode', 'pointer-position');
+  await expect(stage).not.toHaveAttribute('data-interaction-signal', '0.00');
+  await interaction.selectOption('press-hold');
+  await stage.dispatchEvent('keydown', { key: ' ' });
+  await stage.dispatchEvent('keyup', { key: ' ' });
+  await expect(stage).toHaveAttribute('data-interaction-signal', '0.00');
+  await interaction.selectOption('idle-breathing');
+  await expect(stage).toHaveClass(/material-lab-stage-breathing/);
   expect(errors).toEqual([]);
 });
 

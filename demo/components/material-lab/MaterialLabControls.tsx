@@ -1,5 +1,6 @@
 import type { MetalFxPreset } from '../../../src';
 import type { MaterialLabPreview, MaterialLabState, MaterialLabTheme } from '../../material-lab/types';
+import type { InteractionMode } from '../../material-lab/useInteractionSignal';
 
 const PREVIEWS: { label: string; value: MaterialLabPreview }[] = [
   { label: 'Pill', value: 'pill' },
@@ -9,6 +10,15 @@ const PREVIEWS: { label: string; value: MaterialLabPreview }[] = [
 
 const PRESETS: MetalFxPreset[] = ['chromatic', 'silver', 'gold'];
 const THEMES: MaterialLabTheme[] = ['dark', 'light'];
+const INTERACTIONS: { label: string; value: InteractionMode }[] = [
+  { label: 'Off', value: 'off' },
+  { label: 'Pointer position', value: 'pointer-position' },
+  { label: 'Pointer velocity', value: 'pointer-velocity' },
+  { label: 'Press / hold', value: 'press-hold' },
+  { label: 'Scroll response', value: 'scroll-response' },
+  { label: 'Proximity response', value: 'proximity-response' },
+  { label: 'Idle breathing', value: 'idle-breathing' }
+];
 
 interface MaterialLabControlsProps {
   onChange: (patch: Partial<MaterialLabState>) => void;
@@ -40,6 +50,20 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
           {PRESETS.map((preset) => (
             <option key={preset} value={preset}>
               {preset[0].toUpperCase() + preset.slice(1)}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label>
+        Demo interaction
+        <select
+          onChange={(event) => onChange({ interaction: event.target.value as InteractionMode })}
+          value={state.interaction}
+        >
+          {INTERACTIONS.map(({ label, value }) => (
+            <option key={value} value={value}>
+              {label}
             </option>
           ))}
         </select>
