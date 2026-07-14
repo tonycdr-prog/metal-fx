@@ -58,6 +58,9 @@ export interface MetalFxInstance {
   /** One-shot callback fired after the very first copyShaderToInstance.
    *  Auto-cleared by the loop so it never fires twice. */
   onFirstCopy?: () => void;
+  /** Releases React-owned effect layers when the shared WebGL pipeline cannot
+   *  be rebuilt after context restoration. */
+  onContextFailure?: () => void;
 }
 
 export interface SharedRenderer {
@@ -82,6 +85,8 @@ export interface SharedRenderer {
   glowQueue: MetalFxInstance[];
   glowIdx: number;
   glowSkip: number;
+  contextLostListener: EventListener;
+  contextRestoredListener: EventListener;
 }
 
 export let SHARED: SharedRenderer | null = null;
@@ -139,7 +144,6 @@ function buildGLPipeline(gl: WebGLRenderingContext): {
     vert = compileShader(gl, gl.VERTEX_SHADER, VERT_SHADER_SRC);
     frag = compileShader(gl, gl.FRAGMENT_SHADER, FRAG_SHADER_SRC);
     program = linkProgram(gl, vert, frag);
-    // biome-ignore lint/correctness/useHookAtTopLevel: WebGL method, not a React hook
     gl.useProgram(program);
 
     buffer = gl.createBuffer();
@@ -195,25 +199,46 @@ export function ensureSharedRenderer(): SharedRenderer {
   }
   if (!gl) throw new Error('metal-fx: WebGL not supported');
 
-  const onContextLost = (e: Event) => {
+  const onContextLost: EventListener = (e) => {
     e.preventDefault();
-    if (SHARED) SHARED.contextLost = true;
+    if (!SHARED || SHARED.glCanvas !== glCanvas) return;
+    SHARED.contextLost = true;
+    if (SHARED.rafId !== 0) cancelAnimationFrame(SHARED.rafId);
+    SHARED.rafId = 0;
   };
-  const onContextRestored = () => {
-    if (!SHARED) return;
-    const rebuilt = buildGLPipeline(SHARED.gl);
-    SHARED.program = rebuilt.program;
-    SHARED.buffer = rebuilt.buffer;
-    SHARED.uniforms = rebuilt.uniforms;
-    SHARED.presetDirty = true;
-    SHARED.contextLost = false;
-    _onContextRestored?.();
+  const onContextRestored: EventListener = () => {
+    const shared = SHARED;
+    if (!shared || shared.glCanvas !== glCanvas) return;
+    try {
+      const rebuilt = buildGLPipeline(shared.gl);
+      if (SHARED !== shared) {
+        shared.gl.deleteBuffer(rebuilt.buffer);
+        shared.gl.deleteProgram(rebuilt.program);
+        return;
+      }
+      shared.program = rebuilt.program;
+      shared.buffer = rebuilt.buffer;
+      shared.uniforms = rebuilt.uniforms;
+      shared.presetDirty = true;
+      shared.contextLost = false;
+      _onContextRestored?.();
+    } catch {
+      const failedInstances = [...shared.instances];
+      for (const instance of failedInstances) {
+        try {
+          instance.onContextFailure?.();
+        } catch {
+          // Continue releasing the remaining instances even if consumer cleanup fails.
+        }
+      }
+      if (SHARED === shared) teardownSharedRenderer();
+    }
   };
   let pipeline: ReturnType<typeof buildGLPipeline> | null = null;
   try {
     pipeline = buildGLPipeline(gl);
-    glCanvas.addEventListener('webglcontextlost', onContextLost as EventListener, false);
-    glCanvas.addEventListener('webglcontextrestored', onContextRestored as EventListener, false);
+    glCanvas.addEventListener('webglcontextlost', onContextLost, false);
+    glCanvas.addEventListener('webglcontextrestored', onContextRestored, false);
 
     SHARED = {
       glCanvas,
@@ -234,12 +259,14 @@ export function ensureSharedRenderer(): SharedRenderer {
       frameCount: 0,
       glowQueue: [],
       glowIdx: 0,
-      glowSkip: 0
+      glowSkip: 0,
+      contextLostListener: onContextLost,
+      contextRestoredListener: onContextRestored
     };
     return SHARED;
   } catch (error) {
-    glCanvas.removeEventListener('webglcontextlost', onContextLost as EventListener, false);
-    glCanvas.removeEventListener('webglcontextrestored', onContextRestored as EventListener, false);
+    glCanvas.removeEventListener('webglcontextlost', onContextLost, false);
+    glCanvas.removeEventListener('webglcontextrestored', onContextRestored, false);
     if (pipeline) {
       gl.deleteBuffer(pipeline.buffer);
       gl.deleteProgram(pipeline.program);
@@ -255,7 +282,11 @@ export function ensureSharedRenderer(): SharedRenderer {
 
 export function teardownSharedRenderer(): void {
   if (!SHARED) return;
-  const { gl, program, buffer } = SHARED;
+  const shared = SHARED;
+  SHARED = null;
+  const { gl, program, buffer, glCanvas, contextLostListener, contextRestoredListener } = shared;
+  glCanvas.removeEventListener('webglcontextlost', contextLostListener, false);
+  glCanvas.removeEventListener('webglcontextrestored', contextRestoredListener, false);
   try {
     gl.deleteBuffer(buffer);
     gl.deleteProgram(program);
@@ -263,5 +294,4 @@ export function teardownSharedRenderer(): void {
   } catch {
     /* swallow */
   }
-  SHARED = null;
 }

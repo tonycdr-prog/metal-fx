@@ -1,4 +1,33 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
+
+declare global {
+  interface Window {
+    __metalFxTestCanvas: HTMLCanvasElement;
+    __metalFxTestGl: WebGLRenderingContext;
+    __metalFxLoseContext: WEBGL_lose_context;
+    __metalFxCopyCount: number;
+  }
+}
+
+async function exposeHtmlWebGlContext(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'OffscreenCanvas', { configurable: true, value: undefined });
+    const nativeGetContext = HTMLCanvasElement.prototype.getContext;
+    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+      configurable: true,
+      value(this: HTMLCanvasElement, contextId: string, ...args: unknown[]) {
+        const context = Reflect.apply(nativeGetContext, this, [contextId, ...args]);
+        if ((contextId === 'webgl' || contextId === 'experimental-webgl') && context) {
+          window.__metalFxTestCanvas = this;
+          (window as Window & { __metalFxTestGl?: WebGLRenderingContext }).__metalFxTestGl = context;
+          const extension = (context as WebGLRenderingContext).getExtension('WEBGL_lose_context');
+          if (extension) window.__metalFxLoseContext = extension;
+        }
+        return context;
+      }
+    });
+  });
+}
 
 test('demo mounts representative effects and keeps interactive children usable', async ({ browserName, page }) => {
   const errors: string[] = [];
@@ -122,5 +151,107 @@ test('updates glow geometry in a live WebGL playground without remounting the ef
   await expect(scale).toHaveValue('0.5');
   await expect.poll(() => glow.innerHTML()).toContain('stdDeviation="1.050"');
   await expect(effect).toHaveAttribute('data-test-scale-identity', 'stable');
+  expect(errors).toEqual([]);
+});
+
+test('restores a lost WebGL context and resumes painting without remounting', async ({ browserName, page }) => {
+  test.skip(browserName !== 'chromium', 'Chromium provides deterministic WEBGL_lose_context restoration in CI.');
+  await exposeHtmlWebGlContext(page);
+  await page.goto('./');
+
+  const effect = page.getByLabel('Interactive playground').locator('.metal-fx-root');
+  const canvas = effect.locator('.metal-fx-canvas');
+  await effect.scrollIntoViewIfNeeded();
+  await page.getByRole('button', { name: 'Play shader animation' }).click();
+  await expect(effect).not.toHaveAttribute('data-fallback', 'true');
+  await effect.evaluate((element) => element.setAttribute('data-test-context-identity', 'stable'));
+  await canvas.evaluate((element: HTMLCanvasElement) => {
+    const context = element.getContext('2d');
+    if (!context) return;
+    const drawImage = context.drawImage;
+    window.__metalFxCopyCount = 0;
+    Object.defineProperty(context, 'drawImage', {
+      configurable: true,
+      value(this: CanvasRenderingContext2D, ...args: unknown[]) {
+        window.__metalFxCopyCount++;
+        return Reflect.apply(drawImage, this, args);
+      }
+    });
+  });
+  await expect.poll(() => page.evaluate(() => window.__metalFxCopyCount)).toBeGreaterThan(0);
+
+  const controllable = await page.evaluate(() => {
+    const gl = (window as Window & { __metalFxTestGl?: WebGLRenderingContext }).__metalFxTestGl;
+    return Boolean(gl && window.__metalFxLoseContext);
+  });
+  test.skip(!controllable, 'WEBGL_lose_context is unavailable.');
+
+  await page.evaluate(async () => {
+    const lost = new Promise<void>((resolve) => {
+      window.__metalFxTestCanvas.addEventListener('webglcontextlost', () => resolve(), { once: true });
+    });
+    window.__metalFxLoseContext.loseContext();
+    await lost;
+  });
+  expect(await page.evaluate(() => window.__metalFxTestGl.isContextLost())).toBe(true);
+  await page.evaluate(() => {
+    window.__metalFxCopyCount = 0;
+  });
+
+  await page.evaluate(async () => {
+    const restored = new Promise<void>((resolve) => {
+      window.__metalFxTestCanvas.addEventListener('webglcontextrestored', () => resolve(), { once: true });
+    });
+    window.__metalFxLoseContext.restoreContext();
+    await restored;
+  });
+  expect(await page.evaluate(() => window.__metalFxTestGl.isContextLost())).toBe(false);
+  await expect.poll(() => page.evaluate(() => window.__metalFxCopyCount)).toBeGreaterThan(0);
+  await expect(effect).toHaveAttribute('data-test-context-identity', 'stable');
+  await expect(effect).not.toHaveAttribute('data-fallback', 'true');
+});
+
+test('falls back cleanly when the restored WebGL pipeline cannot rebuild', async ({ browserName, page }) => {
+  test.skip(browserName !== 'chromium', 'Chromium provides deterministic WEBGL_lose_context restoration in CI.');
+  await exposeHtmlWebGlContext(page);
+  const errors: string[] = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('./');
+
+  const effects = page.locator('.metal-fx-root');
+  await expect.poll(() => effects.count()).toBeGreaterThan(0);
+  const controllable = await page.evaluate(() => {
+    const gl = (window as Window & { __metalFxTestGl?: WebGLRenderingContext }).__metalFxTestGl;
+    return Boolean(gl && window.__metalFxLoseContext);
+  });
+  test.skip(!controllable, 'WEBGL_lose_context is unavailable.');
+
+  await page.evaluate(async () => {
+    const lost = new Promise<void>((resolve) => {
+      window.__metalFxTestCanvas.addEventListener('webglcontextlost', () => resolve(), { once: true });
+    });
+    window.__metalFxLoseContext.loseContext();
+    await lost;
+  });
+  expect(await page.evaluate(() => window.__metalFxTestGl.isContextLost())).toBe(true);
+  await page.evaluate(async () => {
+    window.__metalFxTestGl.createBuffer = () => null;
+    const restored = new Promise<void>((resolve) => {
+      window.__metalFxTestCanvas.addEventListener('webglcontextrestored', () => resolve(), { once: true });
+    });
+    window.__metalFxLoseContext.restoreContext();
+    await restored;
+  });
+
+  await expect(effects.first()).toHaveAttribute('data-fallback', 'true');
+  expect(
+    await effects.evaluateAll((nodes) => nodes.every((node) => node.getAttribute('data-fallback') === 'true'))
+  ).toBe(true);
+  const upgrade = page.getByRole('button', { name: 'Upgrade to Pro' }).first();
+  await upgrade.click();
+  await expect(upgrade).toBeEnabled();
   expect(errors).toEqual([]);
 });
