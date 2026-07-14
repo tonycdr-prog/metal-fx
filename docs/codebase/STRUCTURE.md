@@ -8,6 +8,7 @@
 | `src/engine/renderer/` | Shared WebGL state, animation loop, per-instance compositing, and pixel sampling | `src/engine/renderer/*.ts` |
 | `src/engine/glow/` | SVG halo geometry and luminance-driven animation | `src/engine/glow/*.ts` |
 | `src/engine/reflection/` | Target registration, observation, geometry, scheduling, and canvas painting | `src/engine/reflection/*.ts` |
+| `src/hooks/` | Focused React adapters for renderer lifecycle and theme resolution | `src/hooks/*.ts` |
 | `demo/` | Vite/Tailwind interactive showcase importing library source directly | `demo/main.tsx`, `demo/components/Playground.tsx` |
 | `.github/workflows/` | GitHub Pages deployment and npm publication | `.github/workflows/*.yml` |
 | `scripts/` | Executable repository and package hygiene gates | `scripts/check-hygiene.mjs`, `scripts/check-package.mjs` |
@@ -26,7 +27,8 @@
 
 | Boundary | What belongs here | What must not be here |
 |----------|-------------------|------------------------|
-| `src/MetalFx.tsx` | React-to-engine lifecycle bridge and DOM composition | Shader math or reflection drawing algorithms |
+| `src/MetalFx.tsx` | Public React props, focused synchronization effects, and DOM composition | Shader math or renderer initialization transactions |
+| `src/hooks/` | React-to-engine mount lifecycle and browser theme subscriptions | Shader math or public package exports |
 | `src/engine/renderer/` | Shared GL resources, frame scheduling, copying, sampling | React component state |
 | `src/engine/glow/` | Glow geometry, SVG markup, and sampled animation | Shared renderer initialization |
 | `src/engine/reflection/` | Reflection targets and target-side drawing | Public React prop definitions |

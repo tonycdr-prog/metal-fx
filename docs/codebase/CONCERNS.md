@@ -6,7 +6,6 @@ Remediation acceptance contract: `spec/spec-process-stabilization-acceptance.md`
 
 | Severity | Concern | Evidence | Impact | Suggested action |
 |----------|---------|----------|--------|------------------|
-| Medium | No graceful browser capability fallback | `renderer/core.ts`, `renderer/loop.ts`, `MetalFx.tsx` | WebGL/Canvas failure throws while the child remains hidden until first copy | Catch initialization failure, expose/report it, and render the child without effects |
 | Medium | SSR-safe claim has warning/mismatch edges | `MetalFx.tsx`, `README.md`; `renderToString` emitted a `useLayoutEffect` warning | Noisy SSR and possible dark/light hydration mismatch under `theme="auto"` | Use an isomorphic layout effect and defer client theme resolution until after hydration |
 | Medium | Current lockfile audit reports 20 dev-tool vulnerabilities (1 critical, 9 high); production-only audit reports 0 | `package-lock.json`; `npm audit` on 2026-07-14 | Local dev/CI tooling has supply-chain exposure even though consumers do not inherit it | Upgrade Vite/Wrangler/vite-plugin-dts chains deliberately and re-audit |
 
@@ -50,12 +49,10 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 
 ## 6) `[ASK USER]` Questions
 
-1. [ASK USER] Should different mounted `MetalFx` instances be able to use different presets/themes concurrently, as the component props and demo imply, or is one page-global shader style intentional?
-2. [ASK USER] What browser and Node versions are officially supported, and should no-WebGL environments fall back to a normal visible child?
+1. [ASK USER] Which browser versions are officially supported beyond the Chromium, Firefox, and WebKit versions exercised by Playwright?
 
 ## 7) Intent vs. Reality
 
-- Intent: each component accepts its own preset/theme. Reality: all components copy the single last-written shared preset.
 - Intent: SSR-safe with clean rehydration. Reality: server rendering succeeds but warns about `useLayoutEffect`, and auto theme can differ on the first client render.
 - Intent: `disableGlow` disables the overlay. Reality: it hides the glow host while background glow work remains registered.
 
@@ -68,8 +65,9 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - `MetalFx` theme resolution and shared glow registry were extracted; remaining large files have recorded reasons and revisit triggers.
 - Module boundaries, explicit public exports, dependency usage, test locations, package contents, and script config references now have executable checks.
 - CommonJS now resolves to the generated `dist/index.cjs` bundle, while ESM continues to resolve to `dist/index.es.js`. The packed-artifact fixtures verify ESM named imports, CommonJS `require()`, strict TypeScript public types, and the approved tarball file list on Node 22.x and 24.x through `npm run test:package` and the quality workflow.
-- Vitest now covers deterministic engine transforms, basic React lifecycle behavior, and server rendering. Playwright smoke tests the built demo in Chromium, Firefox, and WebKit with failure traces/screenshots retained by CI. Warning-free SSR/hydration, fallback, lifecycle, and visual-regression coverage remain tracked concerns rather than passing contracts.
+- Vitest now covers deterministic engine transforms, React lifecycle and fallback behavior, and server rendering. Playwright smoke tests normal and forced no-WebGL behavior in Chromium, Firefox, and WebKit with failure traces/screenshots retained by CI. Warning-free SSR/hydration and visual-regression coverage remain tracked concerns rather than passing contracts.
 - Renderer instances now own their preset and resolved theme. One shared WebGL context plans one pass per active material group, composites it only into matching instances, and captures each group's glow samples before rendering the next group. Homogeneous instances retain one shared pass.
+- WebGL, Canvas 2D, shader, and observer initialization failures now release partial resources and render the native child without effect layers. Component and cross-browser tests verify visibility, interaction, retry, and warning-free fallback.
 
 ## 9) Evidence
 

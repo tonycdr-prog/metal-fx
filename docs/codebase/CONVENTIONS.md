@@ -32,7 +32,7 @@ The current enforceable repository policy is defined by `AGENTS.md`, `repo-hygie
 
 - Low-level graphics initialization throws prefixed `Error` objects for missing WebGL/canvas resources and shader compile/link failures.
 - Teardown catches and swallows cleanup failures to keep unmount idempotent.
-- There is no fallback/error-boundary path in the component and no structured error type.
+- The engine keeps throwing prefixed initialization errors for power-user callers; the React adapter catches capability failures and falls back without exposing a new error API.
 - No production logging library or `console` logging was found; logging/redaction conventions are [TODO].
 
 ## 5) Testing Conventions

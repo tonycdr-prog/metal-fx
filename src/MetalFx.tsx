@@ -1,26 +1,10 @@
-import {
-  type CSSProperties,
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState
-} from 'react';
-import { injectGlow } from './engine/glow/glow';
-import { deleteGlowHandles, setGlowHandles } from './engine/glow/registry';
+import { type CSSProperties, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import type { GlowHandles } from './engine/glow/glow';
 import { addReflectionTarget, removeReflectionTarget } from './engine/reflection/paint';
 import { scheduleReflectionPaint } from './engine/reflection/reflectionScheduler';
 import type { MetalFxInstance } from './engine/renderer/core';
-import {
-  createInstance,
-  destroyInstance,
-  registerGlowInstance,
-  setInstanceVisible,
-  unregisterGlowInstance,
-  updateInstance
-} from './engine/renderer/loop';
+import { updateInstance } from './engine/renderer/loop';
+import { useMetalFxLifecycle } from './hooks/useMetalFxLifecycle';
 import { useResolvedTheme } from './hooks/useResolvedTheme';
 import { ensureStylesInjected } from './styles';
 import type { MetalFxProps } from './types';
@@ -79,11 +63,12 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
   const glowHostRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const instanceRef = useRef<MetalFxInstance | null>(null);
-  const glowHandlesRef = useRef<ReturnType<typeof injectGlow> | null>(null);
+  const glowHandlesRef = useRef<GlowHandles | null>(null);
   const themeRef = useRef<'dark' | 'light'>('dark');
   const initialWrapperRadiusRef = useRef<number>(0);
 
   const [ready, setReady] = useState(false);
+  const [fallback, setFallback] = useState(false);
   const resolvedTheme = useResolvedTheme(theme);
   // Write during render (not in an effect) so the glow callback always sees
   // the up-to-date theme on the very next tick.
@@ -139,123 +124,25 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     if (Object.keys(patch).length > 0) updateInstance(inst, patch);
   }, [shaderScale, ringCssPx, scale]);
 
-  // useLayoutEffect (not useEffect) so the instance is created and the canvas
-  // is sized synchronously before the browser paints — avoids a one-frame
-  // flash of the unsized canvas.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: borderRadius changes handled by separate effect
-  useLayoutEffect(() => {
-    const canvas = canvasRef.current;
-    const root = rootRef.current;
-    const glowHost = glowHostRef.current;
-    if (!canvas || !root) return;
-
-    {
-      const computed = getComputedStyle(root);
-      const parsed = parseFloat(computed.borderTopLeftRadius);
-      initialWrapperRadiusRef.current = Number.isFinite(parsed) ? parsed : 0;
-    }
-
-    const measure = () => {
-      const rect = root.getBoundingClientRect();
-      const cssWidth = Math.max(1, Math.round(rect.width));
-      const cssHeight = Math.max(1, Math.round(rect.height));
-      return { cssWidth, cssHeight, cornerRadius: resolveRadius(cssWidth, cssHeight) };
-    };
-
-    const initial = measure();
-    instanceRef.current = createInstance({
-      hostCanvas: canvas,
-      cssWidth: initial.cssWidth,
-      cssHeight: initial.cssHeight,
-      cornerRadius: initial.cornerRadius,
-      kind: shape,
-      paused,
-      shaderScale,
-      ringCssPx,
-      scale,
-      preset,
-      theme: resolvedTheme,
-      onFirstCopy: () => setReady(true)
-    });
-    root.style.setProperty('--mfx-radius', `${initial.cornerRadius}px`);
-    root.style.borderRadius = `${initial.cornerRadius}px`;
-
-    if (glowHost) {
-      glowHandlesRef.current = injectGlow(glowHost, {
-        width: initial.cssWidth,
-        height: initial.cssHeight,
-        cornerRadius: initial.cornerRadius,
-        kind: shape,
-        scale
-      });
-    }
-
-    let resizeRaf = 0;
-    const ro = new ResizeObserver(() => {
-      if (resizeRaf !== 0) return;
-      // RAF-debounce: coalesce multiple resize events within the same frame and
-      // skip any that fire while a frame is already queued.
-      resizeRaf = requestAnimationFrame(() => {
-        resizeRaf = 0;
-        const next = measure();
-        const inst = instanceRef.current;
-        if (!inst) return;
-        updateInstance(inst, { cssWidth: next.cssWidth, cssHeight: next.cssHeight, cornerRadius: next.cornerRadius });
-        root.style.setProperty('--mfx-radius', `${next.cornerRadius}px`);
-        root.style.borderRadius = `${next.cornerRadius}px`;
-        if (glowHost) {
-          glowHost.innerHTML = '';
-          glowHandlesRef.current = injectGlow(glowHost, {
-            width: next.cssWidth,
-            height: next.cssHeight,
-            cornerRadius: next.cornerRadius,
-            kind: shape,
-            scale
-          });
-          if (inst && glowHandlesRef.current) {
-            setGlowHandles(inst, glowHandlesRef.current, themeRef);
-          }
-        }
-      });
-    });
-    ro.observe(root);
-
-    // Skip GL compositing for off-screen instances — the loop checks inst.visible
-    // before copyShaderToInstance, so hidden instances cost nothing per frame.
-    // rootMargin: 64px starts rendering slightly before the element scrolls into view.
-    let io: IntersectionObserver | null = null;
-    if (typeof IntersectionObserver !== 'undefined') {
-      io = new IntersectionObserver(
-        (entries) => {
-          const inst = instanceRef.current;
-          if (!inst) return;
-          for (const e of entries) setInstanceVisible(inst, e.isIntersecting);
-        },
-        { rootMargin: '64px' }
-      );
-      io.observe(root);
-    }
-
-    if (instanceRef.current && glowHandlesRef.current) {
-      setGlowHandles(instanceRef.current, glowHandlesRef.current, themeRef);
-      registerGlowInstance(instanceRef.current);
-    }
-
-    return () => {
-      ro.disconnect();
-      io?.disconnect();
-      if (resizeRaf !== 0) cancelAnimationFrame(resizeRaf);
-      const inst = instanceRef.current;
-      if (inst) {
-        deleteGlowHandles(inst);
-        unregisterGlowInstance(inst);
-        destroyInstance(inst);
-      }
-      instanceRef.current = null;
-      glowHandlesRef.current = null;
-      if (glowHost) glowHost.innerHTML = '';
-    };
-  }, [shape]);
+  useMetalFxLifecycle({
+    canvasRef,
+    rootRef,
+    glowHostRef,
+    instanceRef,
+    glowHandlesRef,
+    themeRef,
+    initialWrapperRadiusRef,
+    shape,
+    paused,
+    shaderScale,
+    ringCssPx,
+    scale,
+    preset,
+    resolvedTheme,
+    resolveRadius,
+    setReady,
+    setFallback
+  });
 
   // strength=1 maps directly to a full-opacity composite (opacityMul=1) for
   // every variant. Per-preset toning lives in `shaderOpacity` inside each
@@ -319,7 +206,8 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       data-shape={shape}
       data-theme={resolvedTheme}
       data-paused={paused ? 'true' : undefined}
-      data-normalize={normalizeHostStyles ? 'true' : 'false'}
+      data-fallback={fallback ? 'true' : undefined}
+      data-normalize={!fallback && normalizeHostStyles ? 'true' : 'false'}
       style={wrapperStyle}
     >
       <canvas ref={canvasRef} className="metal-fx-canvas" style={CANVAS_STYLE} />
@@ -327,7 +215,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       <div
         ref={glowHostRef}
         aria-hidden="true"
-        style={{ ...GLOW_HOST_STYLE, display: glowEnabled ? undefined : 'none' }}
+        style={{ ...GLOW_HOST_STYLE, display: glowEnabled && !fallback ? undefined : 'none' }}
       />
       <div ref={contentRef} className="metal-fx-content">
         {children}

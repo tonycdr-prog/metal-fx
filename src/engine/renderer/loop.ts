@@ -54,39 +54,46 @@ interface CreateInstanceOptions {
 }
 
 export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
-  const renderer = ensureSharedRenderer();
   const ctx = opts.hostCanvas.getContext('2d', { alpha: true });
   if (!ctx) throw new Error('metal-fx: canvas 2D context unavailable');
+  const renderer = ensureSharedRenderer();
 
   const scale = opts.scale ?? 1;
-  const inst: MetalFxInstance = {
-    canvas: opts.hostCanvas,
-    ctx,
-    cssWidth: opts.cssWidth,
-    cssHeight: opts.cssHeight,
-    cornerRadius: opts.cornerRadius,
-    kind: opts.kind,
-    ringCssPx: opts.ringCssPx ?? (opts.kind === 'circle' ? 2 : 1) * scale,
-    shaderScale: opts.shaderScale ?? (opts.kind === 'circle' ? CIRCLE_SHADER_SCALE : PILL_SHADER_SCALE) * scale,
-    opacityMul: opts.opacityMul ?? 1,
-    visible: true,
-    paused: opts.paused ?? false,
-    everCopied: false,
-    dpr: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
-    scale,
-    preset: opts.preset ?? renderer.defaultPresetName,
-    theme: opts.theme ?? renderer.defaultPresetTheme,
-    glowPixels: new Uint8Array(0),
-    glowPixelsW: 0,
-    glowPixelsH: 0,
-    glowReadbackMs: -Infinity,
-    onAfterFrame: opts.onAfterFrame,
-    onFirstCopy: opts.onFirstCopy
-  };
-  resizeInstanceCanvas(inst);
-  renderer.instances.add(inst);
-  if (renderer.rafId === 0 && renderer.pausedAtMs === null) startSharedLoop();
-  return inst;
+  let instance: MetalFxInstance | null = null;
+  try {
+    instance = {
+      canvas: opts.hostCanvas,
+      ctx,
+      cssWidth: opts.cssWidth,
+      cssHeight: opts.cssHeight,
+      cornerRadius: opts.cornerRadius,
+      kind: opts.kind,
+      ringCssPx: opts.ringCssPx ?? (opts.kind === 'circle' ? 2 : 1) * scale,
+      shaderScale: opts.shaderScale ?? (opts.kind === 'circle' ? CIRCLE_SHADER_SCALE : PILL_SHADER_SCALE) * scale,
+      opacityMul: opts.opacityMul ?? 1,
+      visible: true,
+      paused: opts.paused ?? false,
+      everCopied: false,
+      dpr: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
+      scale,
+      preset: opts.preset ?? renderer.defaultPresetName,
+      theme: opts.theme ?? renderer.defaultPresetTheme,
+      glowPixels: new Uint8Array(0),
+      glowPixelsW: 0,
+      glowPixelsH: 0,
+      glowReadbackMs: -Infinity,
+      onAfterFrame: opts.onAfterFrame,
+      onFirstCopy: opts.onFirstCopy
+    };
+    resizeInstanceCanvas(instance);
+    renderer.instances.add(instance);
+    if (renderer.rafId === 0 && renderer.pausedAtMs === null) startSharedLoop();
+    return instance;
+  } catch (error) {
+    if (instance) renderer.instances.delete(instance);
+    if (renderer.instances.size === 0) teardownSharedRenderer();
+    throw error;
+  }
 }
 
 export function destroyInstance(inst: MetalFxInstance): void {
