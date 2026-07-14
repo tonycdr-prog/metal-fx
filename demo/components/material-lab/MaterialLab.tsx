@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FOUNDATION_RECIPE } from '../../material-lab/recipes';
 import { buildMaterialLabSearch, readMaterialLabState } from '../../material-lab/state';
 import type { MaterialLabState } from '../../material-lab/types';
@@ -12,10 +12,12 @@ export function MaterialLab() {
   const reducedMotion = useReducedMotion();
 
   const updateState = (patch: Partial<MaterialLabState>) => {
-    const next = { ...state, ...patch };
-    setState(next);
-    window.history.replaceState(null, '', buildMaterialLabSearch(next));
+    setState((current) => ({ ...current, ...patch }));
   };
+
+  useEffect(() => {
+    window.history.replaceState(null, '', buildMaterialLabSearch(state));
+  }, [state]);
 
   return (
     <main className="material-lab" aria-labelledby="material-lab-title">

@@ -6,6 +6,7 @@ const PREVIEWS = new Set<MaterialLabPreview>(['pill', 'circle', 'content']);
 const THEMES = new Set<MaterialLabTheme>(['dark', 'light']);
 
 function clampStrength(value: string | null): number {
+  if (value === null) return FOUNDATION_RECIPE.state.strength;
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return FOUNDATION_RECIPE.state.strength;
   return Math.round(Math.min(100, Math.max(0, parsed)));
