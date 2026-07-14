@@ -9,7 +9,7 @@ Remediation acceptance contract: `spec/spec-process-stabilization-acceptance.md`
 | High | Per-component `preset`/`theme` props write one shared renderer preset | `MetalFx.tsx:156`, `renderer/loop.ts:135`, mixed presets in `demo/components/Examples.tsx` | Last effect wins; concurrent instances display the wrong palette/theme | Make preset selection an instance property and render/group by preset, or explicitly redesign/document a page-global controller |
 | Medium | No graceful browser capability fallback | `renderer/core.ts`, `renderer/loop.ts`, `MetalFx.tsx` | WebGL/Canvas failure throws while the child remains hidden until first copy | Catch initialization failure, expose/report it, and render the child without effects |
 | Medium | SSR-safe claim has warning/mismatch edges | `MetalFx.tsx`, `README.md`; `renderToString` emitted a `useLayoutEffect` warning | Noisy SSR and possible dark/light hydration mismatch under `theme="auto"` | Use an isomorphic layout effect and defer client theme resolution until after hydration |
-| Medium | Current lockfile audit reports 22 dev-tool vulnerabilities (1 critical, 11 high); production-only audit reports 0 | `package-lock.json`; `npm audit` on 2026-07-14 | Local dev/CI tooling has supply-chain exposure even though consumers do not inherit it | Upgrade Vite/Wrangler/vite-plugin-dts chains deliberately and re-audit |
+| Medium | Current lockfile audit reports 20 dev-tool vulnerabilities (1 critical, 9 high); production-only audit reports 0 | `package-lock.json`; `npm audit` on 2026-07-14 | Local dev/CI tooling has supply-chain exposure even though consumers do not inherit it | Upgrade Vite/Wrangler/vite-plugin-dts chains deliberately and re-audit |
 
 ## 2) Technical Debt
 

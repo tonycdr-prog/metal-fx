@@ -3,7 +3,7 @@
 ## 1) Test Stack and Commands
 
 - Primary test framework: Vitest 2.1.9 with jsdom 25.0.1 for unit, component, and server-render tests.
-- Browser test framework: Playwright 1.52.0 with Chromium, Firefox, and WebKit projects.
+- Browser test framework: Playwright 1.61.1 with Chromium, Firefox, and WebKit projects.
 - Commands:
 
 ```bash

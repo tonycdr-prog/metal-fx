@@ -2,6 +2,7 @@ node_modules
 dist
 dist-demo
 dist-playground
+test-results
 *.tsbuildinfo
 .DS_Store
 *.log

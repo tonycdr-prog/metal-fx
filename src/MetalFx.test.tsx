@@ -1,4 +1,4 @@
-import { act } from 'react';
+import { act, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -80,5 +80,26 @@ describe('MetalFx', () => {
     act(() => root.unmount());
     expect(engine.unregisterGlowInstance).toHaveBeenCalledOnce();
     expect(engine.destroyInstance).toHaveBeenCalledOnce();
+  });
+
+  it('keeps renderer and glow lifecycle work paired through a StrictMode remount', () => {
+    act(() =>
+      root.render(
+        <StrictMode>
+          <MetalFx>
+            <button type="button">Use effect</button>
+          </MetalFx>
+        </StrictMode>
+      )
+    );
+
+    expect(engine.createInstance).toHaveBeenCalledTimes(2);
+    expect(engine.destroyInstance).toHaveBeenCalledOnce();
+    expect(engine.registerGlowInstance).toHaveBeenCalledTimes(2);
+    expect(engine.unregisterGlowInstance).toHaveBeenCalledOnce();
+
+    act(() => root.unmount());
+    expect(engine.destroyInstance).toHaveBeenCalledTimes(2);
+    expect(engine.unregisterGlowInstance).toHaveBeenCalledTimes(2);
   });
 });
