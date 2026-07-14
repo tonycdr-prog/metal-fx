@@ -50,7 +50,11 @@ npm run build:demo
 - Known test gap: warning-free SSR/hydration is an explicit TODO until the dedicated production fix lands; the current server warning is not suppressed.
 - Highest-value remaining gaps: concurrent different presets/themes, no-WebGL fallback, context loss/restore, StrictMode mount cycles, observer cleanup, pause/visibility, reflection target ownership, and visual regression baselines.
 
-## 6) Evidence
+## 6) Dependency Maintenance
+
+Dependabot checks npm and GitHub Actions updates monthly against `main`. Compatible npm development minor/patch updates are grouped, while major updates stay isolated; Actions updates are grouped separately. Each ecosystem has an open-PR limit of one, there is no automatic merge, and every update must pass the Quality workflow before merge.
+
+## 7) Evidence
 
 - `package.json`
 - `vitest.config.ts`
@@ -59,6 +63,7 @@ npm run build:demo
 - `tests/e2e/demo.spec.ts`
 - `.github/workflows/pages.yml`
 - `.github/workflows/publish.yml`
+- `.github/dependabot.yml`
 - `src/engine/renderer/core.ts`
 - `src/engine/renderer/loop.ts`
 - `docs/codebase/.codebase-scan.txt`
