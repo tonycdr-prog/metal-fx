@@ -46,6 +46,7 @@ npm run build:demo
 
 - Coverage tool + threshold: no threshold configured in this foundation.
 - CI quality gates: `.github/workflows/quality.yml` runs `npm run check` on Node 22 and 24, plus a separate browser-smoke job that installs Chromium, Firefox, and WebKit and uploads failure artifacts.
+- The browser job verifies the Playwright-provided Chromium, Firefox, and WebKit engines; this is CI evidence, not a compatibility guarantee for every historical browser version.
 - Pages deployment runs only after the complete Quality workflow succeeds on `main` and checks out that exact tested commit.
 - Highest-value remaining gaps: context loss/restore, pause/visibility, reflection target ownership, and visual regression baselines.
 
