@@ -20,6 +20,18 @@ entry point.
 If WebGL or the required Canvas 2D context is unavailable, `MetalFx` omits the visual effect and leaves the
 wrapped child visible, natively styled, and interactive. Capability failure does not require an error boundary.
 
+### Browser and Content Security Policy
+
+CI verifies Node.js 22.x and 24.x, plus the Playwright-provided Chromium, Firefox, and WebKit engines. That is
+tested CI coverage, not a contractual guarantee for every historical or embedded browser version. The effect
+requires browser DOM, WebGL, and Canvas 2D support; when WebGL or Canvas 2D cannot initialize, the wrapped child
+continues to work without the metal, glow, or reflection layers.
+
+MetalFx currently injects a stylesheet, inline style attributes, and SVG glow markup. A strict `style-src` CSP
+that blocks inline styles can therefore prevent the visual effect from rendering. MetalFx does not currently offer
+a CSP nonce or an external-stylesheet integration path. CSP-compatible rendering is a future API/design project;
+do not treat the current package as compatible with a strict no-inline-style policy.
+
 ## Quick start
 
 ```tsx

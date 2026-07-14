@@ -17,7 +17,7 @@ No unresolved high- or medium-severity repository risks are currently recorded.
 
 | Risk | OWASP category | Evidence | Current mitigation | Gap |
 |------|----------------|----------|--------------------|-----|
-| Inline style/SVG markup injection conflicts with strict CSP | N/A | `styles.ts`, `glow/glow.ts` | Markup is library-generated rather than user-supplied | No nonce/external stylesheet option is exposed |
+| Inline style/SVG markup injection conflicts with strict CSP | N/A | `styles.ts`, `glow/glow.ts`, `README.md` | Consumer documentation explicitly describes the limitation | No nonce/external stylesheet option is exposed; CSP-compatible rendering needs a future API/design project |
 | DOM mutation of reflection targets | N/A | `reflection/paint.ts` | Blocks form-control tags and restores styles it applied | Multiple anchors targeting one element share the first registration without explicit ownership semantics |
 
 No auth, tenant data, server input, or network trust boundary exists in this client-only library.
