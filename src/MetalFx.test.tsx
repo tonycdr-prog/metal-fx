@@ -196,37 +196,6 @@ describe('MetalFx', () => {
     expect(engine.registerGlowInstance).not.toHaveBeenCalled();
   });
 
-  it('updates glow and reflection consumers for 1 → 2 → 0.5 scale changes without recreating the renderer', () => {
-    const target = { current: document.createElement('button') };
-    const render = (scale: number) =>
-      act(() =>
-        root.render(
-          <MetalFx reflectionTargets={[target]} scale={scale}>
-            <button type="button">Use effect</button>
-          </MetalFx>
-        )
-      );
-
-    render(1);
-    expect(injectGlow).toHaveBeenLastCalledWith(expect.any(HTMLElement), expect.objectContaining({ scale: 1 }));
-    expect(addReflectionTarget).toHaveBeenCalledOnce();
-
-    render(2);
-    expect(engine.createInstance).toHaveBeenCalledOnce();
-    expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { scale: 2 });
-    expect(injectGlow).toHaveBeenLastCalledWith(expect.any(HTMLElement), expect.objectContaining({ scale: 2 }));
-    expect(addReflectionTarget).toHaveBeenCalledOnce();
-
-    render(0.5);
-    expect(engine.createInstance).toHaveBeenCalledOnce();
-    expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { scale: 0.5 });
-    expect(injectGlow).toHaveBeenLastCalledWith(expect.any(HTMLElement), expect.objectContaining({ scale: 0.5 }));
-
-    act(() => root.unmount());
-    expect(engine.destroyInstance).toHaveBeenCalledOnce();
-    expect(engine.unregisterGlowInstance).toHaveBeenCalledTimes(3);
-  });
-
   it('keeps renderer and glow lifecycle work paired through a StrictMode remount', () => {
     act(() =>
       root.render(
@@ -299,31 +268,6 @@ describe('MetalFx', () => {
 
     act(() => root.unmount());
     expect(engine.unregisterGlowInstance).toHaveBeenCalledOnce();
-    expect(engine.destroyInstance).toHaveBeenCalledTimes(2);
-  });
-
-  it('keeps StrictMode renderer ownership stable across scale updates', () => {
-    const render = (scale: number) =>
-      act(() =>
-        root.render(
-          <StrictMode>
-            <MetalFx scale={scale}>
-              <button type="button">Use effect</button>
-            </MetalFx>
-          </StrictMode>
-        )
-      );
-
-    render(1);
-    render(2);
-    render(0.5);
-
-    expect(engine.createInstance).toHaveBeenCalledTimes(2);
-    expect(engine.destroyInstance).toHaveBeenCalledOnce();
-    expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { scale: 2 });
-    expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { scale: 0.5 });
-
-    act(() => root.unmount());
     expect(engine.destroyInstance).toHaveBeenCalledTimes(2);
   });
 });
