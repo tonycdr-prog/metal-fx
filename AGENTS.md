@@ -28,6 +28,8 @@ npm run lint
 npm run hygiene
 npm run typecheck
 npm run typecheck:demo
+npm run test
+npm run test:browser
 npm run build
 npm run build:demo
 npm run package:check
@@ -55,7 +57,8 @@ The executable policy is `scripts/check-hygiene.mjs`; do not weaken it solely to
 - TypeScript is strict and uses ESM, type-only imports, and explicit named exports.
 - Biome is the formatter and linter. Use two spaces, single quotes, a 120-column target, and no trailing commas.
 - PascalCase names React components and public types. Engine files and functions use lower camelCase or simple lowercase names. Fixed tunings use uppercase snake case.
-- Vite configuration files are the narrow exception to the named-export rule because Vite consumes a default export.
+- Tool-consumed Vite, Vitest, and Playwright configuration files are the narrow exception to the named-export rule
+  because those tools consume a default export.
 - Prefer platform/browser primitives and installed dependencies before adding custom state or scheduling logic.
 
 ## Testing and Verification

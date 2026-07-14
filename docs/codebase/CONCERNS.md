@@ -7,10 +7,9 @@ Remediation acceptance contract: `spec/spec-process-stabilization-acceptance.md`
 | Severity | Concern | Evidence | Impact | Suggested action |
 |----------|---------|----------|--------|------------------|
 | High | Per-component `preset`/`theme` props write one shared renderer preset | `MetalFx.tsx:156`, `renderer/loop.ts:135`, mixed presets in `demo/components/Examples.tsx` | Last effect wins; concurrent instances display the wrong palette/theme | Make preset selection an instance property and render/group by preset, or explicitly redesign/document a page-global controller |
-| High | No automated behavior or browser tests | `package.json`, `.github/workflows/quality.yml` | The quality workflow catches static/build/package drift but not graphics, lifecycle, SSR, or browser regressions | Add focused unit, component, SSR/hydration, and multi-browser tests to the existing gate |
 | Medium | No graceful browser capability fallback | `renderer/core.ts`, `renderer/loop.ts`, `MetalFx.tsx` | WebGL/Canvas failure throws while the child remains hidden until first copy | Catch initialization failure, expose/report it, and render the child without effects |
 | Medium | SSR-safe claim has warning/mismatch edges | `MetalFx.tsx`, `README.md`; `renderToString` emitted a `useLayoutEffect` warning | Noisy SSR and possible dark/light hydration mismatch under `theme="auto"` | Use an isomorphic layout effect and defer client theme resolution until after hydration |
-| Medium | Current lockfile audit reports 17 dev-tool vulnerabilities (9 high); production-only audit reports 0 | `package-lock.json`; `npm audit` on 2026-07-14 | Local dev/CI tooling has supply-chain exposure even though consumers do not inherit it | Upgrade Vite/Wrangler/vite-plugin-dts chains deliberately and re-audit |
+| Medium | Current lockfile audit reports 20 dev-tool vulnerabilities (1 critical, 9 high); production-only audit reports 0 | `package-lock.json`; `npm audit` on 2026-07-14 | Local dev/CI tooling has supply-chain exposure even though consumers do not inherit it | Upgrade Vite/Wrangler/vite-plugin-dts chains deliberately and re-audit |
 
 ## 2) Technical Debt
 
@@ -70,6 +69,7 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - `MetalFx` theme resolution and shared glow registry were extracted; remaining large files have recorded reasons and revisit triggers.
 - Module boundaries, explicit public exports, dependency usage, test locations, package contents, and script config references now have executable checks.
 - CommonJS now resolves to the generated `dist/index.cjs` bundle, while ESM continues to resolve to `dist/index.es.js`. The packed-artifact fixtures verify ESM named imports, CommonJS `require()`, strict TypeScript public types, and the approved tarball file list on Node 22.x and 24.x through `npm run test:package` and the quality workflow.
+- Vitest now covers deterministic engine transforms, basic React lifecycle behavior, and server rendering. Playwright smoke tests the built demo in Chromium, Firefox, and WebKit with failure traces/screenshots retained by CI. Warning-free SSR/hydration, fallback, lifecycle, and visual-regression coverage remain tracked concerns rather than passing contracts.
 
 ## 9) Evidence
 

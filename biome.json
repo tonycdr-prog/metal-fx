@@ -1,7 +1,14 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
   "files": {
-    "includes": ["**", "!**/node_modules", "!**/dist", "!**/dist-demo", "!docs/codebase/.codebase-scan.txt"]
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/dist-demo",
+      "!**/test-results",
+      "!docs/codebase/.codebase-scan.txt"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -53,7 +60,7 @@
   },
   "overrides": [
     {
-      "includes": ["vite.config.ts", "vite.config.demo.ts"],
+      "includes": ["vite.config.ts", "vite.config.demo.ts", "vitest.config.ts", "playwright.config.ts"],
       "linter": {
         "rules": {
           "style": {

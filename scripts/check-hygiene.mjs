@@ -34,9 +34,12 @@ const usageCorpus = textFiles
     return (
       name.startsWith('src/') ||
       name.startsWith('demo/') ||
+      name.startsWith('tests/') ||
       name.startsWith('scripts/') ||
       name.startsWith('.github/') ||
-      name.startsWith('vite.config')
+      name.startsWith('vite.config') ||
+      name === 'vitest.config.ts' ||
+      name === 'playwright.config.ts'
     );
   })
   .map((path) => readFileSync(path, 'utf8'))
