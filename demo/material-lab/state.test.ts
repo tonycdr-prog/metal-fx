@@ -12,6 +12,7 @@ describe('Material Lab query state', () => {
       strength: 100,
       paused: false
     });
+    expect(readMaterialLabState('?material-lab=1&strength=').strength).toBe(100);
   });
 
   it('uses the selected recipe strength when a strength override is invalid', () => {

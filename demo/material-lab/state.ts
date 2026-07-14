@@ -16,7 +16,7 @@ const INTERACTIONS = new Set<InteractionMode>([
 ]);
 
 function clampStrength(value: string | null, fallback: number): number {
-  if (value === null) return fallback;
+  if (value === null || value.trim() === '') return fallback;
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.round(Math.min(100, Math.max(0, parsed)));
