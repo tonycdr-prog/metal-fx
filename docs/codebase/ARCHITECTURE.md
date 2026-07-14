@@ -11,14 +11,16 @@
 ```text
 MetalFx props -> layout measurement -> shared WebGL frame -> per-instance 2D ring copy
              -> sampled SVG glow -> optional target reflection canvases -> browser paint
+             -> capability failure -> plain visible interactive child
 ```
 
 1. `MetalFx` resolves theme, measures its wrapper, creates a visible canvas, and registers an engine instance.
 2. `ensureSharedRenderer` lazily creates one 96px-base WebGL surface, compiles the shader, and stores global GL state.
-3. The shared RAF loop renders at a 66ms interval (approximately 15 fps), skipping hidden or fully paused instances.
-4. Each active instance receives a cropped shader copy on its own 2D canvas, then the center is removed with `destination-out` to form a ring.
-5. A round-robin callback samples a throttled `gl.readPixels` buffer and moves/tints the instance SVG glow.
+3. The shared RAF loop renders at a 66ms interval (approximately 15 fps), grouping active instances by preset and resolved theme while skipping hidden or fully paused instances.
+4. Each active group receives one shader pass; matching instances receive a cropped copy on their own 2D canvas, then the center is removed with `destination-out` to form a ring.
+5. A round-robin callback captures one target instance's group-correct throttled `gl.readPixels` buffer and moves/tints that instance's SVG glow.
 6. Dark-mode instances with reflection targets schedule a separate throttled paint that mirrors the anchor canvas into injected target canvases.
+7. If graphics initialization fails, the React lifecycle transaction releases partial resources and switches the wrapper to a no-effect fallback that preserves the native child.
 
 ## 3) Layer/Module Responsibilities
 
@@ -43,8 +45,6 @@ MetalFx props -> layout measurement -> shared WebGL frame -> per-instance 2D rin
 
 ## 5) Known Architectural Risks
 
-- The singleton stores one `preset`; `setSharedPreset` is called by every component. Consequently, the last effect to run controls the shader copied to every instance even though `preset` and `theme` are component props. The demo mounts gold and chromatic examples concurrently.
-- Browser capability failures are thrown from layout setup. Since the wrapper stays hidden until `onFirstCopy`, missing WebGL or 2D canvas support can hide the interactive child instead of degrading gracefully.
 - `theme="auto"` resolves to dark on the server but reads `matchMedia` during the first client render, creating a possible hydration mismatch; `useLayoutEffect` also emits a React SSR warning.
 - Module-level registries/listeners make initialization order and cleanup important. The design handles last-instance GL teardown, but the behavior needs lifecycle tests.
 

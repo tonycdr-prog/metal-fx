@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CopyButton } from './components/CopyButton';
 import { Examples } from './components/Examples';
+import { InteractionStates } from './components/experiments/InteractionStates';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { Playground } from './components/Playground';
@@ -20,6 +21,8 @@ export function App() {
       <Header theme={theme} />
 
       <Examples theme={theme} strength={strength / 100} />
+
+      <InteractionStates theme={theme} />
 
       <section className="w-full mb-6" aria-label="Installation">
         <h2 className="text-base font-normal leading-[34px] text-(--section-title-color) mb-1">Installation</h2>

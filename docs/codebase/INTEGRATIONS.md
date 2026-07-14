@@ -30,7 +30,7 @@ No runtime HTTP APIs, databases, queues, analytics, or observability services we
 - Network retry/backoff/timeouts/circuit breakers: not applicable to the runtime; it makes no network calls.
 - WebGL context loss is detected, rendering pauses, and the shader pipeline is rebuilt on `webglcontextrestored`.
 - Page visibility stops/restarts the shared RAF, and intersection visibility suppresses per-instance work.
-- WebGL/canvas creation failures throw; there is no visual fallback that preserves the child as visible.
+- WebGL/canvas creation failures are caught by the React lifecycle adapter, which releases partial resources and preserves a visible native child without effect layers.
 
 ## 5) Observability for Integrations
 

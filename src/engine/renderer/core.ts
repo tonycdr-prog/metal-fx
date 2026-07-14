@@ -5,13 +5,13 @@
  *   1. A single offscreen GL canvas renders the plasma shader.
  *   2. Each instance owns a visible 2D canvas that receives a cropped/scaled
  *      copy of the GL output with an inner "hole punch" mask (ring effect).
- *   3. Glow sampling reads from a shared pixel buffer (gl.readPixels) that is
- *      refreshed at most every 200ms to avoid GPU pipeline flushes on every frame.
- *   4. The animation loop is capped at ~30fps — the blur + slow plasma motion
+ *   3. Glow sampling reads from a per-instance, material-correct pixel buffer.
+ *      The round-robin glow scheduler refreshes only its current target.
+ *   4. The animation loop is capped at ~15fps — the blur + slow plasma motion
  *      makes higher rates imperceptible.
  */
 import { CANONICAL_GL_SIZE, GL_DPR_CAP } from '../perfConfig';
-import { PRESETS, type PresetMode } from '../presets';
+import { PRESETS, type PresetMode, type PresetName, type PresetTheme } from '../presets';
 import { compileShader, FRAG_SHADER_SRC, linkProgram, VERT_SHADER_SRC } from '../shaders';
 export const CANONICAL_PILL_W = 140;
 export const CANONICAL_PILL_H = 40;
@@ -48,6 +48,12 @@ export interface MetalFxInstance {
    *  widths/blurs, reflection stroke band, etc.). 1 is the baseline. Set to
    *  2 for a CSS-zoomed 2× hero so glow + reflection grow with the layout. */
   scale: number;
+  preset: PresetName;
+  theme: PresetTheme;
+  glowPixels: Uint8Array;
+  glowPixelsW: number;
+  glowPixelsH: number;
+  glowReadbackMs: number;
   onAfterFrame?: () => void;
   /** One-shot callback fired after the very first copyShaderToInstance.
    *  Auto-cleared by the loop so it never fires twice. */
@@ -61,10 +67,11 @@ export interface SharedRenderer {
   buffer: WebGLBuffer;
   uniforms: Record<string, WebGLUniformLocation | null>;
   preset: PresetMode;
+  defaultPresetName: PresetName;
+  defaultPresetTheme: PresetTheme;
   presetDirty: boolean;
   contextLost: boolean;
   useOffscreen: boolean;
-  frameBitmap: ImageBitmap | null;
   startMs: number;
   pausedMs: number;
   pausedAtMs: number | null;
@@ -75,9 +82,6 @@ export interface SharedRenderer {
   glowQueue: MetalFxInstance[];
   glowIdx: number;
   glowSkip: number;
-  glowPixels: Uint8Array;
-  glowPixelsW: number;
-  glowPixelsH: number;
 }
 
 export let SHARED: SharedRenderer | null = null;
@@ -124,27 +128,40 @@ function buildGLPipeline(gl: WebGLRenderingContext): {
   buffer: WebGLBuffer;
   uniforms: Record<string, WebGLUniformLocation | null>;
 } {
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  let vert: WebGLShader | null = null;
+  let frag: WebGLShader | null = null;
+  let program: WebGLProgram | null = null;
+  let buffer: WebGLBuffer | null = null;
+  try {
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-  const vert = compileShader(gl, gl.VERTEX_SHADER, VERT_SHADER_SRC);
-  const frag = compileShader(gl, gl.FRAGMENT_SHADER, FRAG_SHADER_SRC);
-  const program = linkProgram(gl, vert, frag);
-  // biome-ignore lint/correctness/useHookAtTopLevel: WebGL method, not a React hook
-  gl.useProgram(program);
+    vert = compileShader(gl, gl.VERTEX_SHADER, VERT_SHADER_SRC);
+    frag = compileShader(gl, gl.FRAGMENT_SHADER, FRAG_SHADER_SRC);
+    program = linkProgram(gl, vert, frag);
+    // biome-ignore lint/correctness/useHookAtTopLevel: WebGL method, not a React hook
+    gl.useProgram(program);
 
-  const buffer = gl.createBuffer();
-  if (!buffer) throw new Error('metal-fx: gl.createBuffer returned null');
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
-  const posLoc = gl.getAttribLocation(program, 'a_position');
-  gl.enableVertexAttribArray(posLoc);
-  gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+    buffer = gl.createBuffer();
+    if (!buffer) throw new Error('metal-fx: gl.createBuffer returned null');
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+    const posLoc = gl.getAttribLocation(program, 'a_position');
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
 
-  const uniforms: Record<string, WebGLUniformLocation | null> = {};
-  for (const n of UNIFORM_NAMES) uniforms[n] = gl.getUniformLocation(program, n);
-
-  return { program, buffer, uniforms };
+    const uniforms: Record<string, WebGLUniformLocation | null> = {};
+    for (const name of UNIFORM_NAMES) uniforms[name] = gl.getUniformLocation(program, name);
+    gl.deleteShader(vert);
+    gl.deleteShader(frag);
+    return { program, buffer, uniforms };
+  } catch (error) {
+    if (buffer) gl.deleteBuffer(buffer);
+    if (program) gl.deleteProgram(program);
+    if (vert) gl.deleteShader(vert);
+    if (frag) gl.deleteShader(frag);
+    throw error;
+  }
 }
 
 export function ensureSharedRenderer(): SharedRenderer {
@@ -178,8 +195,6 @@ export function ensureSharedRenderer(): SharedRenderer {
   }
   if (!gl) throw new Error('metal-fx: WebGL not supported');
 
-  const { program, buffer, uniforms } = buildGLPipeline(gl);
-
   const onContextLost = (e: Event) => {
     e.preventDefault();
     if (SHARED) SHARED.contextLost = true;
@@ -194,42 +209,54 @@ export function ensureSharedRenderer(): SharedRenderer {
     SHARED.contextLost = false;
     _onContextRestored?.();
   };
-  glCanvas.addEventListener('webglcontextlost', onContextLost as EventListener, false);
-  glCanvas.addEventListener('webglcontextrestored', onContextRestored as EventListener, false);
+  let pipeline: ReturnType<typeof buildGLPipeline> | null = null;
+  try {
+    pipeline = buildGLPipeline(gl);
+    glCanvas.addEventListener('webglcontextlost', onContextLost as EventListener, false);
+    glCanvas.addEventListener('webglcontextrestored', onContextRestored as EventListener, false);
 
-  SHARED = {
-    glCanvas,
-    gl,
-    program,
-    buffer,
-    uniforms,
-    preset: PRESETS.chromatic.modes.dark,
-    presetDirty: true,
-    contextLost: false,
-    useOffscreen,
-    frameBitmap: null,
-    startMs: performance.now(),
-    pausedMs: 0,
-    pausedAtMs: null,
-    rafId: 0,
-    dpr,
-    instances: new Set(),
-    frameCount: 0,
-    glowQueue: [],
-    glowIdx: 0,
-    glowSkip: 0,
-    glowPixels: new Uint8Array(size * size * 4),
-    glowPixelsW: size,
-    glowPixelsH: size
-  };
-  return SHARED;
+    SHARED = {
+      glCanvas,
+      gl,
+      ...pipeline,
+      preset: PRESETS.chromatic.modes.dark,
+      defaultPresetName: 'chromatic',
+      defaultPresetTheme: 'dark',
+      presetDirty: true,
+      contextLost: false,
+      useOffscreen,
+      startMs: performance.now(),
+      pausedMs: 0,
+      pausedAtMs: null,
+      rafId: 0,
+      dpr,
+      instances: new Set(),
+      frameCount: 0,
+      glowQueue: [],
+      glowIdx: 0,
+      glowSkip: 0
+    };
+    return SHARED;
+  } catch (error) {
+    glCanvas.removeEventListener('webglcontextlost', onContextLost as EventListener, false);
+    glCanvas.removeEventListener('webglcontextrestored', onContextRestored as EventListener, false);
+    if (pipeline) {
+      gl.deleteBuffer(pipeline.buffer);
+      gl.deleteProgram(pipeline.program);
+    }
+    try {
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+    } catch {
+      // Best-effort cleanup for incomplete or browser-rejected contexts.
+    }
+    throw error;
+  }
 }
 
 export function teardownSharedRenderer(): void {
   if (!SHARED) return;
-  const { gl, program, buffer, frameBitmap } = SHARED;
+  const { gl, program, buffer } = SHARED;
   try {
-    frameBitmap?.close();
     gl.deleteBuffer(buffer);
     gl.deleteProgram(program);
     gl.getExtension('WEBGL_lose_context')?.loseContext();

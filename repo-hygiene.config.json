@@ -2,15 +2,10 @@
   "lineReviewThreshold": 250,
   "lineFailThreshold": 350,
   "largeFileReviews": {
-    "src/MetalFx.tsx": {
-      "kind": "reviewed",
-      "reason": "Central React-to-engine orchestration remains easier to audit in one component after reusable theme and glow state are extracted.",
-      "revisitWhen": "Split lifecycle hooks when fallback or mixed-material work adds another independent effect lifecycle."
-    },
     "src/engine/renderer/loop.ts": {
       "kind": "reviewed",
-      "reason": "Instance lifecycle and frame scheduling share renderer invariants and are currently reviewed as one state machine.",
-      "revisitWhen": "Revisit while implementing material-group rendering."
+      "reason": "Instance lifecycle and grouped frame scheduling share renderer invariants and remain auditable as one state machine.",
+      "revisitWhen": "Split scheduling from compositing when another scheduling dimension, such as adaptive per-group cadence, is introduced."
     },
     "src/engine/glow/glow.ts": {
       "kind": "reviewed",
