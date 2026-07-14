@@ -6,6 +6,7 @@ describe('Material Lab query state', () => {
     expect(readMaterialLabState('?material-lab=1')).toEqual({
       environment: 'studio-sweep',
       fixture: 'foundation',
+      environment: 'studio-sweep',
       interaction: 'off',
       preview: 'pill',
       recipe: 'molten-chrome',
