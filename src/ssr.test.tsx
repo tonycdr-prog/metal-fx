@@ -10,12 +10,15 @@ describe('server rendering', () => {
     expect('IntersectionObserver' in globalThis).toBe(false);
     const errors = vi.spyOn(console, 'error');
     const warnings = vi.spyOn(console, 'warn');
-    expect(
-      renderToString(createElement(MetalFx, null, createElement('button', { type: 'button' }, 'Use effect')))
-    ).toContain('Use effect');
-    expect(errors).not.toHaveBeenCalled();
-    expect(warnings).not.toHaveBeenCalled();
-    errors.mockRestore();
-    warnings.mockRestore();
+    try {
+      expect(
+        renderToString(createElement(MetalFx, null, createElement('button', { type: 'button' }, 'Use effect')))
+      ).toContain('Use effect');
+      expect(errors).not.toHaveBeenCalled();
+      expect(warnings).not.toHaveBeenCalled();
+    } finally {
+      errors.mockRestore();
+      warnings.mockRestore();
+    }
   });
 });

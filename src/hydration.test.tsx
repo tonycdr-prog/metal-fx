@@ -1,4 +1,4 @@
-import { act } from 'react';
+import { act, StrictMode } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -33,34 +33,58 @@ function render(theme: 'auto' | 'dark' | 'light') {
 }
 
 describe('MetalFx hydration', () => {
-  afterEach(() => vi.clearAllMocks());
+  afterEach(() => {
+    document.body.innerHTML = '';
+    vi.restoreAllMocks();
+  });
 
   it.each(['auto', 'dark', 'light'] as const)('hydrates %s without warnings', async (theme) => {
     const media = { addEventListener: vi.fn(), matches: false, removeEventListener: vi.fn() };
     Object.defineProperty(window, 'matchMedia', { configurable: true, value: vi.fn(() => media) });
     const container = document.createElement('div');
     document.body.appendChild(container);
-    container.innerHTML = renderToString(render(theme));
-    const errors = vi.spyOn(console, 'error');
-    const warnings = vi.spyOn(console, 'warn');
-    let root: ReturnType<typeof hydrateRoot>;
-    await act(async () => {
-      root = hydrateRoot(container, render(theme));
-      await Promise.resolve();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-    expect(errors).not.toHaveBeenCalled();
-    expect(warnings).not.toHaveBeenCalled();
-    if (theme === 'auto') expect(window.matchMedia).toHaveBeenCalled();
-    expect(container.firstElementChild?.getAttribute('data-theme')).toBe(theme === 'auto' ? 'light' : theme);
-    if (theme === 'auto') {
-      media.matches = true;
-      await act(async () => media.addEventListener.mock.calls[0][1]());
-      expect(container.firstElementChild?.getAttribute('data-theme')).toBe('dark');
+    const strictRender = (nextTheme: 'auto' | 'dark' | 'light') => <StrictMode>{render(nextTheme)}</StrictMode>;
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const warnings = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    // The node-environment SSR test verifies server rendering separately. This
+    // jsdom render only seeds hydration markup and selects the browser layout
+    // effect because `window` exists, so discard that test-environment warning.
+    container.innerHTML = renderToString(strictRender(theme));
+    errors.mockClear();
+    warnings.mockClear();
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    try {
+      await act(async () => {
+        root = hydrateRoot(container, strictRender(theme));
+        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      expect(errors).not.toHaveBeenCalled();
+      expect(warnings).not.toHaveBeenCalled();
+      expect(engine.createInstance).toHaveBeenCalledTimes(2);
+      expect(engine.destroyInstance).toHaveBeenCalledTimes(1);
+      if (theme === 'auto') expect(window.matchMedia).toHaveBeenCalled();
+      expect(container.firstElementChild?.getAttribute('data-theme')).toBe(theme === 'auto' ? 'light' : theme);
+      if (theme === 'auto') {
+        media.matches = true;
+        const latestListener = media.addEventListener.mock.calls[media.addEventListener.mock.calls.length - 1]?.[1];
+        await act(async () => latestListener());
+        expect(container.firstElementChild?.getAttribute('data-theme')).toBe('dark');
+      }
+
+      const updatedTheme = theme === 'light' ? 'dark' : 'light';
+      await act(async () => root?.render(strictRender(updatedTheme)));
+      expect(container.firstElementChild?.getAttribute('data-theme')).toBe(updatedTheme);
+      expect(engine.createInstance).toHaveBeenCalledTimes(2);
+      expect(errors).not.toHaveBeenCalled();
+      expect(warnings).not.toHaveBeenCalled();
+    } finally {
+      await act(async () => root?.unmount());
+      errors.mockRestore();
+      warnings.mockRestore();
     }
-    await act(async () => root?.unmount());
-    if (theme === 'auto') expect(media.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function));
-    errors.mockRestore();
-    warnings.mockRestore();
+    expect(engine.destroyInstance).toHaveBeenCalledTimes(2);
+    if (theme === 'auto')
+      expect(media.removeEventListener).toHaveBeenCalledTimes(media.addEventListener.mock.calls.length);
   });
 });

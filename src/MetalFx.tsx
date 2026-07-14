@@ -141,9 +141,8 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     if (Object.keys(patch).length > 0) updateInstance(inst, patch);
   }, [shaderScale, ringCssPx, scale]);
 
-  // useLayoutEffect (not useEffect) so the instance is created and the canvas
-  // is sized synchronously before the browser paints — avoids a one-frame
-  // flash of the unsized canvas.
+  // Use a layout effect in the browser so the instance is created and the canvas
+  // is sized synchronously before paint, with a server-safe effect during SSR.
   useSafeLayoutEffect(() => {
     const canvas = canvasRef.current;
     const root = rootRef.current;
