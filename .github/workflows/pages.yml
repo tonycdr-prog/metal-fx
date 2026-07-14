@@ -1,18 +1,11 @@
 name: Deploy demo to GitHub Pages
 
-# Redeploys https://tonycdr-prog.github.io/metal-fx/ whenever the demo changes on main.
+# Redeploys https://tonycdr-prog.github.io/metal-fx/ after Quality succeeds on main.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'demo/**'
-      - 'src/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'vite.config.demo.ts'
-      - '.github/workflows/pages.yml'
-  workflow_dispatch:
+  workflow_run:
+    workflows: [Quality]
+    types: [completed]
 
 permissions:
   pages: write
@@ -25,6 +18,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:
@@ -33,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
       - name: Set up Node
         uses: actions/setup-node@v6
         with:

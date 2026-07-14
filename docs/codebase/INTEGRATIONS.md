@@ -7,7 +7,7 @@
 | Browser WebGL + Canvas APIs | Client runtime | Shader generation, per-instance rings, sampling, reflections | None | High | `src/engine/renderer/*.ts`, `src/engine/reflection/paint.ts` |
 | Browser frame/observer APIs | Client runtime | Animation, sizing, visibility, theme, and target-style invalidation | None | High | `src/MetalFx.tsx`, `src/engine/reflection/observers.ts` |
 | npm registry | Package distribution | Publishes tagged releases with provenance | `NPM_TOKEN` GitHub secret + OIDC provenance | High | `.github/workflows/publish.yml` |
-| GitHub Pages | Public static hosting | Deploys the demo to `https://tonycdr-prog.github.io/metal-fx/` on relevant `main` changes | GitHub Actions OIDC permissions | Medium | `.github/workflows/pages.yml`, `vite.config.demo.ts` |
+| GitHub Pages | Public static hosting | Deploys the demo to `https://tonycdr-prog.github.io/metal-fx/` only after Quality succeeds on `main` | GitHub Actions OIDC permissions | Medium | `.github/workflows/pages.yml`, `.github/workflows/quality.yml`, `vite.config.demo.ts` |
 | Cloudflare Pages | Optional static hosting | Manual `npm run deploy` path via Wrangler | Wrangler account authentication outside repo | Low | `package.json` |
 
 No runtime HTTP APIs, databases, queues, analytics, or observability services were found.

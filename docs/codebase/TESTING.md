@@ -46,6 +46,7 @@ npm run build:demo
 
 - Coverage tool + threshold: no threshold configured in this foundation.
 - CI quality gates: `.github/workflows/quality.yml` runs `npm run check` on Node 22 and 24, plus a separate browser-smoke job that installs Chromium, Firefox, and WebKit and uploads failure artifacts.
+- Pages deployment runs only after the complete Quality workflow succeeds on `main` and checks out that exact tested commit.
 - Known test gap: warning-free SSR/hydration is an explicit TODO until the dedicated production fix lands; the current server warning is not suppressed.
 - Highest-value remaining gaps: concurrent different presets/themes, no-WebGL fallback, context loss/restore, StrictMode mount cycles, observer cleanup, pause/visibility, reflection target ownership, and visual regression baselines.
 
