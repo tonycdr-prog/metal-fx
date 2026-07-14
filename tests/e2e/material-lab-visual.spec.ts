@@ -18,7 +18,10 @@ test('renders the deterministic Material Lab evidence fixture', async ({ page })
     './?material-lab=1&fixture=foundation&recipe=holographic&environment=spectral-wash&interaction=off&preview=pill&preset=chromatic&theme=dark&strength=92&paused=1'
   );
   await page.evaluate(() => document.fonts.ready);
-  await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' });
+  await page.addStyleTag({
+    content:
+      '*,*::before,*::after{animation:none!important;transition:none!important}.material-lab-reflection-target{visibility:hidden!important}'
+  });
 
   const stage = page.getByTestId('interaction-stage');
   await expect(stage).toBeVisible();
