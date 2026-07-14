@@ -6,6 +6,8 @@ import { MetalFx } from './MetalFx';
 
 describe('server rendering', () => {
   it('imports and renders without accessing browser globals', () => {
+    expect('ResizeObserver' in globalThis).toBe(false);
+    expect('IntersectionObserver' in globalThis).toBe(false);
     expect(
       renderToString(createElement(MetalFx, null, createElement('button', { type: 'button' }, 'Use effect')))
     ).toContain('Use effect');

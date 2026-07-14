@@ -6,9 +6,9 @@ class ResizeObserverMock {
   unobserve = vi.fn();
 }
 
-Object.defineProperty(globalThis, 'ResizeObserver', { configurable: true, value: ResizeObserverMock });
-Object.defineProperty(globalThis, 'IntersectionObserver', { configurable: true, value: undefined });
 if (typeof window !== 'undefined') {
+  Object.defineProperty(globalThis, 'ResizeObserver', { configurable: true, value: ResizeObserverMock });
+  Object.defineProperty(globalThis, 'IntersectionObserver', { configurable: true, value: undefined });
   Object.defineProperty(globalThis, 'IS_REACT_ACT_ENVIRONMENT', { configurable: true, value: true });
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
