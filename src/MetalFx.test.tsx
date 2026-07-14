@@ -58,7 +58,7 @@ describe('MetalFx', () => {
 
     act(() =>
       root.render(
-        <MetalFx paused strength={2}>
+        <MetalFx paused preset="silver" strength={2} theme="light">
           <button type="button" onClick={onClick}>
             Use effect
           </button>
@@ -67,6 +67,7 @@ describe('MetalFx', () => {
     );
     expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { paused: true });
     expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { opacityMul: 1 });
+    expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { preset: 'silver', theme: 'light' });
   });
 
   it('cleans up the renderer instance on final unmount', () => {

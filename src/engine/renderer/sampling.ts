@@ -10,22 +10,20 @@
 import { GLOW_READBACK_INTERVAL_MS } from '../perfConfig';
 import { CANONICAL_PILL_H, CANONICAL_PILL_W, type MetalFxInstance, SHARED, type ShaderRGB } from './core';
 
-let _lastReadbackMs = 0;
-
-export function ensureGlowPixels(): void {
+export function ensureGlowPixels(inst: MetalFxInstance): void {
   if (!SHARED) return;
   const now = performance.now();
-  if (now - _lastReadbackMs < GLOW_READBACK_INTERVAL_MS) return;
-  _lastReadbackMs = now;
+  if (now - inst.glowReadbackMs < GLOW_READBACK_INTERVAL_MS) return;
+  inst.glowReadbackMs = now;
   const { gl, glCanvas } = SHARED;
   const cw = glCanvas.width,
     ch = glCanvas.height;
-  if (SHARED.glowPixelsW !== cw || SHARED.glowPixelsH !== ch) {
-    SHARED.glowPixelsW = cw;
-    SHARED.glowPixelsH = ch;
-    SHARED.glowPixels = new Uint8Array(cw * ch * 4);
+  if (inst.glowPixelsW !== cw || inst.glowPixelsH !== ch) {
+    inst.glowPixelsW = cw;
+    inst.glowPixelsH = ch;
+    inst.glowPixels = new Uint8Array(cw * ch * 4);
   }
-  gl.readPixels(0, 0, cw, ch, gl.RGBA, gl.UNSIGNED_BYTE, SHARED.glowPixels);
+  gl.readPixels(0, 0, cw, ch, gl.RGBA, gl.UNSIGNED_BYTE, inst.glowPixels);
 }
 
 /**
@@ -98,9 +96,9 @@ const _rgb: ShaderRGB = { r: 255, g: 255, b: 255 };
 
 export function sampleShaderLumAt(inst: MetalFxInstance, cssPxX: number, cssPxY: number, radius: number): number {
   if (!SHARED) return 0;
-  ensureGlowPixels();
+  ensureGlowPixels(inst);
   const m = mapToGlowBuf(inst, cssPxX, cssPxY);
-  const s = sampleRegion(SHARED.glowPixels, SHARED.glowPixelsW, SHARED.glowPixelsH, m.bx, m.by, radius);
+  const s = sampleRegion(inst.glowPixels, inst.glowPixelsW, inst.glowPixelsH, m.bx, m.by, radius);
   return s.count > 0 ? s.lum / s.count : 0;
 }
 
@@ -111,9 +109,9 @@ export function sampleShaderRGBAt(inst: MetalFxInstance, cssPxX: number, cssPxY:
     _rgb.b = 255;
     return _rgb;
   }
-  ensureGlowPixels();
+  ensureGlowPixels(inst);
   const m = mapToGlowBuf(inst, cssPxX, cssPxY);
-  const s = sampleRegion(SHARED.glowPixels, SHARED.glowPixelsW, SHARED.glowPixelsH, m.bx, m.by, radius);
+  const s = sampleRegion(inst.glowPixels, inst.glowPixelsW, inst.glowPixelsH, m.bx, m.by, radius);
   if (s.count === 0) {
     _rgb.r = 255;
     _rgb.g = 255;
@@ -138,9 +136,9 @@ export function sampleShaderRGBChromatic(
     _rgb.b = 255;
     return _rgb;
   }
-  ensureGlowPixels();
+  ensureGlowPixels(inst);
   const m = mapToGlowBuf(inst, cssPxX, cssPxY);
-  const { glowPixels: buf, glowPixelsW: W, glowPixelsH: H } = SHARED;
+  const { glowPixels: buf, glowPixelsW: W, glowPixelsH: H } = inst;
   const r = Math.max(1, radius | 0);
   const x0 = Math.max(0, m.bx - r),
     x1 = Math.min(W, m.bx + r + 1);

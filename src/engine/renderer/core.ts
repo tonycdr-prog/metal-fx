@@ -11,7 +11,7 @@
  *      makes higher rates imperceptible.
  */
 import { CANONICAL_GL_SIZE, GL_DPR_CAP } from '../perfConfig';
-import { PRESETS, type PresetMode } from '../presets';
+import { PRESETS, type PresetMode, type PresetName, type PresetTheme } from '../presets';
 import { compileShader, FRAG_SHADER_SRC, linkProgram, VERT_SHADER_SRC } from '../shaders';
 export const CANONICAL_PILL_W = 140;
 export const CANONICAL_PILL_H = 40;
@@ -48,6 +48,12 @@ export interface MetalFxInstance {
    *  widths/blurs, reflection stroke band, etc.). 1 is the baseline. Set to
    *  2 for a CSS-zoomed 2× hero so glow + reflection grow with the layout. */
   scale: number;
+  preset: PresetName;
+  theme: PresetTheme;
+  glowPixels: Uint8Array;
+  glowPixelsW: number;
+  glowPixelsH: number;
+  glowReadbackMs: number;
   onAfterFrame?: () => void;
   /** One-shot callback fired after the very first copyShaderToInstance.
    *  Auto-cleared by the loop so it never fires twice. */
