@@ -94,3 +94,33 @@ test('falls back to visible interactive children when WebGL is unavailable', asy
   await expect(effects.first().locator('.metal-fx-canvas')).toBeHidden();
   expect(errors).toEqual([]);
 });
+
+test('updates glow geometry in a live WebGL playground without remounting the effect', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  page.on('pageerror', (error) => errors.push(error.message));
+
+  await page.goto('./');
+  const playground = page.getByLabel('Interactive playground');
+  const effect = playground.locator('.metal-fx-root');
+  const glow = effect.locator('.metal-fx-glow-svg');
+  const scale = playground.getByRole('slider', { name: 'Effect scale' });
+
+  await expect(effect).toHaveCount(1);
+  await expect(glow).toHaveCount(1);
+  await effect.evaluate((element) => element.setAttribute('data-test-scale-identity', 'stable'));
+
+  await scale.fill('2');
+  await expect(scale).toHaveValue('2');
+  await expect.poll(() => glow.innerHTML()).toContain('stdDeviation="16.800"');
+  await expect(effect).toHaveCount(1);
+  await expect(effect).toHaveAttribute('data-test-scale-identity', 'stable');
+
+  await scale.fill('0.5');
+  await expect(scale).toHaveValue('0.5');
+  await expect.poll(() => glow.innerHTML()).toContain('stdDeviation="1.050"');
+  await expect(effect).toHaveAttribute('data-test-scale-identity', 'stable');
+  expect(errors).toEqual([]);
+});

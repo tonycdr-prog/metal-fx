@@ -1,10 +1,30 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MetalFxInstance } from '../renderer/core';
-import { addReflectionTarget, removeReflectionTarget } from './paint';
+import { addReflectionTarget, getReflectionScaleMetrics, removeReflectionTarget } from './paint';
 
 function instance(): MetalFxInstance {
   return { canvas: document.createElement('canvas') } as MetalFxInstance;
 }
+
+describe('getReflectionScaleMetrics', () => {
+  it('scales stroke, highlight, and reference draw dimensions for 1 → 2 → 0.5', () => {
+    expect(getReflectionScaleMetrics(1, 2, 0, 140)).toEqual({
+      strokeBandPx: 2,
+      borderHighlightPx: 2,
+      referenceDrawPx: 470
+    });
+    expect(getReflectionScaleMetrics(2, 2, 0, 140)).toEqual({
+      strokeBandPx: 4,
+      borderHighlightPx: 4,
+      referenceDrawPx: 940
+    });
+    expect(getReflectionScaleMetrics(0.5, 2, 0, 140)).toEqual({
+      strokeBandPx: 1,
+      borderHighlightPx: 1,
+      referenceDrawPx: 235
+    });
+  });
+});
 
 describe('reflection target ownership', () => {
   beforeEach(() => {

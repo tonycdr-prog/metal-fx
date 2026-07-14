@@ -5,6 +5,7 @@ import type { Theme } from '../hooks/useTheme';
 import { cn } from '../lib/utils';
 import { CopyButton } from './CopyButton';
 import { ArrowUpIcon, SearchIcon18 } from './icons';
+import { PlaygroundScaleControl } from './PlaygroundScaleControl';
 import { PlayPauseToggle } from './PlayPauseToggle';
 import { Button } from './ui/button';
 
@@ -17,12 +18,14 @@ function buildSnippet(
   variant: MetalFxVariant,
   preset: MetalFxPreset,
   strength: number,
+  scale: number,
   disableGlow: boolean,
   disableReflection: boolean
 ) {
   const props = [`preset="${preset}"`];
   if (variant !== 'button') props.push(`variant="${variant}"`);
   if (strength !== 1) props.push(`strength={${strength.toFixed(2)}}`);
+  if (scale !== 1) props.push(`scale={${scale.toFixed(1)}}`);
   if (disableGlow) props.push('disableGlow');
   if (!disableReflection) props.push('reflectionTargets={[siblingRef]}');
   const child =
@@ -34,6 +37,7 @@ function buildShadcnSnippet(
   variant: MetalFxVariant,
   preset: MetalFxPreset,
   strength: number,
+  scale: number,
   btnVariant: string,
   disableGlow: boolean,
   disableReflection: boolean
@@ -41,6 +45,7 @@ function buildShadcnSnippet(
   const props = [`preset="${preset}"`];
   if (variant !== 'button') props.push(`variant="${variant}"`);
   if (strength !== 1) props.push(`strength={${strength.toFixed(2)}}`);
+  if (scale !== 1) props.push(`scale={${scale.toFixed(1)}}`);
   if (disableGlow) props.push('disableGlow');
   if (!disableReflection) props.push('reflectionTargets={[siblingRef]}');
   const child =
@@ -90,6 +95,7 @@ export function Playground({
   // below only flips this local state, so the surrounding Examples keep
   // auto-playing regardless.
   const [paused, setPaused] = useState(true);
+  const [scale, setScale] = useState(1);
   const [disableGlow, setDisableGlow] = useState(false);
   const [disableReflection, setDisableReflection] = useState(false);
   const playPauseRef = useRef<HTMLButtonElement>(null);
@@ -97,8 +103,8 @@ export function Playground({
 
   const snippet =
     tab === 'default'
-      ? buildSnippet(variant, preset, strength / 100, disableGlow, disableReflection)
-      : buildShadcnSnippet(variant, preset, strength / 100, 'default', disableGlow, disableReflection);
+      ? buildSnippet(variant, preset, strength / 100, scale, disableGlow, disableReflection)
+      : buildShadcnSnippet(variant, preset, strength / 100, scale, 'default', disableGlow, disableReflection);
 
   const reflectionTargets = disableReflection ? undefined : [playPauseRef, neighborRef];
 
@@ -164,6 +170,8 @@ export function Playground({
               />
             </div>
           </div>
+
+          <PlaygroundScaleControl scale={scale} onChange={setScale} />
         </div>
 
         <div className="flex items-end gap-6 max-sm:flex-col max-sm:items-stretch max-sm:gap-4">
@@ -226,6 +234,7 @@ export function Playground({
                 variant={tab === 'shadcn' && variant === 'circle' ? 'circle' : variant}
                 theme={theme}
                 strength={strength / 100}
+                scale={scale}
                 paused={paused}
                 disableGlow={disableGlow}
                 reflectionTargets={reflectionTargets}

@@ -49,6 +49,7 @@ describe('MetalFx', () => {
         scale: options.scale ?? 1
       };
     });
+    engine.updateInstance.mockImplementation((instance, patch) => Object.assign(instance, patch));
   });
 
   afterEach(() => {

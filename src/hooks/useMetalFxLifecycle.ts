@@ -185,9 +185,8 @@ export function useMetalFxLifecycle({
     return cleanup;
   }, [shape]);
 
-  // Shape changes replace the renderer instance, so glow ownership must move
-  // even if the enabled state itself did not change.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: shape is an intentional lifecycle trigger
+  // Shape changes replace the renderer instance; scale changes rebuild only
+  // the SVG geometry so absolute strokes and offsets remain proportional.
   useEffect(() => {
     const instance = instanceRef.current;
     const glowHost = glowHostRef.current;
@@ -218,5 +217,5 @@ export function useMetalFxLifecycle({
       glowHandlesRef.current = null;
       glowHost.replaceChildren();
     };
-  }, [glowEnabled, shape]);
+  }, [glowEnabled, shape, scale]);
 }
