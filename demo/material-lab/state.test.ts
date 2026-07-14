@@ -4,6 +4,7 @@ import { buildMaterialLabSearch, isMaterialLabRequested, readMaterialLabState } 
 describe('Material Lab query state', () => {
   it('uses the complete foundation state when only the lab route is requested', () => {
     expect(readMaterialLabState('?material-lab=1')).toEqual({
+      environment: 'studio-sweep',
       fixture: 'foundation',
       interaction: 'off',
       preview: 'pill',
@@ -20,11 +21,19 @@ describe('Material Lab query state', () => {
     expect(readMaterialLabState('?material-lab=1&recipe=copper&strength=not-a-number').strength).toBe(88);
   });
 
+  it('uses the selected recipe environment when an override is missing or invalid', () => {
+    expect(readMaterialLabState('?material-lab=1&recipe=holographic').environment).toBe('spectral-wash');
+    expect(readMaterialLabState('?material-lab=1&recipe=holographic&environment=unknown').environment).toBe(
+      'spectral-wash'
+    );
+  });
+
   it('normalizes malformed state to a safe foundation fixture', () => {
     expect(
       readMaterialLabState('?material-lab=1&preview=wall&preset=plasma&theme=void&strength=490&paused=yes')
     ).toEqual({
       fixture: 'foundation',
+      environment: 'studio-sweep',
       interaction: 'off',
       preview: 'pill',
       recipe: 'molten-chrome',
@@ -39,6 +48,7 @@ describe('Material Lab query state', () => {
     const search = buildMaterialLabSearch(
       {
         fixture: 'foundation',
+        environment: 'spectral-wash',
         interaction: 'press-hold',
         recipe: 'copper',
         preview: 'circle',
@@ -50,7 +60,7 @@ describe('Material Lab query state', () => {
       '?source=review'
     );
     expect(search).toBe(
-      '?source=review&material-lab=1&fixture=foundation&recipe=copper&interaction=press-hold&preview=circle&preset=gold&theme=light&strength=62&paused=1'
+      '?source=review&material-lab=1&fixture=foundation&recipe=copper&environment=spectral-wash&interaction=press-hold&preview=circle&preset=gold&theme=light&strength=62&paused=1'
     );
     expect(isMaterialLabRequested(search)).toBe(true);
   });

@@ -7,6 +7,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     description: 'Mirror-bright liquid on a furnace-dark stage.',
     presentation: { backdrop: '#1c100b', surface: '#2a1710', content: '#fff1de' },
     state: {
+      environment: 'studio-sweep',
       fixture: 'foundation',
       interaction: 'off',
       preview: 'pill',
@@ -22,6 +23,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     description: 'A calm, machined treatment for light editorial surfaces.',
     presentation: { backdrop: '#e6e5e1', surface: '#f5f4ef', content: '#252a2d' },
     state: {
+      environment: 'studio-sweep',
       fixture: 'foundation',
       interaction: 'off',
       preview: 'content',
@@ -37,6 +39,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     description: 'Dense silver held in a cool, low-light field.',
     presentation: { backdrop: '#14191e', surface: '#202a32', content: '#e8edf2' },
     state: {
+      environment: 'studio-sweep',
       fixture: 'foundation',
       interaction: 'off',
       preview: 'circle',
@@ -52,6 +55,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     description: 'A chromatic native ring paired with a spectral demo field.',
     presentation: { backdrop: '#151021', surface: '#241934', content: '#f2eaff' },
     state: {
+      environment: 'spectral-wash',
       fixture: 'foundation',
       interaction: 'off',
       preview: 'pill',
@@ -67,6 +71,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     description: 'Warm gold tuning with oxidised, tactile presentation.',
     presentation: { backdrop: '#21120d', surface: '#3a1c12', content: '#ffe9d0' },
     state: {
+      environment: 'warm-cool-split',
       fixture: 'foundation',
       interaction: 'off',
       preview: 'content',
@@ -82,6 +87,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     description: 'A restrained silver edge on near-black volcanic glass.',
     presentation: { backdrop: '#0e1011', surface: '#171a1c', content: '#e9e7e0' },
     state: {
+      environment: 'dark-tunnel',
       fixture: 'foundation',
       interaction: 'off',
       preview: 'circle',
@@ -97,6 +103,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     description: 'High-energy chromatic metal contained by a deep violet field.',
     presentation: { backdrop: '#111126', surface: '#19183b', content: '#edf0ff' },
     state: {
+      environment: 'moving-softbox',
       fixture: 'foundation',
       interaction: 'off',
       preview: 'pill',

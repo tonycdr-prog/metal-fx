@@ -24,6 +24,7 @@ Supported foundation values are:
 - `strength=0..100`
 - `paused=0|1`
 - `interaction=off|pointer-position|pointer-velocity|press-hold|scroll-response|proximity-response|idle-breathing`
+- `environment=studio-sweep|warm-cool-split|moving-softbox|dark-tunnel|spectral-wash`
 
 Malformed values fall back to the molten-chrome foundation state. The lab deliberately mounts one live `MetalFx` preview. Its controls exercise only documented props: preset, theme, strength, circle/button shape, and pause. Treatments vary those native controls and deliberately separated stage, card, type, and background presentation rather than claiming new shader features.
 
@@ -32,3 +33,5 @@ Malformed values fall back to the molten-chrome foundation state. The lab delibe
 The Lab honours `prefers-reduced-motion` by pausing the preview and disabling its optional glow. The media-query subscription is owned by the lab hook and is removed on unmount.
 
 Interaction modes are demo-local stage movement only. Pointer and scroll signals are bounded, coalesced through a single requestAnimationFrame, and cancel their pending work on pointer exit, cancellation, hidden-page transitions, mode changes, and unmount. Idle breathing uses a CSS animation rather than a persistent JavaScript frame loop.
+
+The lighting environments are CSS stage treatments. They are not MetalFx shaders. The nearby target uses the public `reflectionTargets` prop in dark mode only; ownership remains with MetalFx and is released by its existing lifecycle cleanup. Animated environment classes are removed whenever the preview is paused, the page is hidden, reduced motion is requested, or the Lab unmounts.

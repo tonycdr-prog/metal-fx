@@ -80,10 +80,29 @@
 .material-lab-stage-breathing {
   animation: material-lab-breathe 2.8s ease-in-out infinite alternate;
 }
+.material-lab-environment-moving {
+  animation: material-lab-environment 5s ease-in-out infinite alternate;
+}
 @keyframes material-lab-breathe {
   to {
     filter: brightness(1.13);
   }
+}
+@keyframes material-lab-environment {
+  to {
+    background-position: 100% 50%;
+    filter: brightness(1.14);
+  }
+}
+.material-lab-reflection-target {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 8px;
+  position: absolute;
+  right: 18px;
+  text-transform: uppercase;
+  top: 48px;
 }
 .material-lab-preview p {
   border-top: 1px solid currentColor;
@@ -218,7 +237,8 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .material-lab-stage-breathing {
+  .material-lab-stage-breathing,
+  .material-lab-environment-moving {
     animation: none;
   }
 }

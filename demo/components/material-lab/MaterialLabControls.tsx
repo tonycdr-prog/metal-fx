@@ -1,4 +1,5 @@
 import type { MetalFxPreset } from '../../../src';
+import { MATERIAL_ENVIRONMENTS } from '../../material-lab/environments';
 import type { MaterialLabPreview, MaterialLabState, MaterialLabTheme } from '../../material-lab/types';
 import type { InteractionMode } from '../../material-lab/useInteractionSignal';
 
@@ -50,6 +51,20 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
           {PRESETS.map((preset) => (
             <option key={preset} value={preset}>
               {preset[0].toUpperCase() + preset.slice(1)}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label>
+        Lighting environment
+        <select
+          onChange={(event) => onChange({ environment: event.target.value as MaterialLabState['environment'] })}
+          value={state.environment}
+        >
+          {MATERIAL_ENVIRONMENTS.map((environment) => (
+            <option key={environment.id} value={environment.id}>
+              {environment.label}
             </option>
           ))}
         </select>

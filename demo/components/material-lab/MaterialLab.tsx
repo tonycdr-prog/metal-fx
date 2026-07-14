@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { findMaterialEnvironment } from '../../material-lab/environments';
 import { findMaterialRecipe } from '../../material-lab/recipes';
 import { buildMaterialLabSearch, readMaterialLabState } from '../../material-lab/state';
 import type { MaterialLabState } from '../../material-lab/types';
+import { usePageVisible } from '../../material-lab/usePageVisible';
 import { useReducedMotion } from '../../material-lab/useReducedMotion';
 import './material-lab.css';
 import { MaterialLabControls } from './MaterialLabControls';
@@ -11,7 +13,9 @@ import { MaterialRecipePicker } from './MaterialRecipePicker';
 export function MaterialLab() {
   const [state, setState] = useState(() => readMaterialLabState(window.location.search));
   const reducedMotion = useReducedMotion();
+  const pageVisible = usePageVisible();
   const recipe = findMaterialRecipe(state.recipe);
+  const environment = findMaterialEnvironment(state.environment);
 
   const updateState = (patch: Partial<MaterialLabState>) => {
     setState((current) => ({ ...current, ...patch }));
@@ -34,7 +38,13 @@ export function MaterialLab() {
       </header>
       <MaterialRecipePicker onSelect={selectRecipe} selected={state.recipe} />
       <div className="material-lab-workspace">
-        <MaterialLabPreview recipe={recipe} reducedMotion={reducedMotion} state={state} />
+        <MaterialLabPreview
+          environment={environment}
+          pageVisible={pageVisible}
+          recipe={recipe}
+          reducedMotion={reducedMotion}
+          state={state}
+        />
         <MaterialLabControls onChange={updateState} state={state} />
       </div>
     </main>
