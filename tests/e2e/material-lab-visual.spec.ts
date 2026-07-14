@@ -20,7 +20,7 @@ test('renders the deterministic Material Lab evidence fixture', async ({ page })
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({
     content:
-      '*,*::before,*::after{animation:none!important;transition:none!important}.material-lab-reflection-target{visibility:hidden!important}'
+      '*,*::before,*::after{animation:none!important;transition:none!important}.material-lab-reflection-target{visibility:hidden!important}.material-lab-pill{font-size:0!important}'
   });
 
   const stage = page.getByTestId('interaction-stage');
