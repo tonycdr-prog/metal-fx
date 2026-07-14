@@ -15,11 +15,20 @@ export default defineConfig({
     { name: 'chromium', testIgnore: /visual\.spec\.ts/, use: { ...devices['Desktop Chrome'] } },
     {
       name: 'chromium-visual',
-      testMatch: /visual\.spec\.ts/,
+      testMatch: /(^|[/\\])visual\.spec\.ts$/,
       use: {
         ...devices['Desktop Chrome'],
         deviceScaleFactor: 1,
         viewport: { width: 880, height: 160 }
+      }
+    },
+    {
+      name: 'chromium-material-lab-visual',
+      testMatch: /(^|[/\\])material-lab-visual\.spec\.ts$/,
+      use: {
+        ...devices['Desktop Chrome'],
+        deviceScaleFactor: 1,
+        viewport: { width: 960, height: 720 }
       }
     },
     {
