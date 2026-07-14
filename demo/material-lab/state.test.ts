@@ -5,6 +5,7 @@ describe('Material Lab query state', () => {
   it('uses the complete foundation state when only the lab route is requested', () => {
     expect(readMaterialLabState('?material-lab=1')).toEqual({
       fixture: 'foundation',
+      interaction: 'off',
       preview: 'pill',
       recipe: 'molten-chrome',
       preset: 'chromatic',

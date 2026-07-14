@@ -19,10 +19,10 @@ function PreviewContent({ preview }: Pick<MaterialLabState, 'preview'>) {
   }
   if (preview === 'content') {
     return (
-      <article className="material-lab-content-card">
+      <button className="material-lab-content-card" type="button">
         <span>Experimental surface</span>
         <strong>Review the treatment in context.</strong>
-      </article>
+      </button>
     );
   }
   return (
@@ -36,7 +36,7 @@ export function MaterialLabPreview({ recipe, reducedMotion, state }: MaterialLab
   const isPaused = reducedMotion || state.paused;
   const [stage, setStage] = useState<HTMLDivElement | null>(null);
   const signal = useInteractionSignal(state.interaction, reducedMotion, stage);
-  const breathing = state.interaction === 'idle-breathing' && !reducedMotion;
+  const breathing = state.interaction === 'idle-breathing' && !isPaused;
   return (
     <section
       className={`material-lab-preview material-lab-preview-${state.theme}`}

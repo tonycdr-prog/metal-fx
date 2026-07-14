@@ -21,17 +21,26 @@ export function useInteractionSignal(mode: InteractionMode, reducedMotion: boole
       setSignal(0);
       return;
     }
+    setSignal(0);
 
     let frame = 0;
+    let pendingSignal = 0;
     let previousX: number | null = null;
     const schedule = (value: number) => {
+      pendingSignal = value;
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        setSignal(clampInteractionSignal(value));
+        setSignal(clampInteractionSignal(pendingSignal));
       });
     };
     const reset = () => schedule(0);
+    const resetImmediately = () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      pendingSignal = 0;
+      setSignal(0);
+    };
     const pointerValue = (event: PointerEvent) => {
       const rect = host.getBoundingClientRect();
       return ((event.clientX - rect.left) / Math.max(1, rect.width)) * 2 - 1;
@@ -42,19 +51,27 @@ export function useInteractionSignal(mode: InteractionMode, reducedMotion: boole
       previousX = value;
     };
     const onProximity = (event: PointerEvent) => schedule(1 - Math.abs(pointerValue(event)));
-    const onPress = () => schedule(1);
+    const activatePress = () => schedule(1);
+    const onPress = (event: PointerEvent) => {
+      host.setPointerCapture(event.pointerId);
+      activatePress();
+    };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Enter' || event.key === ' ') onPress();
+      if (event.key === 'Enter' || event.key === ' ') activatePress();
     };
     const onScroll = () => schedule(Math.sin(window.scrollY / 120));
     const onVisibilityChange = () => {
-      if (document.hidden) reset();
+      if (document.hidden) resetImmediately();
     };
 
     if (mode === 'scroll-response') window.addEventListener('scroll', onScroll, { passive: true });
-    else {
-      host.addEventListener('pointermove', mode === 'proximity-response' ? onProximity : onPointerMove);
+    else if (mode === 'pointer-position' || mode === 'pointer-velocity') {
+      host.addEventListener('pointermove', onPointerMove);
       host.addEventListener('pointerleave', reset);
+    } else if (mode === 'proximity-response') {
+      host.addEventListener('pointermove', onProximity);
+      host.addEventListener('pointerleave', reset);
+    } else if (mode === 'press-hold') {
       host.addEventListener('pointerdown', onPress);
       host.addEventListener('pointerup', reset);
       host.addEventListener('pointercancel', reset);
@@ -66,16 +83,21 @@ export function useInteractionSignal(mode: InteractionMode, reducedMotion: boole
 
     return () => {
       if (frame) cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', onScroll);
-      host.removeEventListener('pointermove', onPointerMove);
-      host.removeEventListener('pointermove', onProximity);
-      host.removeEventListener('pointerleave', reset);
-      host.removeEventListener('pointerdown', onPress);
-      host.removeEventListener('pointerup', reset);
-      host.removeEventListener('pointercancel', reset);
-      host.removeEventListener('lostpointercapture', reset);
-      host.removeEventListener('keydown', onKeyDown);
-      host.removeEventListener('keyup', reset);
+      if (mode === 'scroll-response') window.removeEventListener('scroll', onScroll);
+      else if (mode === 'pointer-position' || mode === 'pointer-velocity') {
+        host.removeEventListener('pointermove', onPointerMove);
+        host.removeEventListener('pointerleave', reset);
+      } else if (mode === 'proximity-response') {
+        host.removeEventListener('pointermove', onProximity);
+        host.removeEventListener('pointerleave', reset);
+      } else if (mode === 'press-hold') {
+        host.removeEventListener('pointerdown', onPress);
+        host.removeEventListener('pointerup', reset);
+        host.removeEventListener('pointercancel', reset);
+        host.removeEventListener('lostpointercapture', reset);
+        host.removeEventListener('keydown', onKeyDown);
+        host.removeEventListener('keyup', reset);
+      }
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, [host, mode, reducedMotion]);
