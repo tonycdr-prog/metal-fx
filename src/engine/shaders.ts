@@ -27,6 +27,11 @@
  *   u_vigOpacity      float — vignette darkening strength (0..1)
  *   u_blur            float — sample-radius for the 9-tap blur (0..1)
  *   u_shaderOpacity   float — final alpha multiplier (0..1)
+ *   u_finishGrain     float — directional micro-banding amplitude
+ *   u_finishGrainScale float — micro-banding spatial frequency
+ *   u_finishFlow      float — low-frequency coordinate flow
+ *   u_finishSpectral  float — RGB palette separation
+ *   u_finishContrast  float — finish-local contrast curve
  */
 export const VERT_SHADER_SRC = /* glsl */ `
   attribute vec2 a_position;
@@ -43,6 +48,8 @@ export const FRAG_SHADER_SRC = /* glsl */ `
   uniform float u_intensity, u_scale, u_direction;
   uniform float u_softness, u_distortion, u_complexity, u_shape;
   uniform float u_vignette, u_vigOpacity, u_blur, u_shaderOpacity;
+  uniform float u_finishGrain, u_finishGrainScale, u_finishFlow;
+  uniform float u_finishSpectral, u_finishContrast;
 
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
   vec2 mod289v2(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -138,6 +145,9 @@ export const FRAG_SHADER_SRC = /* glsl */ `
     vec2 p = (uv - 0.5) * u_scale;
     p.x *= aspect;
     p += vec2(cos(u_direction), sin(u_direction)) * t * 0.15;
+    if (u_finishFlow > 0.0001) {
+      p += warp(p * 0.55 + vec2(3.1, 7.7), t * 0.45) * u_finishFlow;
+    }
 
     float freq = 3.0 + cpx * 8.0;
     float val = 0.0;
@@ -147,9 +157,24 @@ export const FRAG_SHADER_SRC = /* glsl */ `
     val += sin(length(p) * freq * 0.8 - t * 1.5);
     vec2 w = warp(p, t);
     val += (w.x + w.y) * dist;
+    if (u_finishGrain > 0.0001) {
+      vec2 grainDirection = vec2(cos(u_direction), sin(u_direction));
+      float grainAxis = dot(p, grainDirection);
+      float grainNoise = nfbm(p * 2.0 + vec2(t * 0.025, 0.0));
+      val += sin(grainAxis * u_finishGrainScale + grainNoise * 4.0) * u_finishGrain;
+    }
     val = val * 0.2 * u_intensity + 0.5;
 
-    return palette(clamp(val, 0.0, 1.0));
+    float field = clamp(val, 0.0, 1.0);
+    vec3 color = palette(field);
+    if (u_finishSpectral > 0.0001) {
+      float offset = u_finishSpectral * (0.36 + 0.14 * sin((p.x - p.y) * 2.0 + t * 0.3));
+      color = vec3(palette(field + offset).r, color.g, palette(field - offset).b);
+    }
+    if (abs(u_finishContrast - 1.0) > 0.0001) {
+      color = pow(max(color, vec3(0.0)), vec3(u_finishContrast));
+    }
+    return color;
   }
 
   void main() {

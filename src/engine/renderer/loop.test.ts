@@ -19,7 +19,7 @@ function create2dContext() {
   } as unknown as CanvasRenderingContext2D;
 }
 
-function createGl(drawArrays: ReturnType<typeof vi.fn>) {
+function createGl(drawArrays: ReturnType<typeof vi.fn>, uniform1f: ReturnType<typeof vi.fn>) {
   return {
     ARRAY_BUFFER: 0,
     BLEND: 1,
@@ -55,10 +55,10 @@ function createGl(drawArrays: ReturnType<typeof vi.fn>) {
     getProgramParameter: vi.fn(() => true),
     getShaderInfoLog: vi.fn(() => null),
     getShaderParameter: vi.fn(() => true),
-    getUniformLocation: vi.fn(() => null),
+    getUniformLocation: vi.fn((_program: WebGLProgram, name: string) => name as unknown as WebGLUniformLocation),
     linkProgram: vi.fn(),
     shaderSource: vi.fn(),
-    uniform1f: vi.fn(),
+    uniform1f,
     uniform2f: vi.fn(),
     uniform3f: vi.fn(),
     useProgram: vi.fn(),
@@ -104,6 +104,7 @@ describe('updateInstance scale', () => {
 describe('shared renderer scheduling characterization', () => {
   const frames: Frame[] = [];
   const drawArrays = vi.fn();
+  const uniform1f = vi.fn();
   const contexts = new WeakMap<HTMLCanvasElement, CanvasRenderingContext2D>();
   const liveInstances = new Set<MetalFxInstance>();
 
@@ -130,6 +131,7 @@ describe('shared renderer scheduling characterization', () => {
   beforeEach(() => {
     frames.length = 0;
     drawArrays.mockClear();
+    uniform1f.mockClear();
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(function (this: HTMLCanvasElement, type) {
       if (type === '2d') {
         const existing = contexts.get(this);
@@ -138,7 +140,7 @@ describe('shared renderer scheduling characterization', () => {
         contexts.set(this, created);
         return created;
       }
-      if (type === 'webgl' || type === 'experimental-webgl') return createGl(drawArrays);
+      if (type === 'webgl' || type === 'experimental-webgl') return createGl(drawArrays, uniform1f);
       return null;
     });
     vi.stubGlobal('requestAnimationFrame', (callback: Frame) => {
@@ -165,9 +167,28 @@ describe('shared renderer scheduling characterization', () => {
     expect(drawArrays).toHaveBeenCalledTimes(1);
     expect(contexts.get(first.canvas)?.drawImage).toHaveBeenCalledTimes(1);
     expect(contexts.get(second.canvas)?.drawImage).toHaveBeenCalledTimes(1);
+    expect(uniform1f).toHaveBeenCalledWith('u_finishGrain', 0);
+    expect(uniform1f).toHaveBeenCalledWith('u_finishContrast', 1);
 
     destroyInstance(first);
     destroyInstance(second);
+  });
+
+  it('separates finish profiles into material-correct shader passes', () => {
+    const polished = instance();
+    const brushed = instance();
+    brushed.finish = 'brushed';
+
+    advance(15_000);
+
+    expect(drawArrays).toHaveBeenCalledTimes(2);
+    expect(contexts.get(polished.canvas)?.drawImage).toHaveBeenCalledTimes(1);
+    expect(contexts.get(brushed.canvas)?.drawImage).toHaveBeenCalledTimes(1);
+    expect(uniform1f).toHaveBeenCalledWith('u_finishGrain', 0.16);
+    expect(uniform1f).toHaveBeenCalledWith('u_finishGrainScale', 52);
+
+    destroyInstance(polished);
+    destroyInstance(brushed);
   });
 
   it('gives an initially paused instance one copy, then idles until it is unpaused', () => {
