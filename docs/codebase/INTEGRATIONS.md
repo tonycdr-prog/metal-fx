@@ -37,7 +37,7 @@ No runtime HTTP APIs, databases, queues, analytics, or observability services we
 - Runtime logging: none.
 - Metrics/tracing: none.
 - GitHub Actions provides build/deploy logs, but there is no browser error/performance telemetry.
-- The demo uses a relative Vite base so the same artifact works at the Pages project subpath and a future custom domain.
+- The demo uses a relative Vite base so runtime assets work at the Pages project subpath and a future custom domain. Open Graph metadata intentionally names the canonical public Pages URL for crawler compatibility.
 - Missing visibility: WebGL initialization/context-loss frequency and client render failures cannot be observed by the library itself.
 
 ## 6) Evidence
