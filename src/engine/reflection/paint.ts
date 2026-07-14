@@ -134,8 +134,10 @@ export function removeReflectionTarget(el: HTMLElement, anchor: MetalFxInstance)
       if (target.wrap.parentNode === target.el) {
         target.el.removeChild(target.wrap);
       }
-      if (target.priorReflectHost === null) target.el.removeAttribute('data-metal-fx-reflect-host');
-      else target.el.setAttribute('data-metal-fx-reflect-host', target.priorReflectHost);
+      if (target.el.getAttribute('data-metal-fx-reflect-host') === '') {
+        if (target.priorReflectHost === null) target.el.removeAttribute('data-metal-fx-reflect-host');
+        else target.el.setAttribute('data-metal-fx-reflect-host', target.priorReflectHost);
+      }
       if (target.appliedPositionRelative && target.el.style.position === 'relative')
         target.el.style.position = target.priorPosition;
       if (target.appliedIsolation && target.el.style.isolation === 'isolate')

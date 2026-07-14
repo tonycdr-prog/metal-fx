@@ -105,6 +105,32 @@ describe('MetalFx', () => {
     expect(removeReflectionTarget).toHaveBeenCalledTimes(2);
   });
 
+  it('moves reflection ownership when a ref becomes live and later changes target', () => {
+    const target = { current: null as HTMLElement | null };
+    const render = () =>
+      act(() =>
+        root.render(
+          <MetalFx reflectionTargets={[target]} theme="dark">
+            <button type="button">Use effect</button>
+          </MetalFx>
+        )
+      );
+
+    render();
+    expect(addReflectionTarget).not.toHaveBeenCalled();
+
+    const first = document.createElement('div');
+    target.current = first;
+    render();
+    expect(addReflectionTarget).toHaveBeenLastCalledWith(first, expect.anything(), expect.anything());
+
+    const second = document.createElement('div');
+    target.current = second;
+    render();
+    expect(removeReflectionTarget).toHaveBeenLastCalledWith(first, expect.anything());
+    expect(addReflectionTarget).toHaveBeenLastCalledWith(second, expect.anything(), expect.anything());
+  });
+
   it('cleans up the renderer instance on final unmount', () => {
     act(() =>
       root.render(
