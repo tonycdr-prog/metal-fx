@@ -141,7 +141,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     for (const element of live) addReflectionTarget(element, instance, root);
     return () => {
       instance.onAfterFrame = undefined;
-      for (const element of live) removeReflectionTarget(element);
+      for (const element of live) removeReflectionTarget(element, instance);
     };
   }, [reflectionTargets, resolvedTheme]);
 
