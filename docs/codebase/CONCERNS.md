@@ -59,6 +59,7 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - Runtime `scale` updates now recompute default shader sampling and ring thickness, rebuild glow geometry, and scale the reflection reference draw width without recreating the renderer. Engine, lifecycle, and cross-browser playground tests cover 1 → 2 → 0.5 updates and cleanup.
 - Reflection targets now explicitly track all live owners. The first live owner supplies the reflection; removing it transfers ownership deterministically, while final cleanup removes only MetalFx-created decoration and restores only styles MetalFx still owns.
 - A deterministic visual-regression foundation now captures one fixed Chromium scene containing dark/light pill and circle effects across chromatic, gold, and silver presets. It is intentionally not a cross-engine or cross-GPU compatibility guarantee; Firefox and WebKit retain semantic smoke coverage.
+- WebGL context loss now cancels shared RAF work and restoration publishes a complete rebuilt pipeline before resuming. Rebuild failure releases renderer, glow, reflection, listener, and observer ownership before exposing the native child fallback; deterministic lifecycle tests and Chromium's real `WEBGL_lose_context` extension cover both paths.
 
 ## 8) Evidence
 

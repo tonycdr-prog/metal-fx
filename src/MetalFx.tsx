@@ -135,7 +135,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
   useEffect(() => {
     const instance = instanceRef.current;
     const root = rootRef.current;
-    if (!instance || !root || !reflectionTargets || resolvedTheme !== 'dark') return;
+    if (fallback || !instance || !root || !reflectionTargets || resolvedTheme !== 'dark') return;
     instance.onAfterFrame = scheduleReflectionPaint;
     const live = reflectionTargets.flatMap((target) => (target.current ? [target.current] : []));
     for (const element of live) addReflectionTarget(element, instance, root);
@@ -143,11 +143,10 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       instance.onAfterFrame = undefined;
       for (const element of live) removeReflectionTarget(element, instance);
     };
-  }, [reflectionTargets, resolvedTheme]);
+  }, [fallback, reflectionTargets, resolvedTheme]);
 
   // Shape is included because it is the renderer-recreation trigger; theme is
   // included because automatic theme resolution can change after hydration.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional radius synchronization triggers
   useEffect(() => {
     const root = rootRef.current;
     const instance = instanceRef.current;

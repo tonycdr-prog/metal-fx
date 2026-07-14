@@ -2,6 +2,11 @@
   "lineReviewThreshold": 250,
   "lineFailThreshold": 350,
   "largeFileReviews": {
+    "src/engine/renderer/core.ts": {
+      "kind": "reviewed",
+      "reason": "Shared WebGL allocation, context-event ownership, and transactional pipeline restoration form one renderer resource lifecycle.",
+      "revisitWhen": "Extract context-event orchestration if another recovery mode or renderer backend is introduced."
+    },
     "src/engine/renderer/loop.ts": {
       "kind": "reviewed",
       "reason": "Instance lifecycle and grouped frame scheduling share renderer invariants and remain auditable as one state machine.",
