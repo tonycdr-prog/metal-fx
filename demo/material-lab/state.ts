@@ -5,9 +5,10 @@ const PRESETS = new Set(['chromatic', 'silver', 'gold']);
 const PREVIEWS = new Set<MaterialLabPreview>(['pill', 'circle', 'content']);
 const THEMES = new Set<MaterialLabTheme>(['dark', 'light']);
 
-function clampStrength(value: string | null): number {
+function clampStrength(value: string | null, fallback: number): number {
+  if (value === null) return fallback;
   const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return 90;
+  if (!Number.isFinite(parsed)) return fallback;
   return Math.round(Math.min(100, Math.max(0, parsed)));
 }
 
@@ -28,7 +29,7 @@ export function readMaterialLabState(search: string): MaterialLabState {
     preview: PREVIEWS.has(preview as MaterialLabPreview) ? (preview as MaterialLabPreview) : recipe.state.preview,
     preset: PRESETS.has(preset ?? '') ? (preset as MaterialLabState['preset']) : recipe.state.preset,
     theme: THEMES.has(theme as MaterialLabTheme) ? (theme as MaterialLabTheme) : recipe.state.theme,
-    strength: params.has('strength') ? clampStrength(params.get('strength')) : recipe.state.strength,
+    strength: clampStrength(params.get('strength'), recipe.state.strength),
     paused: params.get('paused') === '1'
   };
 }

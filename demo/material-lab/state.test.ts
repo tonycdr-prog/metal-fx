@@ -2,6 +2,22 @@ import { describe, expect, it } from 'vitest';
 import { buildMaterialLabSearch, isMaterialLabRequested, readMaterialLabState } from './state';
 
 describe('Material Lab query state', () => {
+  it('uses the complete foundation state when only the lab route is requested', () => {
+    expect(readMaterialLabState('?material-lab=1')).toEqual({
+      fixture: 'foundation',
+      preview: 'pill',
+      recipe: 'molten-chrome',
+      preset: 'chromatic',
+      theme: 'dark',
+      strength: 100,
+      paused: false
+    });
+  });
+
+  it('uses the selected recipe strength when a strength override is invalid', () => {
+    expect(readMaterialLabState('?material-lab=1&recipe=copper&strength=not-a-number').strength).toBe(88);
+  });
+
   it('normalizes malformed state to a safe foundation fixture', () => {
     expect(
       readMaterialLabState('?material-lab=1&preview=wall&preset=plasma&theme=void&strength=490&paused=yes')
