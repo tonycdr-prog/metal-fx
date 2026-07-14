@@ -32,9 +32,18 @@ export function MaterialLab() {
   return (
     <main className="material-lab" aria-labelledby="material-lab-title">
       <header className="material-lab-heading">
-        <p>Experimental / Material Lab</p>
-        <h1 id="material-lab-title">A single surface for honest treatment studies.</h1>
-        <span>{recipe.description}</span>
+        <div className="material-lab-topbar">
+          <a className="material-lab-home" href="./">
+            <span aria-hidden="true" className="material-lab-mark" />
+            Metal FX
+          </a>
+          <span>Experimental showcase</span>
+        </div>
+        <div className="material-lab-intro">
+          <p>Material Lab</p>
+          <h1 id="material-lab-title">Explore the finish.</h1>
+          <span>Compare colour, light and motion using the public MetalFx API.</span>
+        </div>
       </header>
       <MaterialRecipePicker onSelect={selectRecipe} selected={state.recipe} />
       <div className="material-lab-workspace">

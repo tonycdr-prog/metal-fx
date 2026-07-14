@@ -11,7 +11,7 @@ export function MaterialRecipePicker({
 }) {
   return (
     <nav aria-label="Experimental material treatments" className="material-recipe-picker">
-      <p>Experimental treatments</p>
+      <p>Treatments</p>
       <div>
         {MATERIAL_RECIPES.map((recipe) => (
           <button

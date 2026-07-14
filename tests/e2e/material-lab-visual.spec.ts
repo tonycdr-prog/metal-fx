@@ -19,7 +19,7 @@ test('renders the deterministic Material Lab evidence fixture', async ({ page })
   });
 
   await page.goto(
-    './?material-lab=1&fixture=foundation&recipe=holographic&environment=spectral-wash&interaction=off&preview=pill&preset=chromatic&theme=dark&strength=92&paused=1'
+    './?material-lab=1&fixture=foundation&recipe=holographic&environment=spectral-wash&preview=pill&preset=chromatic&theme=dark&strength=92&paused=1'
   );
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({

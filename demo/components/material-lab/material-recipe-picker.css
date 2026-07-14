@@ -1,37 +1,49 @@
 .material-recipe-picker {
-  border-bottom: 1px solid var(--lab-line);
+  border-bottom: 1px solid var(--lab-border);
   display: grid;
   gap: 10px;
-  padding: 18px 0;
+  padding: 16px 0;
 }
 .material-recipe-picker p {
+  color: var(--text-muted);
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   margin: 0;
   text-transform: uppercase;
 }
 .material-recipe-picker div {
   display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.material-recipe-picker div::-webkit-scrollbar {
+  display: none;
 }
 .material-recipe-picker button {
   background: transparent;
-  border: 1px solid var(--lab-line);
-  color: inherit;
+  border: 0;
+  border-radius: 9px;
+  color: var(--tab-color);
   cursor: pointer;
+  flex: 0 0 auto;
   font:
-    600 12px / 1 Inter,
+    500 12px / 1 "Inter",
     sans-serif;
-  min-height: 34px;
-  padding: 0 10px;
+  min-height: 36px;
+  padding: 0 12px;
+}
+.material-recipe-picker button:hover {
+  background: var(--tab-hover-bg);
+  color: var(--tab-hover-color);
 }
 .material-recipe-picker button[aria-current="true"] {
-  background: var(--lab-ink);
-  color: var(--lab-paper);
+  background: var(--tab-active-bg);
+  box-shadow: var(--tab-active-shadow);
+  color: var(--tab-active-color);
 }
 .material-recipe-picker button:focus-visible {
-  outline: 3px solid var(--lab-red);
+  outline: 2px solid rgba(255, 255, 255, 0.72);
   outline-offset: 2px;
 }
