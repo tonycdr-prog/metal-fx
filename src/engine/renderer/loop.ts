@@ -13,7 +13,7 @@ import {
 } from './core';
 import { planRenderGroups } from './groups';
 import { ensureGlowPixels } from './sampling';
-import { defaultRingCssPx, defaultShaderScale } from './scale';
+import { applyScalePatch, defaultRingCssPx, defaultShaderScale, registerScaleOverrides } from './scale';
 
 // Restart the animation loop when the browser restores the GL context.
 setContextRestoredCallback(() => {
@@ -84,6 +84,7 @@ export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
       onAfterFrame: opts.onAfterFrame,
       onFirstCopy: opts.onFirstCopy
     };
+    registerScaleOverrides(instance, opts);
     resizeInstanceCanvas(instance);
     renderer.instances.add(instance);
     if (renderer.rafId === 0 && renderer.pausedAtMs === null) startSharedLoop();
@@ -146,18 +147,7 @@ export function updateInstance(
     dirty = true;
   }
   if (patch.cornerRadius !== undefined) inst.cornerRadius = patch.cornerRadius;
-  if (patch.scale !== undefined && patch.scale !== inst.scale) {
-    inst.scale = patch.scale;
-    if (patch.shaderScale === undefined) inst.shaderScale = defaultShaderScale(inst.kind, inst.scale);
-    if (patch.ringCssPx === undefined) inst.ringCssPx = defaultRingCssPx(inst.kind, inst.scale);
-  }
-  if (patch.kind !== undefined && patch.kind !== inst.kind) {
-    inst.kind = patch.kind;
-    if (patch.shaderScale === undefined) inst.shaderScale = defaultShaderScale(patch.kind, inst.scale);
-    if (patch.ringCssPx === undefined) inst.ringCssPx = defaultRingCssPx(patch.kind, inst.scale);
-  }
-  if (patch.shaderScale !== undefined) inst.shaderScale = patch.shaderScale;
-  if (patch.ringCssPx !== undefined) inst.ringCssPx = patch.ringCssPx;
+  applyScalePatch(inst, patch);
   if (patch.opacityMul !== undefined) inst.opacityMul = patch.opacityMul;
   if (patch.preset !== undefined) inst.preset = patch.preset;
   if (patch.theme !== undefined) inst.theme = patch.theme;

@@ -29,6 +29,9 @@ describe('updateInstance scale', () => {
     expect(metal).toMatchObject({ scale: 2, shaderScale: 5, ringCssPx: 2 });
 
     updateInstance(metal, { scale: 0.5, ringCssPx: 4 });
-    expect(metal).toMatchObject({ scale: 0.5, shaderScale: 0.8, ringCssPx: 4 });
+    expect(metal).toMatchObject({ scale: 0.5, shaderScale: 5, ringCssPx: 4 });
+
+    updateInstance(metal, { scale: 1 });
+    expect(metal).toMatchObject({ scale: 1, shaderScale: 5, ringCssPx: 4 });
   });
 });

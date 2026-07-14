@@ -110,20 +110,17 @@ test('updates glow geometry in a live WebGL playground without remounting the ef
 
   await expect(effect).toHaveCount(1);
   await expect(glow).toHaveCount(1);
+  await effect.evaluate((element) => element.setAttribute('data-test-scale-identity', 'stable'));
 
-  await scale.evaluate((input: HTMLInputElement) => {
-    input.value = '2';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  await expect.poll(() => glow.innerHTML()).toContain('stdDeviation="8.400"');
+  await scale.fill('2');
+  await expect(scale).toHaveValue('2');
+  await expect.poll(() => glow.innerHTML()).toContain('stdDeviation="16.800"');
   await expect(effect).toHaveCount(1);
+  await expect(effect).toHaveAttribute('data-test-scale-identity', 'stable');
 
-  await scale.evaluate((input: HTMLInputElement) => {
-    input.value = '0.5';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  await expect.poll(() => glow.innerHTML()).toContain('stdDeviation="2.100"');
+  await scale.fill('0.5');
+  await expect(scale).toHaveValue('0.5');
+  await expect.poll(() => glow.innerHTML()).toContain('stdDeviation="1.050"');
+  await expect(effect).toHaveAttribute('data-test-scale-identity', 'stable');
   expect(errors).toEqual([]);
 });
