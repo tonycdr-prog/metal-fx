@@ -25,7 +25,7 @@ No auth, tenant data, server input, or network trust boundary exists in this cli
 | Concern | Evidence | Current symptom | Scaling risk | Suggested improvement |
 |---------|----------|-----------------|-------------|-----------------------|
 | Glow queue updates one instance per rendered frame | `renderer/loop.ts`, `perfConfig.ts` | At ~15 fps, N instances each update at roughly 15/N fps | Many instances produce visibly stale halo movement | Measure and set a documented instance budget or adapt work to elapsed time |
-| Full-resolution instance canvases do not cap DPR | `renderer/loop.ts:resizeInstanceCanvas` | GL is capped at DPR 2, destination/reflection canvases are not | Large/high-DPR elements increase memory and 2D copy cost | Cap or make destination DPR configurable after visual benchmarking |
+| Full-resolution instance canvases do not cap DPR | `renderer/loop.ts:resizeInstanceCanvas`, `docs/characterization/scheduling-and-dpr.md` | Chromium DSF 3 evidence confirms GL caps at 2 while destination/reflection buffers retain full scale | Large/high-DPR elements increase memory and 2D copy cost | Establish visual/memory acceptance criteria before considering a cap or configuration |
 
 The existing visibility gating, 15fps throttle, shared GL surface, readback throttle, and last-instance teardown are strong mitigations.
 
