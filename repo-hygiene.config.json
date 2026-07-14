@@ -28,7 +28,7 @@
       "revisitWhen": "Split only when a second independently compiled shader program is added."
     }
   },
-  "allowedPublicAssets": ["CNAME", "_redirects"],
+  "allowedPublicAssets": [],
   "dependencyCommands": {
     "@biomejs/biome": ["biome"],
     "typescript": ["tsc"],

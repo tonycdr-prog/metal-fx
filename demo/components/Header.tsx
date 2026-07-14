@@ -5,6 +5,8 @@ const iconBtnClass =
   'flex items-center justify-center size-9 border-none rounded-full bg-(--icon-btn-bg) text-inherit cursor-pointer no-underline transition-[background-color] duration-200 [-webkit-tap-highlight-color:transparent] hover:bg-(--icon-btn-hover) focus-visible:outline-2 focus-visible:outline-(--icon-btn-outline) focus-visible:outline-offset-2 [&_svg]:block [&_svg]:shrink-0 [&_svg]:fill-(--icon-btn-fill) [&_svg]:opacity-60 [&_svg]:transition-opacity [&_svg]:duration-200 hover:[&_svg]:opacity-100';
 
 export function Header({ theme }: { theme: Theme }) {
+  const headerImage = theme === 'dark' ? '/header.png' : '/header-light.png';
+
   return (
     <header className="relative w-full h-[218px] text-center flex flex-col items-center justify-end pb-[53px] max-sm:h-auto max-sm:min-h-[180px] max-sm:pt-[60px] max-sm:pb-8">
       <nav className="absolute top-4 right-0 flex items-center gap-4 max-sm:top-3" aria-label="External links">
@@ -30,7 +32,7 @@ export function Header({ theme }: { theme: Theme }) {
       <div className="relative -mt-[190px] -mb-5 cursor-pointer group" aria-hidden="true">
         <img
           className="block relative transition-[filter,transform] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[filter,transform] motion-reduce:!transition-none group-hover:[filter:hue-rotate(45deg)_brightness(1.1)] group-hover:[transform:rotate(8deg)_scale(1.06)]"
-          src={theme === 'dark' ? '/header.png' : '/header-light.png'}
+          src={`${import.meta.env.BASE_URL}${headerImage.slice(1)}`}
           alt=""
           width="207"
           height="138"
