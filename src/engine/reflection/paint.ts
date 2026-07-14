@@ -19,6 +19,7 @@ import {
   RANGE_PX,
   REF_DRAW_CSS_W,
   REFLECTION_BLOCKED_TAGS,
+  type ReflectionOwner,
   type ReflectionTarget,
   STROKE_CSS_PX,
   STROKE_EXTRA_ALPHA
@@ -60,7 +61,9 @@ export function addReflectionTarget(
   if (typeof document === 'undefined') return null;
   if (REFLECTION_BLOCKED_TAGS.has(el.tagName)) return null;
   for (const existing of targets) {
-    if (existing.el === el) return existing;
+    if (existing.el !== el) continue;
+    if (!existing.owners.some((owner) => owner.anchor === anchor)) existing.owners.push({ anchor, anchorEl });
+    return existing;
   }
 
   const wrap = document.createElement('div');
@@ -81,16 +84,19 @@ export function addReflectionTarget(
   wrap.appendChild(strokeCanvas);
 
   const cs = getComputedStyle(el);
+  const priorPosition = el.style.position;
   let appliedPositionRelative = false;
   if (cs.position === 'static') {
     el.style.position = 'relative';
     appliedPositionRelative = true;
   }
+  const priorIsolation = el.style.isolation;
   let appliedIsolation = false;
   if (cs.isolation !== 'isolate') {
     el.style.isolation = 'isolate';
     appliedIsolation = true;
   }
+  const priorReflectHost = el.getAttribute('data-metal-fx-reflect-host');
   el.setAttribute('data-metal-fx-reflect-host', '');
   el.insertBefore(wrap, el.firstChild);
 
@@ -99,6 +105,7 @@ export function addReflectionTarget(
     el,
     anchor,
     anchorEl,
+    owners: [{ anchor, anchorEl }],
     wrap,
     canvas,
     ctx,
@@ -109,6 +116,9 @@ export function addReflectionTarget(
     hairlineOuterCssPx: initialSpec.outerCssPx,
     appliedPositionRelative,
     appliedIsolation,
+    priorPosition,
+    priorIsolation,
+    priorReflectHost,
     resizeObserver: null,
     mutationObserver: null
   };
@@ -117,9 +127,18 @@ export function addReflectionTarget(
   return target;
 }
 
-export function removeReflectionTarget(el: HTMLElement): void {
+export function removeReflectionTarget(el: HTMLElement, anchor: MetalFxInstance): void {
   for (const target of targets) {
     if (target.el === el) {
+      const ownerIndex = target.owners.findIndex((owner) => owner.anchor === anchor);
+      if (ownerIndex === -1) return;
+      target.owners.splice(ownerIndex, 1);
+      const nextOwner: ReflectionOwner | undefined = target.owners[0];
+      if (nextOwner) {
+        target.anchor = nextOwner.anchor;
+        target.anchorEl = nextOwner.anchorEl;
+        return;
+      }
       detachObservers(target);
       target.canvas.width = 0;
       target.canvas.height = 0;
@@ -128,9 +147,14 @@ export function removeReflectionTarget(el: HTMLElement): void {
       if (target.wrap.parentNode === target.el) {
         target.el.removeChild(target.wrap);
       }
-      target.el.removeAttribute('data-metal-fx-reflect-host');
-      if (target.appliedPositionRelative) target.el.style.position = '';
-      if (target.appliedIsolation) target.el.style.isolation = '';
+      if (target.el.getAttribute('data-metal-fx-reflect-host') === '') {
+        if (target.priorReflectHost === null) target.el.removeAttribute('data-metal-fx-reflect-host');
+        else target.el.setAttribute('data-metal-fx-reflect-host', target.priorReflectHost);
+      }
+      if (target.appliedPositionRelative && target.el.style.position === 'relative')
+        target.el.style.position = target.priorPosition;
+      if (target.appliedIsolation && target.el.style.isolation === 'isolate')
+        target.el.style.isolation = target.priorIsolation;
       targets.delete(target);
       return;
     }

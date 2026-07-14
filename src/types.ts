@@ -99,6 +99,9 @@ export interface MetalFxProps extends Omit<HTMLAttributes<HTMLDivElement>, 'chil
    *
    * Pass refs to the sibling DOM elements you want to receive the reflection
    * (chips next to a send button, search field next to an Upgrade pill, ...).
+   * If multiple live MetalFx instances target the same element, the first live
+   * owner supplies its reflection until it unmounts; then ownership transfers
+   * to the next live owner in registration order.
    */
   reflectionTargets?: ReadonlyArray<RefObject<HTMLElement | null>>;
 

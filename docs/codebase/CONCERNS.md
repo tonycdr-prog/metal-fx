@@ -16,8 +16,7 @@ No unresolved high- or medium-severity repository risks are currently recorded.
 
 | Risk | OWASP category | Evidence | Current mitigation | Gap |
 |------|----------------|----------|--------------------|-----|
-| Inline style/SVG markup injection conflicts with strict CSP | N/A | `styles.ts`, `glow/glow.ts` | Markup is library-generated rather than user-supplied | No nonce/external stylesheet option is exposed |
-| DOM mutation of reflection targets | N/A | `reflection/paint.ts` | Blocks form-control tags and restores styles it applied | Multiple anchors targeting one element share the first registration without explicit ownership semantics |
+| Injected stylesheet and inline styles conflict with strict CSP | N/A | `styles.ts`, `glow/glow.ts`, `README.md` | Consumer documentation explicitly describes the limitation | No nonce/external stylesheet option is exposed; CSP-compatible rendering needs a future API/design project |
 
 No auth, tenant data, server input, or network trust boundary exists in this client-only library.
 
@@ -58,6 +57,7 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - WebGL, Canvas 2D, shader, and observer initialization failures now release partial resources and render the native child without effect layers. Component and cross-browser tests verify visibility, interaction, retry, and warning-free fallback.
 - The development toolchain now uses Vite 8, Vitest 4, vite-plugin-dts 5 with API Extractor 7, and Wrangler 4.110.0. Registry verification, the lockfile audit, and the production-only audit reported zero vulnerabilities on 2026-07-14; Node 22 and 24 both pass the package gate.
 - Runtime `scale` updates now recompute default shader sampling and ring thickness, rebuild glow geometry, and scale the reflection reference draw width without recreating the renderer. Engine, lifecycle, and cross-browser playground tests cover 1 → 2 → 0.5 updates and cleanup.
+- Reflection targets now explicitly track all live owners. The first live owner supplies the reflection; removing it transfers ownership deterministically, while final cleanup removes only MetalFx-created decoration and restores only styles MetalFx still owns.
 
 ## 8) Evidence
 
