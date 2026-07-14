@@ -7,7 +7,7 @@
 | Browser WebGL + Canvas APIs | Client runtime | Shader generation, per-instance rings, sampling, reflections | None | High | `src/engine/renderer/*.ts`, `src/engine/reflection/paint.ts` |
 | Browser frame/observer APIs | Client runtime | Animation, sizing, visibility, theme, and target-style invalidation | None | High | `src/MetalFx.tsx`, `src/engine/reflection/observers.ts` |
 | npm registry | Package distribution | Publishes tagged releases with provenance | `NPM_TOKEN` GitHub secret + OIDC provenance | High | `.github/workflows/publish.yml` |
-| GitHub Pages | Static hosting | Deploys the demo on `main` changes | GitHub Actions OIDC permissions | Medium | `.github/workflows/pages.yml` |
+| GitHub Pages | Public static hosting | Deploys the demo to `https://tonycdr-prog.github.io/metal-fx/` only after Quality succeeds on `main` | GitHub Actions OIDC permissions | Medium | `.github/workflows/pages.yml`, `.github/workflows/quality.yml`, `vite.config.demo.ts` |
 | Cloudflare Pages | Optional static hosting | Manual `npm run deploy` path via Wrangler | Wrangler account authentication outside repo | Low | `package.json` |
 
 No runtime HTTP APIs, databases, queues, analytics, or observability services were found.
@@ -37,6 +37,7 @@ No runtime HTTP APIs, databases, queues, analytics, or observability services we
 - Runtime logging: none.
 - Metrics/tracing: none.
 - GitHub Actions provides build/deploy logs, but there is no browser error/performance telemetry.
+- The demo uses a relative Vite base so runtime assets work at the Pages project subpath and a future custom domain. Open Graph metadata intentionally names the canonical public Pages URL for crawler compatibility.
 - Missing visibility: WebGL initialization/context-loss frequency and client render failures cannot be observed by the library itself.
 
 ## 6) Evidence

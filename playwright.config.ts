@@ -6,7 +6,7 @@ export default defineConfig({
   reporter: 'list',
   retries: 0,
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL: 'http://127.0.0.1:4173/metal-fx/',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure'
   },
@@ -27,8 +27,9 @@ export default defineConfig({
     { name: 'webkit', use: { ...devices['Desktop Safari'] } }
   ],
   webServer: {
-    command: 'npm run build:demo && vite preview --config vite.config.demo.ts --host 127.0.0.1 --port 4173',
+    command:
+      'npm run build:demo && vite preview --config vite.config.demo.ts --base=/metal-fx/ --host 127.0.0.1 --port 4173',
     reuseExistingServer: !process.env.CI,
-    url: 'http://127.0.0.1:4173'
+    url: 'http://127.0.0.1:4173/metal-fx/'
   }
 });
