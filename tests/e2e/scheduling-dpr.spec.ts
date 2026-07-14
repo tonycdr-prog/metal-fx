@@ -23,73 +23,75 @@ test('characterizes shared and destination canvas DPR behavior in Chromium', asy
 
   async function capture(deviceScaleFactor: number): Promise<DprMeasurement> {
     const context = await browser.newContext({ deviceScaleFactor, viewport: { width: 1280, height: 720 } });
-    await context.addInitScript(() => {
-      const metrics: { shared: { height: number; width: number }[] } = { shared: [] };
-      (window as Window & { __metalFxDprMetrics?: typeof metrics }).__metalFxDprMetrics = metrics;
+    try {
+      await context.addInitScript(() => {
+        const metrics: { shared: { height: number; width: number }[] } = { shared: [] };
+        (window as Window & { __metalFxDprMetrics?: typeof metrics }).__metalFxDprMetrics = metrics;
 
-      const record = (canvas: { height: number; width: number }) =>
-        metrics.shared.push({ height: canvas.height, width: canvas.width });
-      if (typeof OffscreenCanvas !== 'undefined') {
-        const getContext = OffscreenCanvas.prototype.getContext;
-        OffscreenCanvas.prototype.getContext = function (type, ...args) {
-          if (type === 'webgl') record(this);
+        const record = (canvas: { height: number; width: number }) =>
+          metrics.shared.push({ height: canvas.height, width: canvas.width });
+        if (typeof OffscreenCanvas !== 'undefined') {
+          const getContext = OffscreenCanvas.prototype.getContext;
+          OffscreenCanvas.prototype.getContext = function (type, ...args) {
+            if (type === 'webgl') record(this);
+            return getContext.call(this, type, ...args);
+          };
+        }
+        const getContext = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+          if (type === 'webgl' || type === 'experimental-webgl') record(this);
           return getContext.call(this, type, ...args);
         };
-      }
-      const getContext = HTMLCanvasElement.prototype.getContext;
-      HTMLCanvasElement.prototype.getContext = function (type, ...args) {
-        if (type === 'webgl' || type === 'experimental-webgl') record(this);
-        return getContext.call(this, type, ...args);
-      };
-    });
+      });
 
-    const page = await context.newPage();
-    await page.goto('./');
-    await page.evaluate(() => document.fonts.ready);
-    const roots = page.locator('.metal-fx-root');
-    await expect
-      .poll(() =>
-        roots.evaluateAll((elements) =>
-          elements.every((root) => {
-            const canvas = root.querySelector('canvas');
-            return canvas !== null && canvas.width > 0 && canvas.height > 0 && getComputedStyle(root).opacity === '1';
-          })
+      const page = await context.newPage();
+      await page.goto('./');
+      await page.evaluate(() => document.fonts.ready);
+      const roots = page.locator('.metal-fx-root');
+      await expect
+        .poll(() =>
+          roots.evaluateAll((elements) =>
+            elements.every((root) => {
+              const canvas = root.querySelector('canvas');
+              return canvas !== null && canvas.width > 0 && canvas.height > 0 && getComputedStyle(root).opacity === '1';
+            })
+          )
         )
-      )
-      .toBe(true);
-    await expect(page.locator('.metal-fx-reflection-canvas').first()).toBeAttached();
+        .toBe(true);
+      await expect(page.locator('.metal-fx-reflection-canvas').first()).toBeAttached();
 
-    const measurement = await page.evaluate(() => {
-      const metrics = (window as Window & { __metalFxDprMetrics: { shared: { height: number; width: number }[] } })
-        .__metalFxDprMetrics;
-      return {
-        destination: [...document.querySelectorAll<HTMLElement>('.metal-fx-root')].map((root) => {
-          const canvas = root.querySelector<HTMLCanvasElement>('canvas');
-          const box = root.getBoundingClientRect();
-          return {
-            cssHeight: box.height,
-            cssWidth: box.width,
-            height: canvas?.height ?? 0,
-            shape: root.dataset.variant ?? null,
-            width: canvas?.width ?? 0
-          };
-        }),
-        devicePixelRatio: window.devicePixelRatio,
-        reflection: [...document.querySelectorAll<HTMLCanvasElement>('.metal-fx-reflection-canvas')].map((canvas) => {
-          const box = canvas.getBoundingClientRect();
-          return {
-            cssHeight: box.height,
-            cssWidth: box.width,
-            height: canvas.height,
-            shape: null,
-            width: canvas.width
-          };
-        }),
-        shared: metrics.shared
-      };
-    });
-    await context.close();
-    return measurement;
+      return await page.evaluate(() => {
+        const metrics = (window as Window & { __metalFxDprMetrics: { shared: { height: number; width: number }[] } })
+          .__metalFxDprMetrics;
+        return {
+          destination: [...document.querySelectorAll<HTMLElement>('.metal-fx-root')].map((root) => {
+            const canvas = root.querySelector<HTMLCanvasElement>('canvas');
+            const box = root.getBoundingClientRect();
+            return {
+              cssHeight: box.height,
+              cssWidth: box.width,
+              height: canvas?.height ?? 0,
+              shape: root.dataset.variant ?? null,
+              width: canvas?.width ?? 0
+            };
+          }),
+          devicePixelRatio: window.devicePixelRatio,
+          reflection: [...document.querySelectorAll<HTMLCanvasElement>('.metal-fx-reflection-canvas')].map((canvas) => {
+            const box = canvas.getBoundingClientRect();
+            return {
+              cssHeight: box.height,
+              cssWidth: box.width,
+              height: canvas.height,
+              shape: null,
+              width: canvas.width
+            };
+          }),
+          shared: metrics.shared
+        };
+      });
+    } finally {
+      await context.close();
+    }
   }
 
   const one = await capture(1);
