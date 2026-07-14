@@ -35,3 +35,9 @@ The Lab honours `prefers-reduced-motion` by pausing the preview and disabling it
 Interaction modes are demo-local stage movement only. Pointer and scroll signals are bounded, coalesced through a single requestAnimationFrame, and cancel their pending work on pointer exit, cancellation, hidden-page transitions, mode changes, and unmount. Idle breathing uses a CSS animation rather than a persistent JavaScript frame loop.
 
 The lighting environments are CSS stage treatments. They are not MetalFx shaders. The nearby target uses the public `reflectionTargets` prop in dark mode only; ownership remains with MetalFx and is released by its existing lifecycle cleanup. Animated environment classes are removed whenever the preview is paused, the page is hidden, reduced motion is requested, or the Lab unmounts.
+
+## Evidence fixture and characterization
+
+The deterministic screenshot fixture is the holographic, dark, paused Lab state above, captured by `tests/e2e/material-lab-visual.spec.ts` in the dedicated Chromium project. It freezes RAF time, waits for fonts and the live canvas, disables CSS animation/transition, and captures only the stage. Update it with `npx playwright test tests/e2e/material-lab-visual.spec.ts --project=chromium-material-lab-visual --update-snapshots`, then run the non-update command three consecutive times before committing.
+
+Observed characteristics from the fixture and browser smoke coverage: the Lab mounts one live preview; it therefore produces one active material group. The `paused=1` fixture holds its last composited frame, while hidden and reduced-motion states remove the Lab-owned environment animation and interaction work. Reflection target cleanup remains owned by the library's existing target lifecycle. Canvas DPR dimensions are characterized separately by `tests/e2e/scheduling-dpr.spec.ts` at DPR 1 and 3; this experiment does not introduce a new canvas size policy.
