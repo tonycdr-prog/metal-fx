@@ -33,7 +33,7 @@ npm run build:demo
 | Unit | Yes | Color conversion, tweening, and glow geometry | Covers normalization, easing/clamping, and geometry branches |
 | Integration | Yes | Basic child interaction, valid prop updates, final renderer cleanup | Engine, glow, and reflection boundaries are mocked deterministically |
 | SSR/hydration | Partial | Server import/render; hydration infrastructure | Current `useLayoutEffect` warning is intentionally visible; warning-free hydration remains a TODO tied to REQ-004/REQ-005 |
-| E2E/visual | Smoke | Built demo in Chromium, Firefox, and WebKit | Checks representative mounts, child interaction, and unexpected page/console errors; traces/screenshots are retained on failure |
+| E2E/visual | Smoke | Built demo in Chromium, Firefox, and WebKit | Checks representative mounts, child interaction, and unexpected page/console errors; traces/screenshots are retained on failure. Firefox CI explicitly permits its software WebGL renderer because hosted runners do not expose a supported hardware driver. |
 | Packaging | Yes | ES/CJS exports, strict TypeScript, and tarball contents | `npm run test:package` installs only the packed artifact in isolated fixtures |
 
 ## 4) Mocking and Isolation Strategy
