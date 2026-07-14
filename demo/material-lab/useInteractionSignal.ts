@@ -34,7 +34,10 @@ export function useInteractionSignal(mode: InteractionMode, reducedMotion: boole
         setSignal(clampInteractionSignal(pendingSignal));
       });
     };
-    const reset = () => schedule(0);
+    const reset = () => {
+      previousX = null;
+      schedule(0);
+    };
     const resetImmediately = () => {
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
