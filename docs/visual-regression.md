@@ -8,7 +8,7 @@ Run it with the repository Playwright version:
 npx playwright test tests/e2e/visual.spec.ts --project=chromium-visual
 ```
 
-The project fixes the viewport to 880×160 at device scale factor 1. Before navigation it fixes RAF timestamps and `performance.now()` to `1000`; the test waits for fonts and all four MetalFx canvases, then disables CSS animation and transition before capture. The screenshot is limited to the dedicated scene and permits at most 0.1% changed pixels (`maxDiffPixelRatio: 0.001`) to tolerate isolated raster rounding without masking material or layout changes.
+The project fixes the viewport to 880×160 at device scale factor 1. Before navigation it fixes RAF timestamps and `performance.now()` to `1000`; the test waits for fonts and all four MetalFx canvases, then disables CSS animation and transition before capture. The screenshot is limited to the dedicated scene and permits at most 0.2% changed pixels (`maxDiffPixelRatio: 0.002`). The first Linux CI comparison differed from the macOS baseline by 199 of 140,800 pixels (0.141%), isolated to text glyph rasterization; the effect and layout pixels matched. The limit allows that observed platform variance with little headroom rather than masking material or layout changes.
 
 To intentionally update the approved baseline, first review the rendered scene and the diff, then run:
 

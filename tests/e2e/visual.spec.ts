@@ -37,5 +37,5 @@ test('renders the fixed MetalFx visual test scene', async ({ page }) => {
     )
     .toBe(true);
 
-  await expect(scene).toHaveScreenshot('metal-fx-visual.png', { animations: 'disabled', maxDiffPixelRatio: 0.001 });
+  await expect(scene).toHaveScreenshot('metal-fx-visual.png', { animations: 'disabled', maxDiffPixelRatio: 0.002 });
 });
