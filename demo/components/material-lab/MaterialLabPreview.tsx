@@ -1,0 +1,60 @@
+import { MetalFx } from '../../../src';
+import type { MaterialLabState } from '../../material-lab/types';
+
+interface MaterialLabPreviewProps {
+  reducedMotion: boolean;
+  state: MaterialLabState;
+}
+
+function PreviewContent({ preview }: Pick<MaterialLabState, 'preview'>) {
+  if (preview === 'circle') {
+    return (
+      <button aria-label="Material Lab circle action" className="material-lab-circle" type="button">
+        +
+      </button>
+    );
+  }
+  if (preview === 'content') {
+    return (
+      <article className="material-lab-content-card">
+        <span>Experimental surface</span>
+        <strong>Review the treatment in context.</strong>
+      </article>
+    );
+  }
+  return (
+    <button className="material-lab-pill" type="button">
+      Material sample
+    </button>
+  );
+}
+
+export function MaterialLabPreview({ reducedMotion, state }: MaterialLabPreviewProps) {
+  const isPaused = reducedMotion || state.paused;
+  return (
+    <section
+      className={`material-lab-preview material-lab-preview-${state.theme}`}
+      aria-label="Live Material Lab preview"
+    >
+      <div className="material-lab-preview-meta">
+        <span>Live preview</span>
+        <span>{reducedMotion ? 'Reduced motion: static' : isPaused ? 'Motion paused' : 'Motion active'}</span>
+      </div>
+      <div className="material-lab-stage">
+        <MetalFx
+          disableGlow={reducedMotion}
+          paused={isPaused}
+          preset={state.preset}
+          theme={state.theme}
+          variant={state.preview === 'circle' ? 'circle' : 'button'}
+          strength={state.strength / 100}
+        >
+          <PreviewContent preview={state.preview} />
+        </MetalFx>
+      </div>
+      <p>
+        Native MetalFx: preset, theme, strength, shape, and pause state. The stage and content are demo presentation.
+      </p>
+    </section>
+  );
+}
