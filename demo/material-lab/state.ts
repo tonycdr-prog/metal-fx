@@ -1,3 +1,4 @@
+import { findMaterialEnvironment } from './environments';
 import { findMaterialRecipe } from './recipes';
 import type { MaterialLabPreview, MaterialLabState, MaterialLabTheme } from './types';
 import type { InteractionMode } from './useInteractionSignal';
@@ -32,10 +33,12 @@ export function readMaterialLabState(search: string): MaterialLabState {
   const preset = params.get('preset');
   const theme = params.get('theme');
   const interaction = params.get('interaction');
+  const environment = findMaterialEnvironment(params.get('environment'));
   const recipe = findMaterialRecipe(params.get('recipe'));
 
   return {
     ...recipe.state,
+    environment: environment.id,
     recipe: recipe.id,
     interaction: INTERACTIONS.has(interaction as InteractionMode)
       ? (interaction as InteractionMode)
@@ -53,6 +56,7 @@ export function buildMaterialLabSearch(state: MaterialLabState, search = window.
   params.set('material-lab', '1');
   params.set('fixture', state.fixture);
   params.set('recipe', state.recipe);
+  params.set('environment', state.environment);
   params.set('interaction', state.interaction);
   params.set('preview', state.preview);
   params.set('preset', state.preset);

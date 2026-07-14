@@ -23,8 +23,11 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   await expect(page).toHaveURL(/preview=content/);
   await lab.getByRole('button', { name: 'Resume preview motion' }).click();
   await expect(lab.getByRole('button', { name: 'Pause preview motion' })).toHaveAttribute('aria-pressed', 'false');
-  const interaction = lab.getByLabel('Demo interaction');
+  const environment = lab.getByRole('combobox').nth(1);
+  const interaction = lab.getByRole('combobox').nth(2);
   const stage = lab.getByTestId('interaction-stage');
+  await environment.selectOption('moving-softbox');
+  await expect(stage).toHaveClass(/material-lab-environment-moving/);
   await interaction.selectOption('pointer-position');
   await stage.hover({ position: { x: 4, y: 10 } });
   await expect(stage).toHaveAttribute('data-interaction-mode', 'pointer-position');
