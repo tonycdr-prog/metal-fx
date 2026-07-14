@@ -9,7 +9,6 @@ Remediation acceptance contract: `spec/spec-process-stabilization-acceptance.md`
 | High | Per-component `preset`/`theme` props write one shared renderer preset | `MetalFx.tsx:156`, `renderer/loop.ts:135`, mixed presets in `demo/components/Examples.tsx` | Last effect wins; concurrent instances display the wrong palette/theme | Make preset selection an instance property and render/group by preset, or explicitly redesign/document a page-global controller |
 | Medium | No graceful browser capability fallback | `renderer/core.ts`, `renderer/loop.ts`, `MetalFx.tsx` | WebGL/Canvas failure throws while the child remains hidden until first copy | Catch initialization failure, expose/report it, and render the child without effects |
 | Medium | SSR-safe claim has warning/mismatch edges | `MetalFx.tsx`, `README.md`; `renderToString` emitted a `useLayoutEffect` warning | Noisy SSR and possible dark/light hydration mismatch under `theme="auto"` | Use an isomorphic layout effect and defer client theme resolution until after hydration |
-| Medium | Current lockfile audit reports 20 dev-tool vulnerabilities (1 critical, 9 high); production-only audit reports 0 | `package-lock.json`; `npm audit` on 2026-07-14 | Local dev/CI tooling has supply-chain exposure even though consumers do not inherit it | Upgrade Vite/Wrangler/vite-plugin-dts chains deliberately and re-audit |
 
 ## 2) Technical Debt
 
@@ -23,7 +22,6 @@ Remediation acceptance contract: `spec/spec-process-stabilization-acceptance.md`
 
 | Risk | OWASP category | Evidence | Current mitigation | Gap |
 |------|----------------|----------|--------------------|-----|
-| Dev dependency advisories | A06: Vulnerable and Outdated Components | `package-lock.json`; local audit result | No bundled production dependencies; production-only audit found 0 | No dependency update automation/security policy found |
 | Inline style/SVG markup injection conflicts with strict CSP | N/A | `styles.ts`, `glow/glow.ts` | Markup is library-generated rather than user-supplied | No nonce/external stylesheet option is exposed |
 | DOM mutation of reflection targets | N/A | `reflection/paint.ts` | Blocks form-control tags and restores styles it applied | Multiple anchors targeting one element share the first registration without explicit ownership semantics |
 
@@ -70,6 +68,7 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - Module boundaries, explicit public exports, dependency usage, test locations, package contents, and script config references now have executable checks.
 - CommonJS now resolves to the generated `dist/index.cjs` bundle, while ESM continues to resolve to `dist/index.es.js`. The packed-artifact fixtures verify ESM named imports, CommonJS `require()`, strict TypeScript public types, and the approved tarball file list on Node 22.x and 24.x through `npm run test:package` and the quality workflow.
 - Vitest now covers deterministic engine transforms, basic React lifecycle behavior, and server rendering. Playwright smoke tests the built demo in Chromium, Firefox, and WebKit with failure traces/screenshots retained by CI. Warning-free SSR/hydration, fallback, lifecycle, and visual-regression coverage remain tracked concerns rather than passing contracts.
+- The development toolchain now uses Vite 8, Vitest 4, vite-plugin-dts 5 with API Extractor 7, and Wrangler 4.110.0. The lockfile and production-only audits reported zero vulnerabilities on 2026-07-14; Node 22.23.1 and 24.14.0 both passed the package gate.
 
 ## 9) Evidence
 

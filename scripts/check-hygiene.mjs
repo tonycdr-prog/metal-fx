@@ -119,11 +119,17 @@ function checkScriptsAndDependencies() {
   for (const dependency of Object.keys(allDependencies)) {
     const base = dependency.startsWith('@types/') ? dependency.slice('@types/'.length).replace('__', '/') : dependency;
     const commands = config.dependencyCommands[dependency] ?? [];
+    const configReferences = config.dependencyConfigReferences?.[dependency] ?? [];
+    const configured = configReferences.some(({ file, text }) => {
+      const path = join(root, file);
+      return existsSync(path) && readFileSync(path, 'utf8').includes(text);
+    });
     const used =
       usageCorpus.includes(`'${dependency}'`) ||
       usageCorpus.includes(`"${dependency}"`) ||
       (dependency.startsWith('@types/') && (usageCorpus.includes(`'${base}'`) || usageCorpus.includes(`"${base}"`))) ||
-      commands.some((command) => new RegExp(`(^|[;&|\\s])${command}(?=\\s|$)`, 'm').test(scripts));
+      commands.some((command) => new RegExp(`(^|[;&|\\s])${command}(?=\\s|$)`, 'm').test(scripts)) ||
+      configured;
     if (!used) errors.push(`package.json: dependency ${dependency} appears unused.`);
   }
 }
