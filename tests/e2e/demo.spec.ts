@@ -21,11 +21,21 @@ test('demo mounts representative effects and keeps interactive children usable',
   expect((await page.request.get(faviconUrl)).ok()).toBe(true);
 
   await expect(page.getByLabel('Effect demonstrations').locator('.metal-fx-root')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Silver' }).click();
 
   const upgrade = page.getByRole('button', { name: 'Upgrade to Pro' }).first();
   await upgrade.click();
   await expect(upgrade).toBeEnabled();
-  await expect(page.getByLabel('Interactive playground').locator('.metal-fx-root')).toHaveCount(1);
+  const playground = page.getByLabel('Interactive playground');
+  const playgroundEffect = playground.locator('.metal-fx-root');
+  await expect(playgroundEffect).toHaveCount(1);
+  await expect(playgroundEffect.locator('.metal-fx-glow-svg')).toHaveCount(1);
+
+  await playground.getByRole('button', { name: 'No Glow' }).click();
+  await expect(playgroundEffect.locator('.metal-fx-glow-svg')).toHaveCount(0);
+
+  await playground.getByRole('button', { name: 'No Glow' }).click();
+  await expect(playgroundEffect.locator('.metal-fx-glow-svg')).toHaveCount(1);
 
   const states = page.getByLabel('Interaction States');
   const interactive = states.getByRole('button', { name: 'Hover, focus, press' });

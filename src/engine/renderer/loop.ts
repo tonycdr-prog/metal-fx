@@ -1,7 +1,7 @@
 /** Animation loop, per-frame compositing, and instance lifecycle. */
 import { hexToRgb } from '../color';
 import { FRAME_INTERVAL_MS, GLOW_SKIP_FRAMES } from '../perfConfig';
-import { PRESETS, type PresetName, type PresetTheme } from '../presets';
+import { PRESETS, type PresetMode, type PresetName, type PresetTheme } from '../presets';
 import {
   CANONICAL_PILL_H,
   CANONICAL_PILL_W,
@@ -13,6 +13,7 @@ import {
   setContextRestoredCallback,
   teardownSharedRenderer
 } from './core';
+import { planRenderGroups } from './groups';
 import { ensureGlowPixels } from './sampling';
 
 // Restart the animation loop when the browser restores the GL context.
@@ -46,6 +47,8 @@ interface CreateInstanceOptions {
   opacityMul?: number;
   paused?: boolean;
   scale?: number;
+  preset?: PresetName;
+  theme?: PresetTheme;
   onAfterFrame?: () => void;
   onFirstCopy?: () => void;
 }
@@ -71,6 +74,12 @@ export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
     everCopied: false,
     dpr: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
     scale,
+    preset: opts.preset ?? renderer.defaultPresetName,
+    theme: opts.theme ?? renderer.defaultPresetTheme,
+    glowPixels: new Uint8Array(0),
+    glowPixelsW: 0,
+    glowPixelsH: 0,
+    glowReadbackMs: -Infinity,
     onAfterFrame: opts.onAfterFrame,
     onFirstCopy: opts.onFirstCopy
   };
@@ -116,6 +125,8 @@ export function updateInstance(
       | 'opacityMul'
       | 'paused'
       | 'scale'
+      | 'preset'
+      | 'theme'
     >
   >
 ): void {
@@ -139,6 +150,8 @@ export function updateInstance(
   if (patch.shaderScale !== undefined) inst.shaderScale = patch.shaderScale;
   if (patch.ringCssPx !== undefined) inst.ringCssPx = patch.ringCssPx;
   if (patch.opacityMul !== undefined) inst.opacityMul = patch.opacityMul;
+  if (patch.preset !== undefined) inst.preset = patch.preset;
+  if (patch.theme !== undefined) inst.theme = patch.theme;
   if (patch.paused !== undefined && patch.paused !== inst.paused) {
     inst.paused = patch.paused;
     // Unpausing should kick the loop if it had idled because every visible
@@ -159,8 +172,14 @@ export function setInstanceVisible(inst: MetalFxInstance, visible: boolean): voi
 
 export function setSharedPreset(name: PresetName, theme: PresetTheme): void {
   const s = ensureSharedRenderer();
+  s.defaultPresetName = name;
+  s.defaultPresetTheme = theme;
   s.preset = PRESETS[name].modes[theme];
   s.presetDirty = true;
+  for (const instance of s.instances) {
+    instance.preset = name;
+    instance.theme = theme;
+  }
 }
 
 export function pauseShared(): void {
@@ -214,9 +233,8 @@ function punchInnerHole(inst: MetalFxInstance): void {
   ctx.restore();
 }
 
-function copyShaderToInstance(inst: MetalFxInstance): void {
+function copyShaderToInstance(inst: MetalFxInstance, src: CanvasImageSource): void {
   if (!SHARED) return;
-  const src: CanvasImageSource = SHARED.frameBitmap ?? SHARED.glCanvas;
   const dpr = inst.dpr;
   const dw = inst.canvas.width,
     dh = inst.canvas.height;
@@ -274,9 +292,11 @@ function uploadPresetUniforms(): void {
   SHARED.presetDirty = false;
 }
 
-function renderSharedFrame(now: number): void {
+function renderSharedFrame(now: number, preset: PresetMode): void {
   if (!SHARED) return;
-  const { gl, uniforms, preset, glCanvas } = SHARED;
+  const { gl, uniforms, glCanvas } = SHARED;
+  SHARED.preset = preset;
+  SHARED.presetDirty = true;
   const t = ((now - SHARED.startMs - SHARED.pausedMs) / 1000) * preset.speed;
 
   gl.viewport(0, 0, glCanvas.width, glCanvas.height);
@@ -318,30 +338,30 @@ function tick(now: number): void {
   if (now - lastFrameMs < FRAME_INTERVAL_MS) return;
   lastFrameMs = now;
 
-  renderSharedFrame(now);
-
-  if (SHARED.useOffscreen) {
-    if (SHARED.glowQueue.length > 0) ensureGlowPixels();
-    SHARED.frameBitmap?.close();
-    SHARED.frameBitmap = (SHARED.glCanvas as OffscreenCanvas).transferToImageBitmap();
-  }
-
-  for (const inst of SHARED.instances) {
-    if (!inst.visible) continue;
-    if (inst.paused && inst.everCopied) continue;
-    copyShaderToInstance(inst);
-    inst.everCopied = true;
-  }
-
+  let glowTarget: MetalFxInstance | null = null;
   if (_glowCallback && SHARED.glowQueue.length > 0 && ++SHARED.glowSkip % GLOW_SKIP_FRAMES === 0) {
     const queue = SHARED.glowQueue;
     if (SHARED.glowIdx >= queue.length) SHARED.glowIdx = 0;
-    const inst = queue[SHARED.glowIdx];
-    // Skip glow frames for paused instances so their halo also freezes
-    // (otherwise the catch-light would keep travelling on a frozen ring).
-    if (inst.visible && !inst.paused) _glowCallback(inst, now);
+    const candidate = queue[SHARED.glowIdx];
     SHARED.glowIdx++;
+    // A paused ring keeps its last halo position; hidden instances have no
+    // visible glow to update. The next scheduled turn advances the queue.
+    if (candidate.visible && !candidate.paused) glowTarget = candidate;
   }
+
+  for (const group of planRenderGroups(SHARED.instances)) {
+    renderSharedFrame(now, group.mode);
+    if (glowTarget && group.instances.includes(glowTarget)) ensureGlowPixels(glowTarget);
+    let frame: CanvasImageSource = SHARED.glCanvas;
+    if (SHARED.useOffscreen) frame = (SHARED.glCanvas as OffscreenCanvas).transferToImageBitmap();
+    for (const inst of group.instances) {
+      copyShaderToInstance(inst, frame);
+      inst.everCopied = true;
+    }
+    if (frame instanceof ImageBitmap) frame.close();
+  }
+
+  if (glowTarget) _glowCallback?.(glowTarget, now);
 }
 
 function startSharedLoop(): void {

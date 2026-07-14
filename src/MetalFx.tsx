@@ -18,7 +18,6 @@ import {
   destroyInstance,
   registerGlowInstance,
   setInstanceVisible,
-  setSharedPreset,
   unregisterGlowInstance,
   updateInstance
 } from './engine/renderer/loop';
@@ -29,6 +28,8 @@ import type { MetalFxProps } from './types';
 // Runs at module scope so styles exist before the first component render,
 // even in SSR-hydration scenarios where effects haven't fired yet.
 ensureStylesInjected();
+
+const useSafeLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 // Hoisted to avoid allocating new objects on every render.
 const CANVAS_STYLE: CSSProperties = { position: 'absolute', inset: 0, width: '100%', height: '100%' };
@@ -91,6 +92,8 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
   themeRef.current = resolvedTheme;
   const shape: 'pill' | 'circle' = variant === 'circle' ? 'circle' : 'pill';
   const glowEnabled = !disableGlow;
+  const glowEnabledRef = useRef(glowEnabled);
+  glowEnabledRef.current = glowEnabled;
 
   useImperativeHandle(forwardedRef, () => rootRef.current as HTMLDivElement, []);
 
@@ -118,7 +121,8 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
   };
 
   useEffect(() => {
-    setSharedPreset(preset, resolvedTheme);
+    const inst = instanceRef.current;
+    if (inst) updateInstance(inst, { preset, theme: resolvedTheme });
   }, [preset, resolvedTheme]);
   // `paused` is per-instance: it freezes only this instance's 2D canvas while
   // the shared GL loop keeps running for any other unpaused instance.
@@ -139,11 +143,9 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     if (Object.keys(patch).length > 0) updateInstance(inst, patch);
   }, [shaderScale, ringCssPx, scale]);
 
-  // useLayoutEffect (not useEffect) so the instance is created and the canvas
-  // is sized synchronously before the browser paints — avoids a one-frame
-  // flash of the unsized canvas.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: borderRadius changes handled by separate effect
-  useLayoutEffect(() => {
+  // Use a layout effect in the browser so the instance is created and the canvas
+  // is sized synchronously before paint, with a server-safe effect during SSR.
+  useSafeLayoutEffect(() => {
     const canvas = canvasRef.current;
     const root = rootRef.current;
     const glowHost = glowHostRef.current;
@@ -173,20 +175,12 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       shaderScale,
       ringCssPx,
       scale,
+      preset,
+      theme: resolvedTheme,
       onFirstCopy: () => setReady(true)
     });
     root.style.setProperty('--mfx-radius', `${initial.cornerRadius}px`);
     root.style.borderRadius = `${initial.cornerRadius}px`;
-
-    if (glowHost) {
-      glowHandlesRef.current = injectGlow(glowHost, {
-        width: initial.cssWidth,
-        height: initial.cssHeight,
-        cornerRadius: initial.cornerRadius,
-        kind: shape,
-        scale
-      });
-    }
 
     let resizeRaf = 0;
     const ro = new ResizeObserver(() => {
@@ -201,14 +195,14 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
         updateInstance(inst, { cssWidth: next.cssWidth, cssHeight: next.cssHeight, cornerRadius: next.cornerRadius });
         root.style.setProperty('--mfx-radius', `${next.cornerRadius}px`);
         root.style.borderRadius = `${next.cornerRadius}px`;
-        if (glowHost) {
+        if (glowEnabledRef.current && glowHost && glowHandlesRef.current) {
           glowHost.innerHTML = '';
           glowHandlesRef.current = injectGlow(glowHost, {
             width: next.cssWidth,
             height: next.cssHeight,
             cornerRadius: next.cornerRadius,
             kind: shape,
-            scale
+            scale: inst.scale
           });
           if (inst && glowHandlesRef.current) {
             setGlowHandles(inst, glowHandlesRef.current, themeRef);
@@ -234,19 +228,16 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       io.observe(root);
     }
 
-    if (instanceRef.current && glowHandlesRef.current) {
-      setGlowHandles(instanceRef.current, glowHandlesRef.current, themeRef);
-      registerGlowInstance(instanceRef.current);
-    }
-
     return () => {
       ro.disconnect();
       io?.disconnect();
       if (resizeRaf !== 0) cancelAnimationFrame(resizeRaf);
       const inst = instanceRef.current;
       if (inst) {
-        deleteGlowHandles(inst);
-        unregisterGlowInstance(inst);
+        if (glowHandlesRef.current) {
+          deleteGlowHandles(inst);
+          unregisterGlowInstance(inst);
+        }
         destroyInstance(inst);
       }
       instanceRef.current = null;
@@ -254,6 +245,42 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       if (glowHost) glowHost.innerHTML = '';
     };
   }, [shape]);
+
+  // Shape changes recreate the renderer in the layout effect above, so this
+  // effect must move glow ownership to the new instance even when enabled.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: shape is an intentional lifecycle trigger
+  useEffect(() => {
+    const inst = instanceRef.current;
+    const glowHost = glowHostRef.current;
+    if (!inst || !glowHost) return;
+    if (!glowEnabled) {
+      if (glowHandlesRef.current) {
+        deleteGlowHandles(inst);
+        unregisterGlowInstance(inst);
+        glowHandlesRef.current = null;
+        glowHost.replaceChildren();
+      }
+      return;
+    }
+    if (!glowHandlesRef.current) {
+      glowHandlesRef.current = injectGlow(glowHost, {
+        width: inst.cssWidth,
+        height: inst.cssHeight,
+        cornerRadius: inst.cornerRadius,
+        kind: inst.kind,
+        scale: inst.scale
+      });
+      setGlowHandles(inst, glowHandlesRef.current, themeRef);
+      registerGlowInstance(inst);
+    }
+    return () => {
+      if (!glowHandlesRef.current) return;
+      deleteGlowHandles(inst);
+      unregisterGlowInstance(inst);
+      glowHandlesRef.current = null;
+      glowHost.replaceChildren();
+    };
+  }, [glowEnabled, shape]);
 
   // strength=1 maps directly to a full-opacity composite (opacityMul=1) for
   // every variant. Per-preset toning lives in `shaderOpacity` inside each

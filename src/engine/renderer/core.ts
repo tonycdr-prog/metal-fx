@@ -5,13 +5,13 @@
  *   1. A single offscreen GL canvas renders the plasma shader.
  *   2. Each instance owns a visible 2D canvas that receives a cropped/scaled
  *      copy of the GL output with an inner "hole punch" mask (ring effect).
- *   3. Glow sampling reads from a shared pixel buffer (gl.readPixels) that is
- *      refreshed at most every 200ms to avoid GPU pipeline flushes on every frame.
- *   4. The animation loop is capped at ~30fps — the blur + slow plasma motion
+ *   3. Glow sampling reads from a per-instance, material-correct pixel buffer.
+ *      The round-robin glow scheduler refreshes only its current target.
+ *   4. The animation loop is capped at ~15fps — the blur + slow plasma motion
  *      makes higher rates imperceptible.
  */
 import { CANONICAL_GL_SIZE, GL_DPR_CAP } from '../perfConfig';
-import { PRESETS, type PresetMode } from '../presets';
+import { PRESETS, type PresetMode, type PresetName, type PresetTheme } from '../presets';
 import { compileShader, FRAG_SHADER_SRC, linkProgram, VERT_SHADER_SRC } from '../shaders';
 export const CANONICAL_PILL_W = 140;
 export const CANONICAL_PILL_H = 40;
@@ -48,6 +48,12 @@ export interface MetalFxInstance {
    *  widths/blurs, reflection stroke band, etc.). 1 is the baseline. Set to
    *  2 for a CSS-zoomed 2× hero so glow + reflection grow with the layout. */
   scale: number;
+  preset: PresetName;
+  theme: PresetTheme;
+  glowPixels: Uint8Array;
+  glowPixelsW: number;
+  glowPixelsH: number;
+  glowReadbackMs: number;
   onAfterFrame?: () => void;
   /** One-shot callback fired after the very first copyShaderToInstance.
    *  Auto-cleared by the loop so it never fires twice. */
@@ -61,10 +67,11 @@ export interface SharedRenderer {
   buffer: WebGLBuffer;
   uniforms: Record<string, WebGLUniformLocation | null>;
   preset: PresetMode;
+  defaultPresetName: PresetName;
+  defaultPresetTheme: PresetTheme;
   presetDirty: boolean;
   contextLost: boolean;
   useOffscreen: boolean;
-  frameBitmap: ImageBitmap | null;
   startMs: number;
   pausedMs: number;
   pausedAtMs: number | null;
@@ -75,9 +82,6 @@ export interface SharedRenderer {
   glowQueue: MetalFxInstance[];
   glowIdx: number;
   glowSkip: number;
-  glowPixels: Uint8Array;
-  glowPixelsW: number;
-  glowPixelsH: number;
 }
 
 export let SHARED: SharedRenderer | null = null;
@@ -204,10 +208,11 @@ export function ensureSharedRenderer(): SharedRenderer {
     buffer,
     uniforms,
     preset: PRESETS.chromatic.modes.dark,
+    defaultPresetName: 'chromatic',
+    defaultPresetTheme: 'dark',
     presetDirty: true,
     contextLost: false,
     useOffscreen,
-    frameBitmap: null,
     startMs: performance.now(),
     pausedMs: 0,
     pausedAtMs: null,
@@ -217,19 +222,15 @@ export function ensureSharedRenderer(): SharedRenderer {
     frameCount: 0,
     glowQueue: [],
     glowIdx: 0,
-    glowSkip: 0,
-    glowPixels: new Uint8Array(size * size * 4),
-    glowPixelsW: size,
-    glowPixelsH: size
+    glowSkip: 0
   };
   return SHARED;
 }
 
 export function teardownSharedRenderer(): void {
   if (!SHARED) return;
-  const { gl, program, buffer, frameBitmap } = SHARED;
+  const { gl, program, buffer } = SHARED;
   try {
-    frameBitmap?.close();
     gl.deleteBuffer(buffer);
     gl.deleteProgram(program);
     gl.getExtension('WEBGL_lose_context')?.loseContext();
