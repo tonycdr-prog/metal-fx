@@ -11,6 +11,7 @@ describe('Material Lab query state', () => {
       strength: 90,
       paused: false
     });
+    expect(readMaterialLabState('?material-lab=1&strength=').strength).toBe(90);
   });
 
   it('normalizes malformed state to a safe foundation fixture', () => {
