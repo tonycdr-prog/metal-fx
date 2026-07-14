@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('demo mounts representative effects and keeps interactive children usable', async ({ page }) => {
+test('demo mounts representative effects and keeps interactive children usable', async ({ browserName, page }) => {
   const errors: string[] = [];
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text());
@@ -30,9 +30,20 @@ test('demo mounts representative effects and keeps interactive children usable',
   const states = page.getByLabel('Interaction States');
   const interactive = states.getByRole('button', { name: 'Hover, focus, press' });
   await interactive.hover();
-  await interactive.focus();
+  await expect(interactive).toHaveAttribute('data-hovered', 'true');
+
+  await page.mouse.down();
+  await expect(interactive).toHaveAttribute('data-pressed', 'true');
+  await page.mouse.move(0, 0);
+  await expect(interactive).not.toHaveAttribute('data-pressed', 'true');
+  await page.mouse.up();
+
+  const keyboardFocus = states.getByRole('button', { name: 'Keyboard focus' });
+  await keyboardFocus.focus();
+  await page.keyboard.press(browserName === 'webkit' ? 'Alt+Shift+Tab' : 'Shift+Tab');
   await expect(interactive).toBeFocused();
   await interactive.press('Space');
+  await expect(states.getByTestId('activation-state')).toHaveText('Activated 1 time');
   await expect(states.getByRole('button', { name: 'Disabled' })).toBeDisabled();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(states.getByTestId('motion-state')).toHaveText('Reduced motion: on');
