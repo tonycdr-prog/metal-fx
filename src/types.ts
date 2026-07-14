@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode, HTMLAttributes, RefObject } from 'react';
+import type { CSSProperties, HTMLAttributes, ReactNode, RefObject } from 'react';
 
 /**
  * Variant for the metal effect.

@@ -1,29 +1,30 @@
 import {
+  type CSSProperties,
   forwardRef,
   useEffect,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
   useRef,
-  useState,
-  type CSSProperties,
+  useState
 } from 'react';
+import { injectGlow } from './engine/glow/glow';
+import { deleteGlowHandles, setGlowHandles } from './engine/glow/registry';
+import { addReflectionTarget, removeReflectionTarget } from './engine/reflection/paint';
+import { scheduleReflectionPaint } from './engine/reflection/reflectionScheduler';
 import type { MetalFxInstance } from './engine/renderer/core';
 import {
   createInstance,
   destroyInstance,
   registerGlowInstance,
-  setGlowCallback,
   setInstanceVisible,
   setSharedPreset,
   unregisterGlowInstance,
-  updateInstance,
+  updateInstance
 } from './engine/renderer/loop';
-import { injectGlow, updateGlow } from './engine/glow/glow';
-import { addReflectionTarget, removeReflectionTarget } from './engine/reflection/paint';
-import { scheduleReflectionPaint } from './engine/reflection/reflectionScheduler';
+import { useResolvedTheme } from './hooks/useResolvedTheme';
 import { ensureStylesInjected } from './styles';
-import type { MetalFxProps, MetalFxTheme } from './types';
+import type { MetalFxProps } from './types';
 
 // Runs at module scope so styles exist before the first component render,
 // even in SSR-hydration scenarios where effects haven't fired yet.
@@ -32,51 +33,13 @@ ensureStylesInjected();
 // Hoisted to avoid allocating new objects on every render.
 const CANVAS_STYLE: CSSProperties = { position: 'absolute', inset: 0, width: '100%', height: '100%' };
 const INNER_STYLE: CSSProperties = { position: 'absolute', inset: 3 };
-const GLOW_HOST_STYLE: CSSProperties = { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3, borderRadius: 'inherit' };
-
-// Maps each live instance to its SVG glow handles and a theme ref.
-// Keyed by instance (not component) because the same component can be
-// remounted with a new instance after shape/glowEnabled changes.
-const glowHandlesMap = new Map<MetalFxInstance, { handles: ReturnType<typeof injectGlow>; themeRef: { current: 'dark' | 'light' } }>();
-
-// Bridge between the shared animation loop and per-instance glow SVGs.
-// The loop module doesn't import glow directly — it invokes this callback
-// for one queued instance per frame (round-robin), keeping render work
-// proportional to frame budget regardless of instance count.
-setGlowCallback((inst, nowMs) => {
-  const entry = glowHandlesMap.get(inst);
-  if (!entry) return;
-  updateGlow(entry.handles, inst, nowMs, inst.opacityMul, entry.themeRef.current);
-});
-
-/**
- * Resolves 'auto' theme to 'dark' | 'light' and keeps it in sync with
- * the OS preference via matchMedia.
- *
- * The useState initialiser runs synchronously so the resolved value is
- * available on the first render (no flash). The useEffect then attaches
- * the MQL listener and calls update() immediately to handle the case
- * where the OS preference changed between SSR and hydration.
- */
-function useResolvedTheme(theme: MetalFxTheme): 'dark' | 'light' {
-  const [resolved, setResolved] = useState<'dark' | 'light'>(() => {
-    if (theme !== 'auto') return theme;
-    if (typeof window === 'undefined' || !window.matchMedia) return 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
-
-  useEffect(() => {
-    if (theme !== 'auto') { setResolved(theme); return; }
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const update = () => setResolved(mql.matches ? 'dark' : 'light');
-    update();
-    mql.addEventListener('change', update);
-    return () => mql.removeEventListener('change', update);
-  }, [theme]);
-
-  return resolved;
-}
+const GLOW_HOST_STYLE: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  pointerEvents: 'none',
+  zIndex: 3,
+  borderRadius: 'inherit'
+};
 
 /**
  * Wraps any element with an animated metallic ring effect driven by a
@@ -140,20 +103,23 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     // returns source pixels but getBoundingClientRect returns zoomed ones).
     if (shape === 'circle') return Math.min(w, h) / 2;
 
-    const raw = typeof borderRadius === 'number'
-      ? borderRadius
-      : (() => {
-          const childEl = contentRef.current?.firstElementChild as HTMLElement | null;
-          if (childEl) {
-            const parsed = parseFloat(getComputedStyle(childEl).borderTopLeftRadius);
-            if (Number.isFinite(parsed) && parsed > 0) return parsed;
-          }
-          return initialWrapperRadiusRef.current;
-        })();
+    const raw =
+      typeof borderRadius === 'number'
+        ? borderRadius
+        : (() => {
+            const childEl = contentRef.current?.firstElementChild as HTMLElement | null;
+            if (childEl) {
+              const parsed = parseFloat(getComputedStyle(childEl).borderTopLeftRadius);
+              if (Number.isFinite(parsed) && parsed > 0) return parsed;
+            }
+            return initialWrapperRadiusRef.current;
+          })();
     return Math.min(raw, Math.min(w, h) / 2);
   };
 
-  useEffect(() => { setSharedPreset(preset, resolvedTheme); }, [preset, resolvedTheme]);
+  useEffect(() => {
+    setSharedPreset(preset, resolvedTheme);
+  }, [preset, resolvedTheme]);
   // `paused` is per-instance: it freezes only this instance's 2D canvas while
   // the shared GL loop keeps running for any other unpaused instance.
   useEffect(() => {
@@ -207,7 +173,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       shaderScale,
       ringCssPx,
       scale,
-      onFirstCopy: () => setReady(true),
+      onFirstCopy: () => setReady(true)
     });
     root.style.setProperty('--mfx-radius', `${initial.cornerRadius}px`);
     root.style.borderRadius = `${initial.cornerRadius}px`;
@@ -218,7 +184,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
         height: initial.cssHeight,
         cornerRadius: initial.cornerRadius,
         kind: shape,
-        scale,
+        scale
       });
     }
 
@@ -238,10 +204,14 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
         if (glowHost) {
           glowHost.innerHTML = '';
           glowHandlesRef.current = injectGlow(glowHost, {
-            width: next.cssWidth, height: next.cssHeight, cornerRadius: next.cornerRadius, kind: shape, scale,
+            width: next.cssWidth,
+            height: next.cssHeight,
+            cornerRadius: next.cornerRadius,
+            kind: shape,
+            scale
           });
           if (inst && glowHandlesRef.current) {
-            glowHandlesMap.set(inst, { handles: glowHandlesRef.current, themeRef });
+            setGlowHandles(inst, glowHandlesRef.current, themeRef);
           }
         }
       });
@@ -254,14 +224,18 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     let io: IntersectionObserver | null = null;
     if (typeof IntersectionObserver !== 'undefined') {
       io = new IntersectionObserver(
-        (entries) => { const inst = instanceRef.current; if (!inst) return; for (const e of entries) setInstanceVisible(inst, e.isIntersecting); },
+        (entries) => {
+          const inst = instanceRef.current;
+          if (!inst) return;
+          for (const e of entries) setInstanceVisible(inst, e.isIntersecting);
+        },
         { rootMargin: '64px' }
       );
       io.observe(root);
     }
 
     if (instanceRef.current && glowHandlesRef.current) {
-      glowHandlesMap.set(instanceRef.current, { handles: glowHandlesRef.current, themeRef });
+      setGlowHandles(instanceRef.current, glowHandlesRef.current, themeRef);
       registerGlowInstance(instanceRef.current);
     }
 
@@ -271,7 +245,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       if (resizeRaf !== 0) cancelAnimationFrame(resizeRaf);
       const inst = instanceRef.current;
       if (inst) {
-        glowHandlesMap.delete(inst);
+        deleteGlowHandles(inst);
         unregisterGlowInstance(inst);
         destroyInstance(inst);
       }
@@ -288,7 +262,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     const inst = instanceRef.current;
     if (!inst) return;
     updateInstance(inst, { opacityMul: Math.max(0, Math.min(1, strength)) });
-  }, [strength, variant]);
+  }, [strength]);
 
   // onAfterFrame is wired here rather than at createInstance time so instances
   // without reflectionTargets never schedule the reflection RAF.
@@ -308,8 +282,8 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
 
   // Separate from the main lifecycle effect so borderRadius / variant / theme
   // changes re-sync the radius without destroying and recreating the instance.
-  // biome-ignore covers shape, which is derived from variant and identical to
-  // inst.kind — adding it would be correct but redundant.
+  // Shape is derived from variant and identical to inst.kind; the suppression
+  // below documents the intentional trigger dependencies for radius syncing.
   // biome-ignore lint/correctness/useExhaustiveDependencies: trigger deps for radius re-sync
   useEffect(() => {
     const root = rootRef.current;
@@ -329,7 +303,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       ['--mfx-strength' as string]: String(Math.min(1, Math.max(0, strength))),
       opacity: ready ? 1 : 0,
       visibility: ready ? 'visible' : 'hidden',
-      transition: ready ? 'opacity 0.15s ease-out' : 'none',
+      transition: ready ? 'opacity 0.15s ease-out' : 'none'
     }),
     [style, strength, ready]
   );
@@ -348,8 +322,14 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     >
       <canvas ref={canvasRef} className="metal-fx-canvas" style={CANVAS_STYLE} />
       <div className="metal-fx-inner" aria-hidden="true" style={INNER_STYLE} />
-      <div ref={glowHostRef} aria-hidden="true" style={{ ...GLOW_HOST_STYLE, display: glowEnabled ? undefined : 'none' }} />
-      <div ref={contentRef} className="metal-fx-content">{children}</div>
+      <div
+        ref={glowHostRef}
+        aria-hidden="true"
+        style={{ ...GLOW_HOST_STYLE, display: glowEnabled ? undefined : 'none' }}
+      />
+      <div ref={contentRef} className="metal-fx-content">
+        {children}
+      </div>
     </div>
   );
 });

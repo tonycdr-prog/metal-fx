@@ -13,7 +13,7 @@ export function readCornerRadius(el: HTMLElement): number {
     parseFloat(cs.borderTopLeftRadius) || 0,
     parseFloat(cs.borderTopRightRadius) || 0,
     parseFloat(cs.borderBottomRightRadius) || 0,
-    parseFloat(cs.borderBottomLeftRadius) || 0,
+    parseFloat(cs.borderBottomLeftRadius) || 0
   ].filter((v) => v > 0);
   return radii.length ? Math.min.apply(null, radii) : 0;
 }
@@ -64,8 +64,7 @@ export function readHairlineSpec(el: HTMLElement): { width: number; outerCssPx: 
   }
 
   const outerCssPx = Math.max(borderMax, smallestOutsetSpread);
-  const width =
-    Math.max(borderMax, smallestInsetSpread, smallestOutsetSpread) || 1;
+  const width = Math.max(borderMax, smallestInsetSpread, smallestOutsetSpread) || 1;
 
   return { width, outerCssPx };
 }
@@ -86,7 +85,7 @@ export function attachObservers(t: ReflectionTarget): void {
     t.mutationObserver = new MutationObserver(() => refreshTargetStyles(t));
     t.mutationObserver.observe(t.el, {
       attributes: true,
-      attributeFilter: ['style', 'class'],
+      attributeFilter: ['style', 'class']
     });
   }
 }

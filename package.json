@@ -25,10 +25,15 @@
   "scripts": {
     "dev": "vite --config vite.config.demo.ts",
     "build": "vite build",
-    "build:playground": "vite build --config vite.config.playground.ts",
     "build:demo": "vite build --config vite.config.demo.ts",
     "deploy": "npm run build:demo && wrangler pages deploy dist-demo --project-name metal-fx-playground",
     "typecheck": "tsc --noEmit",
+    "typecheck:demo": "tsc -p demo/tsconfig.json --noEmit",
+    "format": "biome check --write .",
+    "lint": "biome check . && npm run hygiene",
+    "hygiene": "node scripts/check-hygiene.mjs",
+    "package:check": "node scripts/check-package.mjs",
+    "check": "npm run lint && npm run typecheck && npm run typecheck:demo && npm run build && npm run build:demo && npm run package:check",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
@@ -36,6 +41,7 @@
     "react-dom": ">=18.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.9",
     "@tailwindcss/vite": "^4.3.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

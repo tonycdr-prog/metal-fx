@@ -3,15 +3,15 @@ import { hexToRgb } from '../color';
 import { FRAME_INTERVAL_MS, GLOW_SKIP_FRAMES } from '../perfConfig';
 import { PRESETS, type PresetName, type PresetTheme } from '../presets';
 import {
-  SHARED,
-  CANONICAL_PILL_W,
   CANONICAL_PILL_H,
+  CANONICAL_PILL_W,
   CIRCLE_SHADER_SCALE,
-  PILL_SHADER_SCALE,
   ensureSharedRenderer,
-  setContextRestoredCallback,
-  teardownSharedRenderer,
   type MetalFxInstance,
+  PILL_SHADER_SCALE,
+  SHARED,
+  setContextRestoredCallback,
+  teardownSharedRenderer
 } from './core';
 import { ensureGlowPixels } from './sampling';
 
@@ -57,8 +57,10 @@ export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
 
   const scale = opts.scale ?? 1;
   const inst: MetalFxInstance = {
-    canvas: opts.hostCanvas, ctx,
-    cssWidth: opts.cssWidth, cssHeight: opts.cssHeight,
+    canvas: opts.hostCanvas,
+    ctx,
+    cssWidth: opts.cssWidth,
+    cssHeight: opts.cssHeight,
     cornerRadius: opts.cornerRadius,
     kind: opts.kind,
     ringCssPx: opts.ringCssPx ?? (opts.kind === 'circle' ? 2 : 1) * scale,
@@ -70,7 +72,7 @@ export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
     dpr: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
     scale,
     onAfterFrame: opts.onAfterFrame,
-    onFirstCopy: opts.onFirstCopy,
+    onFirstCopy: opts.onFirstCopy
   };
   resizeInstanceCanvas(inst);
   renderer.instances.add(inst);
@@ -83,7 +85,10 @@ export function destroyInstance(inst: MetalFxInstance): void {
   SHARED.instances.delete(inst);
   const qi = SHARED.glowQueue.indexOf(inst);
   if (qi !== -1) SHARED.glowQueue.splice(qi, 1);
-  if (SHARED.instances.size === 0) { stopSharedLoop(); teardownSharedRenderer(); }
+  if (SHARED.instances.size === 0) {
+    stopSharedLoop();
+    teardownSharedRenderer();
+  }
 }
 
 export function registerGlowInstance(inst: MetalFxInstance): void {
@@ -99,16 +104,36 @@ export function unregisterGlowInstance(inst: MetalFxInstance): void {
 
 export function updateInstance(
   inst: MetalFxInstance,
-  patch: Partial<Pick<MetalFxInstance, 'cssWidth' | 'cssHeight' | 'cornerRadius' | 'kind' | 'shaderScale' | 'ringCssPx' | 'opacityMul' | 'paused' | 'scale'>>
+  patch: Partial<
+    Pick<
+      MetalFxInstance,
+      | 'cssWidth'
+      | 'cssHeight'
+      | 'cornerRadius'
+      | 'kind'
+      | 'shaderScale'
+      | 'ringCssPx'
+      | 'opacityMul'
+      | 'paused'
+      | 'scale'
+    >
+  >
 ): void {
   let dirty = false;
-  if (patch.cssWidth !== undefined && patch.cssWidth !== inst.cssWidth) { inst.cssWidth = patch.cssWidth; dirty = true; }
-  if (patch.cssHeight !== undefined && patch.cssHeight !== inst.cssHeight) { inst.cssHeight = patch.cssHeight; dirty = true; }
+  if (patch.cssWidth !== undefined && patch.cssWidth !== inst.cssWidth) {
+    inst.cssWidth = patch.cssWidth;
+    dirty = true;
+  }
+  if (patch.cssHeight !== undefined && patch.cssHeight !== inst.cssHeight) {
+    inst.cssHeight = patch.cssHeight;
+    dirty = true;
+  }
   if (patch.cornerRadius !== undefined) inst.cornerRadius = patch.cornerRadius;
   if (patch.scale !== undefined) inst.scale = patch.scale;
   if (patch.kind !== undefined && patch.kind !== inst.kind) {
     inst.kind = patch.kind;
-    if (patch.shaderScale === undefined) inst.shaderScale = (patch.kind === 'circle' ? CIRCLE_SHADER_SCALE : PILL_SHADER_SCALE) * inst.scale;
+    if (patch.shaderScale === undefined)
+      inst.shaderScale = (patch.kind === 'circle' ? CIRCLE_SHADER_SCALE : PILL_SHADER_SCALE) * inst.scale;
     if (patch.ringCssPx === undefined) inst.ringCssPx = (patch.kind === 'circle' ? 2 : 1) * inst.scale;
   }
   if (patch.shaderScale !== undefined) inst.shaderScale = patch.shaderScale;
@@ -177,7 +202,8 @@ function resizeInstanceCanvas(inst: MetalFxInstance): void {
 function punchInnerHole(inst: MetalFxInstance): void {
   const { ctx, dpr, canvas } = inst;
   const stroke = inst.ringCssPx * dpr;
-  const w = canvas.width, h = canvas.height;
+  const w = canvas.width,
+    h = canvas.height;
   const innerR = Math.max(0, (inst.cornerRadius - inst.ringCssPx) * dpr);
   ctx.save();
   ctx.globalCompositeOperation = 'destination-out';
@@ -192,11 +218,14 @@ function copyShaderToInstance(inst: MetalFxInstance): void {
   if (!SHARED) return;
   const src: CanvasImageSource = SHARED.frameBitmap ?? SHARED.glCanvas;
   const dpr = inst.dpr;
-  const dw = inst.canvas.width, dh = inst.canvas.height;
+  const dw = inst.canvas.width,
+    dh = inst.canvas.height;
   if (dw < 1 || dh < 1) return;
 
-  const cw = SHARED.glCanvas.width, ch = SHARED.glCanvas.height;
-  const bdW = CANONICAL_PILL_W * dpr, bdH = CANONICAL_PILL_H * dpr;
+  const cw = SHARED.glCanvas.width,
+    ch = SHARED.glCanvas.height;
+  const bdW = CANONICAL_PILL_W * dpr,
+    bdH = CANONICAL_PILL_H * dpr;
   let srcW = (dw * (cw / bdW)) / inst.shaderScale;
   let srcH = (dh * (ch / bdH)) / inst.shaderScale;
   if (srcW > cw) srcW = cw;
@@ -210,7 +239,11 @@ function copyShaderToInstance(inst: MetalFxInstance): void {
   if (inst.opacityMul < 1) inst.ctx.globalAlpha = 1;
 
   punchInnerHole(inst);
-  if (inst.onFirstCopy) { const cb = inst.onFirstCopy; inst.onFirstCopy = undefined; cb(); }
+  if (inst.onFirstCopy) {
+    const cb = inst.onFirstCopy;
+    inst.onFirstCopy = undefined;
+    cb();
+  }
   inst.onAfterFrame?.();
 }
 
@@ -220,7 +253,10 @@ function uploadPresetUniforms(): void {
   if (uniforms.u_resolution) gl.uniform2f(uniforms.u_resolution, glCanvas.width, glCanvas.height);
   for (let i = 0; i < 7; i++) {
     const cLoc = uniforms[`u_color${i + 1}`];
-    if (cLoc) { const [r, g, b] = hexToRgb(preset.colors[i]); gl.uniform3f(cLoc, r, g, b); }
+    if (cLoc) {
+      const [r, g, b] = hexToRgb(preset.colors[i]);
+      gl.uniform3f(cLoc, r, g, b);
+    }
     const aLoc = uniforms[`u_alpha${i + 1}`];
     if (aLoc) gl.uniform1f(aLoc, preset.alphas[i]);
   }
@@ -258,16 +294,25 @@ let lastFrameMs = 0;
 
 function tick(now: number): void {
   if (!SHARED) return;
-  if (SHARED.contextLost) { SHARED.rafId = 0; return; }
+  if (SHARED.contextLost) {
+    SHARED.rafId = 0;
+    return;
+  }
 
   // Loop stays alive while at least one visible instance still has work to do
   // — i.e. it's either unpaused (needs a fresh copy each frame) or paused but
   // hasn't yet painted its first frame (initial-mount-paused case).
   let anyWork = false;
   for (const inst of SHARED.instances) {
-    if (inst.visible && (!inst.paused || !inst.everCopied)) { anyWork = true; break; }
+    if (inst.visible && (!inst.paused || !inst.everCopied)) {
+      anyWork = true;
+      break;
+    }
   }
-  if (!anyWork) { SHARED.rafId = 0; return; }
+  if (!anyWork) {
+    SHARED.rafId = 0;
+    return;
+  }
 
   SHARED.rafId = requestAnimationFrame(tick);
   if (now - lastFrameMs < FRAME_INTERVAL_MS) return;

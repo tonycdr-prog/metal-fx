@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { resolve } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
-import { resolve } from 'path';
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -11,13 +11,13 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'demo/index.html'),
-      },
-    },
+        main: resolve(__dirname, 'demo/index.html')
+      }
+    }
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'demo'),
-    },
-  },
+      '@': resolve(__dirname, 'demo')
+    }
+  }
 });

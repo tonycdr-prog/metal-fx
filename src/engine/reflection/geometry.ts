@@ -15,30 +15,28 @@ export function shortestRectDistance(a: DOMRect, b: DOMRect): number {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-export function isHorizontalNeighbour(anchorRect: DOMRect, targetRect: DOMRect, overlapMin: number, attachRange: number): boolean {
-  const verticalOverlap =
-    Math.min(anchorRect.bottom, targetRect.bottom) -
-    Math.max(anchorRect.top, targetRect.top);
+export function isHorizontalNeighbour(
+  anchorRect: DOMRect,
+  targetRect: DOMRect,
+  overlapMin: number,
+  attachRange: number
+): boolean {
+  const verticalOverlap = Math.min(anchorRect.bottom, targetRect.bottom) - Math.max(anchorRect.top, targetRect.top);
   if (verticalOverlap < overlapMin) return false;
-  const horizontalGap = Math.max(
-    anchorRect.left - targetRect.right,
-    targetRect.left - anchorRect.right,
-    0
-  );
+  const horizontalGap = Math.max(anchorRect.left - targetRect.right, targetRect.left - anchorRect.right, 0);
   if (horizontalGap > attachRange) return false;
   return true;
 }
 
-export function isVerticalNeighbour(anchorRect: DOMRect, targetRect: DOMRect, overlapMin: number, attachRange: number): boolean {
-  const horizontalOverlap =
-    Math.min(anchorRect.right, targetRect.right) -
-    Math.max(anchorRect.left, targetRect.left);
+export function isVerticalNeighbour(
+  anchorRect: DOMRect,
+  targetRect: DOMRect,
+  overlapMin: number,
+  attachRange: number
+): boolean {
+  const horizontalOverlap = Math.min(anchorRect.right, targetRect.right) - Math.max(anchorRect.left, targetRect.left);
   if (horizontalOverlap < overlapMin) return false;
-  const verticalGap = Math.max(
-    anchorRect.top - targetRect.bottom,
-    targetRect.top - anchorRect.bottom,
-    0
-  );
+  const verticalGap = Math.max(anchorRect.top - targetRect.bottom, targetRect.top - anchorRect.bottom, 0);
   return verticalGap <= attachRange;
 }
 
@@ -53,8 +51,7 @@ export function roundRectPath(
   r: number
 ): void {
   const rr = Math.max(0, Math.min(r, w * 0.5, h * 0.5));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const native = (ctx as any).roundRect;
+  const native = (ctx as CanvasRenderingContext2D & { roundRect?: CanvasRenderingContext2D['roundRect'] }).roundRect;
   if (typeof native === 'function') {
     native.call(ctx, x, y, w, h, rr);
     return;
@@ -101,17 +98,7 @@ export function drawSource(
     ctx.translate(0, dst.y + dst.h);
     ctx.scale(1, -1);
   }
-  ctx.drawImage(
-    src,
-    0,
-    0,
-    sw,
-    sh,
-    dst.flipX ? 0 : dst.x,
-    dst.flipY ? 0 : dst.y,
-    dst.w,
-    dst.h
-  );
+  ctx.drawImage(src, 0, 0, sw, sh, dst.flipX ? 0 : dst.x, dst.flipY ? 0 : dst.y, dst.w, dst.h);
   ctx.restore();
 }
 
@@ -129,8 +116,12 @@ const FILL_BLUR_CSS_PX = 4;
 
 function fillRingClip(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, w: number, h: number,
-  radiusDevPx: number, bandDevPx: number
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  radiusDevPx: number,
+  bandDevPx: number
 ): void {
   if (w <= 2 * bandDevPx || h <= 2 * bandDevPx) {
     ctx.beginPath();
@@ -140,15 +131,24 @@ function fillRingClip(
   }
   ctx.beginPath();
   roundRectPath(ctx, x, y, w, h, radiusDevPx);
-  roundRectPath(ctx, x + bandDevPx, y + bandDevPx, w - 2 * bandDevPx, h - 2 * bandDevPx, Math.max(0, radiusDevPx - bandDevPx));
+  roundRectPath(
+    ctx,
+    x + bandDevPx,
+    y + bandDevPx,
+    w - 2 * bandDevPx,
+    h - 2 * bandDevPx,
+    Math.max(0, radiusDevPx - bandDevPx)
+  );
   ctx.clip('evenodd');
 }
 
 export function maskedFillPasses(
   ctx: CanvasRenderingContext2D,
   src: CanvasImageSource,
-  sw: number, sh: number,
-  tw: number, th: number,
+  sw: number,
+  sh: number,
+  tw: number,
+  th: number,
   totalAlpha: number,
   grad: CanvasGradient,
   dst: DrawDst,
@@ -177,8 +177,12 @@ export function maskedFillPasses(
 
 function insideStrokeEvenOddClip(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, w: number, h: number,
-  radiusDevPx: number, strokeDevPx: number
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  radiusDevPx: number,
+  strokeDevPx: number
 ): void {
   const r = strokeDevPx | 0;
   if (r < 1 || w <= 2 * r || h <= 2 * r) {
@@ -196,8 +200,10 @@ function insideStrokeEvenOddClip(
 export function maskedStrokePasses(
   ctx: CanvasRenderingContext2D,
   src: CanvasImageSource,
-  sw: number, sh: number,
-  tw: number, th: number,
+  sw: number,
+  sh: number,
+  tw: number,
+  th: number,
   strokeBox: BoxRect,
   intensity: number,
   strokeBandPx: number,
@@ -228,8 +234,10 @@ export function drawBorderHighlight(
   ctx: CanvasRenderingContext2D,
   strokeBox: BoxRect,
   strokeDevPx: number,
-  g0x: number, g0y: number,
-  g1x: number, g1y: number,
+  g0x: number,
+  g0y: number,
+  g1x: number,
+  g1y: number,
   alpha: number
 ): void {
   const grad = ctx.createLinearGradient(g0x, g0y, g1x, g1y);

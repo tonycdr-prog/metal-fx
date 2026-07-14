@@ -1,0 +1,334 @@
+
+=== DIRECTORY TREE (max depth 3, source files only) ===
+.github
+.github/workflows
+.github/workflows/pages.yml
+.github/workflows/publish.yml
+.gitignore
+.npmignore
+LICENSE
+README.md
+biome.json
+demo
+demo/App.tsx
+demo/components
+demo/components/CopyButton.tsx
+demo/components/Examples.tsx
+demo/components/Footer.tsx
+demo/components/Header.tsx
+demo/components/PlayPauseToggle.tsx
+demo/components/Playground.tsx
+demo/components/icons.tsx
+demo/components/ui
+demo/components/ui/button.tsx
+demo/hooks
+demo/hooks/useTheme.ts
+demo/index.html
+demo/lib
+demo/lib/utils.ts
+demo/main.tsx
+demo/public
+demo/public/CNAME
+demo/public/favicon.png
+demo/public/header icon.png
+demo/public/header-icon.png
+demo/public/header-light.png
+demo/public/header.jpg
+demo/public/header.png
+demo/public/og-image.jpg
+demo/styles.css
+demo/tailwind.css
+demo/tsconfig.json
+docs
+docs/codebase
+docs/codebase/.codebase-scan.txt
+package-lock.json
+package.json
+public
+public/_redirects
+src
+src/MetalFx.tsx
+src/engine
+src/engine/color.ts
+src/engine/glow
+src/engine/glow/geometry.ts
+src/engine/glow/glow.ts
+src/engine/perfConfig.ts
+src/engine/presets.ts
+src/engine/reflection
+src/engine/reflection/constants.ts
+src/engine/reflection/geometry.ts
+src/engine/reflection/observers.ts
+src/engine/reflection/paint.ts
+src/engine/reflection/reflectionScheduler.ts
+src/engine/renderer
+src/engine/renderer/core.ts
+src/engine/renderer/loop.ts
+src/engine/renderer/sampling.ts
+src/engine/shaders.ts
+src/engine/tween.ts
+src/index.ts
+src/styles.ts
+src/types.ts
+tsconfig.build.json
+tsconfig.json
+vite.config.demo.ts
+vite.config.ts
+
+=== STACK DETECTION (manifest files) ===
+
+--- package-lock.json ---
+{
+  "name": "metal-fx",
+  "version": "1.0.4",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "metal-fx",
+      "version": "1.0.4",
+      "license": "MIT",
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.3.0",
+        "@types/react": "^18.2.0",
+        "@types/react-dom": "^18.2.0",
+        "@vitejs/plugin-react": "^4.2.0",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "tailwind-merge": "^3.6.0",
+        "tailwindcss": "^4.3.0",
+        "typescript": "^5.3.0",
+        "vite": "^5.0.0",
+        "vite-plugin-dts": "^3.7.0",
+        "wrangler": "^4.88.0"
+      },
+      "peerDependencies": {
+        "react": ">=18.0.0",
+        "react-dom": ">=18.0.0"
+      }
+    },
+    "node_modules/@babel/code-frame": {
+      "version": "7.29.0",
+      "resolved": "https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.29.0.tgz",
+      "integrity": "sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-validator-identifier": "^7.28.5",
+        "js-tokens": "^4.0.0",
+        "picocolors": "^1.1.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/compat-data": {
+      "version": "7.29.3",
+      "resolved": "https://registry.npmjs.org/@babel/compat-data/-/compat-data-7.29.3.tgz",
+      "integrity": "sha512-LIVqM46zQWZhj17qA8wb4nW/ixr2y1Nw+r1etiAWgRM6U1IqP+LNhL1yg440jYZR72jCWcWbLWzIosH+uP1fqg==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/core": {
+      "version": "7.29.0",
+      "resolved": "https://registry.npmjs.org/@babel/core/-/core-7.29.0.tgz",
+      "integrity": "sha512-CGOfOJqWjg2qW/Mb6zNsDm+u5vFQ8DxXfbM09z69p5Z6+mE1ikP2jUXw+j42Pf1XTYED2Rni5f95npYeuwMDQA==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "@babel/code-frame": "^7.29.0",
+        "@babel/generator": "^7.29.0",
+        "@babel/helper-compilation-targets": "^7.28.6",
+        "@babel/helper-module-transforms": "^7.28.6",
+        "@babel/helpers": "^7.28.6",
+        "@babel/parser": "^7.29.0",
+        "@babel/template": "^7.28.6",
+        "@babel/traverse": "^7.29.0",
+        "@babel/types": "^7.29.0",
+        "@jridgewell/remapping": "^2.3.5",
+        "convert-source-map": "^2.0.0",
+        "debug": "^4.1.0",
+        "gensync": "^1.0.0-beta.2",
+        "json5": "^2.2.3",
+        "semver": "^6.3.1"
+      },
+      "engines": {
+
+[TRUNCATED] Showing first 80 of 4726 lines.
+--- package.json ---
+{
+  "name": "metal-fx",
+  "version": "1.0.4",
+  "description": "Animated WebGL metal shader effect for React buttons and UI components",
+  "type": "module",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.es.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "vite --config vite.config.demo.ts",
+    "build": "vite build",
+    "build:playground": "vite build --config vite.config.playground.ts",
+    "build:demo": "vite build --config vite.config.demo.ts",
+    "deploy": "npm run build:demo && wrangler pages deploy dist-demo --project-name metal-fx-playground",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.7.0",
+    "wrangler": "^4.88.0"
+  },
+  "keywords": [
+    "react",
+    "webgl",
+    "metal",
+    "shader",
+    "animation",
+    "button",
+    "effect",
+    "glow"
+  ],
+  "author": "Jakub Antalik",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jakubantalik/metal-fx.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Jakubantalik/metal-fx/issues"
+  },
+  "homepage": "https://metal.jakubantalik.com"
+}
+
+
+=== ENTRY POINTS ===
+Found: src/index.ts
+
+=== LINTING AND FORMATTING CONFIG ===
+Found: tsconfig.json
+Found: tsconfig.build.json
+Found: biome.json
+
+=== ENVIRONMENT VARIABLE TEMPLATES ===
+No .env.example or .env.template found. Identify required environment variables by searching the code and config for environment variable reads.
+
+=== TODO / FIXME / HACK (production code only, test dirs excluded) ===
+None found.
+
+=== GIT RECENT COMMITS (last 20) ===
+be1bf89 v1.0.4
+b6196bd Merge pull request #4 from Jakubantalik/fix/safari-glow
+d86844c Fix: Safari Glow Displays as a Square
+9a22b18 v1.0.3
+03cbbb1 Merge pull request #3 from Jakubantalik/feature/improvements-2026-05-11-2
+05f39b4 Mobile layout
+38c6947 Playground: Bug Fixes & Reflection Targets
+96b3e96 Fix Invisible Button Bug
+a392ba3 Initial Button Styling Transition
+2ad9caf v1.0.2
+9318704 Suppress light-mode circle/pill inset hairline + demo polish
+9b23ace Fix demo build: only include main entry in vite.config.demo.ts
+b38b1c5 v1.0.1
+c618075 v1.0.0
+58bd031 Performance + API tuning for renderer loop and glow geometry
+b9b9d80 Change Frame Intervals
+50ce725 Pages
+1b24537 Replace old demo with an actual demo
+ac6d564 Performance optimisations & File Structure
+03b1299 v0.2.3: default theme to 'auto' for prefers-color-scheme detection
+
+=== HIGH-CHURN FILES (last 90 days, top 20) ===
+  12 package.json
+   8 src/MetalFx.tsx
+   7 package-lock.json
+   7 demo/index.html
+   6 src/styles.ts
+   5 demo/components/Examples.tsx
+   4 demo/components/Playground.tsx
+   4 src/types.ts
+   4 README.md
+   3 src/engine/glow/geometry.ts
+   3 src/engine/renderer/core.ts
+   3 src/engine/renderer/loop.ts
+   3 vite.config.demo.ts
+   3 src/engine/presets.ts
+   3 .github/workflows/pages.yml
+   3 src/engine/glow.ts
+   3 src/engine/index.ts
+   3 src/engine/reflection.ts
+   3 src/engine/renderer.ts
+   2 demo/components/PlayPauseToggle.tsx
+
+=== MONOREPO SIGNALS ===
+No monorepo signals detected.
+
+=== CODE METRICS ===
+Total files scanned: 53
+Total lines of code: 8661
+
+Files by language:
+  TypeScript: 22
+  Other: 20
+  TypeScript/React: 11
+
+Top 10 largest files:
+package-lock.json: 155.8KB
+demo/public/header-icon.png: 77.7KB
+demo/public/header icon.png: 77.7KB
+demo/public/header.png: 75.7KB
+demo/public/header-light.png: 75.3KB
+demo/public/header.jpg: 24.2KB
+src/MetalFx.tsx: 14.3KB
+demo/public/og-image.jpg: 12.6KB
+src/engine/glow/glow.ts: 11.8KB
+src/engine/renderer/loop.ts: 11.7KB
+
+=== CI/CD PIPELINES ===
+CI/CD: GitHub Actions
+
+=== CONTAINERS & ORCHESTRATION ===
+No containerization configs detected.
+
+=== SECURITY & COMPLIANCE ===
+No security configs detected.
+
+=== PERFORMANCE & TESTING ===
+No performance testing configs detected.
+
+=== SCAN COMPLETE ===

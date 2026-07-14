@@ -1,0 +1,38 @@
+{
+  "lineReviewThreshold": 250,
+  "lineFailThreshold": 350,
+  "largeFileReviews": {
+    "src/MetalFx.tsx": {
+      "kind": "reviewed",
+      "reason": "Central React-to-engine orchestration remains easier to audit in one component after reusable theme and glow state are extracted.",
+      "revisitWhen": "Split lifecycle hooks when fallback or mixed-material work adds another independent effect lifecycle."
+    },
+    "src/engine/renderer/loop.ts": {
+      "kind": "reviewed",
+      "reason": "Instance lifecycle and frame scheduling share renderer invariants and are currently reviewed as one state machine.",
+      "revisitWhen": "Revisit while implementing material-group rendering."
+    },
+    "src/engine/glow/glow.ts": {
+      "kind": "reviewed",
+      "reason": "The glow state machine and its per-frame update are tightly coupled.",
+      "revisitWhen": "Extract pure color or relocation stages when focused tests are introduced."
+    },
+    "src/engine/reflection/paint.ts": {
+      "kind": "reviewed",
+      "reason": "Target ownership and its canvas paint pipeline share cached target state.",
+      "revisitWhen": "Revisit when multi-anchor ownership is implemented."
+    },
+    "src/engine/shaders.ts": {
+      "kind": "declarative",
+      "reason": "Most lines are one GLSL program whose locality is more valuable than artificial splitting.",
+      "revisitWhen": "Split only when a second independently compiled shader program is added."
+    }
+  },
+  "allowedPublicAssets": ["CNAME", "_redirects"],
+  "dependencyCommands": {
+    "@biomejs/biome": ["biome"],
+    "typescript": ["tsc"],
+    "vite": ["vite"],
+    "wrangler": ["wrangler"]
+  }
+}

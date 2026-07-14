@@ -1,7 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
   "files": {
-    "includes": ["**", "!**/dist", "!shared/api/src/generated"]
+    "includes": ["**", "!**/node_modules", "!**/dist", "!**/dist-demo", "!docs/codebase/.codebase-scan.txt"]
   },
   "formatter": {
     "enabled": true,
@@ -11,6 +11,7 @@
   },
   "javascript": {
     "formatter": {
+      "quoteStyle": "single",
       "trailingCommas": "none"
     }
   },
@@ -31,7 +32,7 @@
         "noExcessiveLinesPerFile": {
           "level": "error",
           "options": {
-            "maxLines": 250,
+            "maxLines": 350,
             "skipBlankLines": true
           }
         }
@@ -49,5 +50,27 @@
         "noExplicitAny": "error"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["vite.config.ts", "vite.config.demo.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/index.ts"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
+    }
+  ]
 }

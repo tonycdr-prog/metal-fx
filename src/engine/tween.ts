@@ -2,7 +2,7 @@ export type EaseFn = (t: number) => number;
 
 export const ease = {
   linear: (t: number) => t,
-  smoothstep: (t: number) => t * t * (3 - 2 * t),
+  smoothstep: (t: number) => t * t * (3 - 2 * t)
 } as const;
 
 export interface Tween {

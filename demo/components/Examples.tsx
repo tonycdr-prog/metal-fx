@@ -1,17 +1,19 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { MetalFx } from '../../src';
 import type { Theme } from '../hooks/useTheme';
 import { ArrowUpIcon, ChevronDownIcon, DotsIcon, PlusIcon, SearchIcon18 } from './icons';
 
-const pillBaseClass = 'h-10 rounded-[20px] border border-(--pill-border) bg-(--pill-bg) text-(--pill-fg) shadow-(--pill-shadow) cursor-pointer flex items-center justify-center p-0';
+const pillBaseClass =
+  'h-10 rounded-[20px] border border-(--pill-border) bg-(--pill-bg) text-(--pill-fg) shadow-(--pill-shadow) cursor-pointer flex items-center justify-center p-0';
 const demoPillClass = `${pillBaseClass} w-[140px] text-sm font-medium font-inherit leading-[17.938px] tracking-normal whitespace-nowrap`;
 const demoCircleClass = `${pillBaseClass} w-10`;
-const chipClass = 'inline-flex items-center gap-1 h-9 pl-3.5 pr-2.5 rounded-full bg-(--chip-bg) shadow-(--chip-shadow) text-(--chip-color) text-xs leading-[14px] font-inherit cursor-default [&_svg]:size-4 [&_svg]:text-(--chip-icon) [&_svg]:rotate-90';
+const chipClass =
+  'inline-flex items-center gap-1 h-9 pl-3.5 pr-2.5 rounded-full bg-(--chip-bg) shadow-(--chip-shadow) text-(--chip-color) text-xs leading-[14px] font-inherit cursor-default [&_svg]:size-4 [&_svg]:text-(--chip-icon) [&_svg]:rotate-90';
 
 export function Examples({
   theme,
   scaleFactor = 1,
-  strength = 1,
+  strength = 1
 }: {
   theme: Theme;
   /** Forwarded to <MetalFx scale={scaleFactor}/> so that, when these examples
@@ -45,8 +47,14 @@ export function Examples({
               <PlusIcon />
             </div>
             <div className="flex-1" />
-            <div className={chipClass}><span>Agent</span><ChevronDownIcon /></div>
-            <div className={chipClass} ref={autoChipRef}><span>Auto</span><ChevronDownIcon /></div>
+            <div className={chipClass}>
+              <span>Agent</span>
+              <ChevronDownIcon />
+            </div>
+            <div className={chipClass} ref={autoChipRef}>
+              <span>Auto</span>
+              <ChevronDownIcon />
+            </div>
             <MetalFx
               preset="gold"
               variant="circle"
@@ -68,9 +76,18 @@ export function Examples({
 
       {/* Toolbar row */}
       <div className="relative w-full h-[370px] rounded-[30px] bg-(--surface) flex items-center justify-center pl-10 pr-20 py-12 overflow-hidden max-sm:h-auto max-sm:min-h-[200px] max-sm:px-5 max-sm:py-8 max-sm:rounded-[20px]">
-        <div className="absolute -left-[22px] top-[144px] w-[663px] h-[234px] rounded-[20px] bg-[rgba(29,29,29,0.7)] border border-[rgba(44,47,54,0.52)] pointer-events-none max-sm:hidden" aria-hidden="true" />
-        <div className="relative z-10 flex items-center gap-3 max-sm:gap-2" role="group" aria-label="Hero toolbar">
-          <label className="hero-toolbar-search relative flex items-center gap-1.5 w-[235px] h-10 rounded-full py-2.5 pr-0.5 pl-3 bg-(--pill-bg) border border-(--pill-border) shadow-(--pill-shadow) text-(--pill-fg) text-sm font-medium leading-[17.938px] cursor-text [&_svg]:size-[18px] [&_svg]:shrink-0 [&_svg]:stroke-[#8B8B8B] [&_svg]:fill-none max-sm:w-auto max-sm:flex-1 max-sm:min-w-0" ref={searchRef}>
+        <div
+          className="absolute -left-[22px] top-[144px] w-[663px] h-[234px] rounded-[20px] bg-[rgba(29,29,29,0.7)] border border-[rgba(44,47,54,0.52)] pointer-events-none max-sm:hidden"
+          aria-hidden="true"
+        />
+        <fieldset
+          className="relative z-10 flex items-center gap-3 border-0 p-0 m-0 min-w-0 max-sm:gap-2"
+          aria-label="Hero toolbar"
+        >
+          <label
+            className="hero-toolbar-search relative flex items-center gap-1.5 w-[235px] h-10 rounded-full py-2.5 pr-0.5 pl-3 bg-(--pill-bg) border border-(--pill-border) shadow-(--pill-shadow) text-(--pill-fg) text-sm font-medium leading-[17.938px] cursor-text [&_svg]:size-[18px] [&_svg]:shrink-0 [&_svg]:stroke-[#8B8B8B] [&_svg]:fill-none max-sm:w-auto max-sm:flex-1 max-sm:min-w-0"
+            ref={searchRef}
+          >
             <SearchIcon18 />
             <input
               className="hero-toolbar-search-input flex-1 min-w-0 border-none bg-transparent text-sm font-medium leading-[17.938px] font-inherit outline-none text-inherit placeholder:text-current placeholder:opacity-30"
@@ -91,13 +108,20 @@ export function Examples({
             // strength by 0.7 so the slider still drives it (max ≈ 70%).
             strength={strength * 0.7}
           >
-            <button type="button" className={demoPillClass}>Upgrade to Pro</button>
+            <button type="button" className={demoPillClass}>
+              Upgrade to Pro
+            </button>
           </MetalFx>
 
-          <button className="relative inline-flex items-center justify-center size-10 border border-(--pill-border) rounded-full bg-(--pill-bg) shadow-(--pill-shadow) text-(--pill-fg) cursor-pointer transition-[background-color] duration-200 hover:bg-[rgba(255,255,255,0.07)] focus-visible:outline-2 focus-visible:outline-[rgba(255,255,255,0.5)] focus-visible:outline-offset-2 [&_svg]:size-5 [&_svg]:opacity-70 [&_svg]:transition-opacity [&_svg]:duration-200 hover:[&_svg]:opacity-100" type="button" ref={dotsRef} aria-label="More options">
+          <button
+            className="relative inline-flex items-center justify-center size-10 border border-(--pill-border) rounded-full bg-(--pill-bg) shadow-(--pill-shadow) text-(--pill-fg) cursor-pointer transition-[background-color] duration-200 hover:bg-[rgba(255,255,255,0.07)] focus-visible:outline-2 focus-visible:outline-[rgba(255,255,255,0.5)] focus-visible:outline-offset-2 [&_svg]:size-5 [&_svg]:opacity-70 [&_svg]:transition-opacity [&_svg]:duration-200 hover:[&_svg]:opacity-100"
+            type="button"
+            ref={dotsRef}
+            aria-label="More options"
+          >
             <DotsIcon />
           </button>
-        </div>
+        </fieldset>
       </div>
     </section>
   );

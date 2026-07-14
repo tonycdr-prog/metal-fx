@@ -1,22 +1,23 @@
-import { defineConfig } from 'vite';
+import { resolve } from 'node:path';
 import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [
     react(),
     dts({
       include: ['src'],
-      rollupTypes: true,
-    }),
+      rollupTypes: true
+    })
   ],
   build: {
+    copyPublicDir: false,
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'MetalFx',
       fileName: (format) => `index.${format === 'es' ? 'es' : 'cjs'}.js`,
-      formats: ['es', 'cjs'],
+      formats: ['es', 'cjs']
     },
     rollupOptions: {
       external: ['react', 'react-dom', 'react/jsx-runtime'],
@@ -24,9 +25,9 @@ export default defineConfig({
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
-          'react/jsx-runtime': 'jsxRuntime',
-        },
-      },
-    },
-  },
+          'react/jsx-runtime': 'jsxRuntime'
+        }
+      }
+    }
+  }
 });

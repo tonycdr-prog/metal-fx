@@ -13,15 +13,15 @@ import {
   GRAD_FAR,
   GRAD_MID,
   GRAD_NEAR,
-  OVERLAP_MIN_PX,
   INTENSITY_MULT,
   MAX_ALPHA_STACK,
+  OVERLAP_MIN_PX,
   RANGE_PX,
   REF_DRAW_CSS_W,
   REFLECTION_BLOCKED_TAGS,
-  STROKE_CSS_PX,
-  STROKE_EXTRA_ALPHA,
   type ReflectionTarget,
+  STROKE_CSS_PX,
+  STROKE_EXTRA_ALPHA
 } from './constants';
 import {
   type BoxRect,
@@ -31,7 +31,7 @@ import {
   isVerticalNeighbour,
   maskedFillPasses,
   maskedStrokePasses,
-  shortestRectDistance,
+  shortestRectDistance
 } from './geometry';
 import { attachObservers, detachObservers, readCornerRadius, readHairlineSpec } from './observers';
 
@@ -97,7 +97,7 @@ export function addReflectionTarget(
     appliedPositionRelative,
     appliedIsolation,
     resizeObserver: null,
-    mutationObserver: null,
+    mutationObserver: null
   };
   attachObservers(target);
   targets.add(target);
@@ -144,8 +144,14 @@ export function paintReflections(): void {
       !isHorizontalNeighbour(aRect, tRect, OVERLAP_MIN_PX, ATTACH_RANGE_PX) &&
       !isVerticalNeighbour(aRect, tRect, OVERLAP_MIN_PX, ATTACH_RANGE_PX)
     ) {
-      if (t.canvas.width !== 1) { t.canvas.width = 1; t.canvas.height = 1; }
-      if (t.strokeCanvas.width !== 1) { t.strokeCanvas.width = 1; t.strokeCanvas.height = 1; }
+      if (t.canvas.width !== 1) {
+        t.canvas.width = 1;
+        t.canvas.height = 1;
+      }
+      if (t.strokeCanvas.width !== 1) {
+        t.strokeCanvas.width = 1;
+        t.strokeCanvas.height = 1;
+      }
       continue;
     }
 
@@ -170,10 +176,7 @@ export function paintReflections(): void {
     proximity = proximity * proximity * (3 - 2 * proximity);
     const intensity = BASE_ALPHA + (BOOST_ALPHA - BASE_ALPHA) * proximity;
 
-    const reflectionAlpha = Math.min(
-      MAX_ALPHA_STACK,
-      intensity * INTENSITY_MULT * GLOBAL_ATTENUATION
-    );
+    const reflectionAlpha = Math.min(MAX_ALPHA_STACK, intensity * INTENSITY_MULT * GLOBAL_ATTENUATION);
 
     // Effective scale of the host element. Anything drawn on the reflection
     // canvas (strokes, border-highlight) is in DEVICE pixels, so it doesn't
@@ -183,10 +186,7 @@ export function paintReflections(): void {
     const sScale = t.anchor.scale ?? 1;
     const hairlineCssPx = Math.max(STROKE_CSS_PX * sScale, t.hairlineWidth);
     const strokeBandPx = Math.max(1, Math.round(hairlineCssPx * dpr));
-    const borderHighlightPx = Math.max(
-      1,
-      Math.round(Math.max(BORDER_HILITE_PX * sScale, t.hairlineWidth) * dpr)
-    );
+    const borderHighlightPx = Math.max(1, Math.round(Math.max(BORDER_HILITE_PX * sScale, t.hairlineWidth) * dpr));
 
     const overscanCssPx = t.hairlineOuterCssPx;
     t.wrap.style.inset = `${-overscanCssPx}px`;
@@ -209,11 +209,15 @@ export function paintReflections(): void {
     const bandDevPx = Math.min(RANGE_PX * dpr, Math.max(tw, th));
     let g0x: number, g0y: number, g1x: number, g1y: number;
     if (isHorizontalLayout) {
-      g0x = dx > 0 ? tw : 0; g1x = dx > 0 ? tw - bandDevPx : bandDevPx;
-      g0y = th * 0.5; g1y = th * 0.5;
+      g0x = dx > 0 ? tw : 0;
+      g1x = dx > 0 ? tw - bandDevPx : bandDevPx;
+      g0y = th * 0.5;
+      g1y = th * 0.5;
     } else {
-      g0y = dy > 0 ? th : 0; g1y = dy > 0 ? th - bandDevPx : bandDevPx;
-      g0x = tw * 0.5; g1x = tw * 0.5;
+      g0y = dy > 0 ? th : 0;
+      g1y = dy > 0 ? th - bandDevPx : bandDevPx;
+      g0x = tw * 0.5;
+      g1x = tw * 0.5;
     }
     const grad = ctx.createLinearGradient(g0x, g0y, g1x, g1y);
     grad.addColorStop(0, `rgba(0,0,0,${GRAD_NEAR})`);
@@ -224,7 +228,8 @@ export function paintReflections(): void {
     const refWdpr = Math.max(1, Math.round(REF_DRAW_CSS_W * Math.max(0.1, anchorCssW / 140) * dpr));
 
     let drawX: number, drawY: number, drawW: number, drawH: number;
-    let flipX = false, flipY = false;
+    let flipX = false,
+      flipY = false;
     if (isHorizontalLayout) {
       const overlapTop = Math.max(aRect.top, tRect.top);
       const overlapBot = Math.min(aRect.bottom, tRect.bottom);
@@ -253,13 +258,28 @@ export function paintReflections(): void {
     maskedFillPasses(ctx, anchorCanvas, sw, sh, tw, th, fillReflectionAlpha, grad, drawDst, strokeBox, dpr);
 
     maskedStrokePasses(
-      strokeCtx, anchorCanvas, sw, sh, tw, th,
-      strokeBox, reflectionAlpha, strokeBandPx, grad, STROKE_EXTRA_ALPHA, drawDst
+      strokeCtx,
+      anchorCanvas,
+      sw,
+      sh,
+      tw,
+      th,
+      strokeBox,
+      reflectionAlpha,
+      strokeBandPx,
+      grad,
+      STROKE_EXTRA_ALPHA,
+      drawDst
     );
 
     drawBorderHighlight(
-      strokeCtx, strokeBox, borderHighlightPx,
-      g0x, g0y, g1x, g1y,
+      strokeCtx,
+      strokeBox,
+      borderHighlightPx,
+      g0x,
+      g0y,
+      g1x,
+      g1y,
       Math.min(0.85, BORDER_HILITE_ALPHA * reflectionAlpha)
     );
 

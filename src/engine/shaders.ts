@@ -220,11 +220,7 @@ export const FRAG_SHADER_SRC = /* glsl */ `
 `;
 
 /** Compile a single shader stage. Throws with the GL info log on failure. */
-export function compileShader(
-  gl: WebGLRenderingContext,
-  type: number,
-  source: string
-): WebGLShader {
+export function compileShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
   const shader = gl.createShader(type);
   if (!shader) throw new Error('metal-fx: gl.createShader returned null');
   gl.shaderSource(shader, source);
@@ -238,11 +234,7 @@ export function compileShader(
 }
 
 /** Link a vertex + fragment shader pair into a complete program. */
-export function linkProgram(
-  gl: WebGLRenderingContext,
-  vert: WebGLShader,
-  frag: WebGLShader
-): WebGLProgram {
+export function linkProgram(gl: WebGLRenderingContext, vert: WebGLShader, frag: WebGLShader): WebGLProgram {
   const program = gl.createProgram();
   if (!program) throw new Error('metal-fx: gl.createProgram returned null');
   gl.attachShader(program, vert);

@@ -75,7 +75,7 @@ const CHROMATIC: Preset = {
       blur: 1,
       vignette: 0.26,
       vigOpacity: 0.6,
-      shaderOpacity: 1,
+      shaderOpacity: 1
     },
     light: {
       colors: ['#ffffff', '#ffffff', '#ffffff', '#ffb3b3', '#adadad', '#f5ff70', '#007cff'],
@@ -91,9 +91,9 @@ const CHROMATIC: Preset = {
       blur: 1,
       vignette: 0.24,
       vigOpacity: 0.16,
-      shaderOpacity: 1,
-    },
-  },
+      shaderOpacity: 1
+    }
+  }
 };
 
 /** preset-silver-both-modes.json */
@@ -114,7 +114,7 @@ const SILVER: Preset = {
       blur: 1,
       vignette: 0.26,
       vigOpacity: 0.6,
-      shaderOpacity: 0.88,
+      shaderOpacity: 0.88
     },
     light: {
       colors: ['#f6f6f6', '#ffffff', '#ffffff', '#f7f7f7', '#c9c9c9', '#d0d0d0', '#d1d1d1'],
@@ -130,9 +130,9 @@ const SILVER: Preset = {
       blur: 1,
       vignette: 0.2,
       vigOpacity: 0.26,
-      shaderOpacity: 1,
-    },
-  },
+      shaderOpacity: 1
+    }
+  }
 };
 
 /** preset-gold-both-modes.json */
@@ -153,7 +153,7 @@ const GOLD: Preset = {
       blur: 1,
       vignette: 0.26,
       vigOpacity: 0.6,
-      shaderOpacity: 0.92,
+      shaderOpacity: 0.92
     },
     light: {
       colors: ['#fff8e1', '#fffbe0', '#ffffff', '#fff6d6', '#d2c7a7', '#dcd2bc', '#f9f7e5'],
@@ -169,15 +169,13 @@ const GOLD: Preset = {
       blur: 1,
       vignette: 0.22,
       vigOpacity: 0.24,
-      shaderOpacity: 1,
-    },
-  },
+      shaderOpacity: 1
+    }
+  }
 };
 
 export const PRESETS: Record<PresetName, Preset> = {
   chromatic: CHROMATIC,
   silver: SILVER,
-  gold: GOLD,
+  gold: GOLD
 };
-
-export { hexToRgb } from './color';

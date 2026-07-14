@@ -240,7 +240,10 @@ let injected = false;
 export function ensureStylesInjected(): void {
   if (injected) return;
   if (typeof document === 'undefined') return;
-  if (document.getElementById(STYLE_ID)) { injected = true; return; }
+  if (document.getElementById(STYLE_ID)) {
+    injected = true;
+    return;
+  }
   const style = document.createElement('style');
   style.id = STYLE_ID;
   style.textContent = CSS;

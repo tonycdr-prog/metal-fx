@@ -28,8 +28,13 @@ export interface GlowOptions {
    *  the glow grows proportionally. */
   scale?: number;
 }
-export interface Pt { x: number; y: number }
-export interface PerimSample extends Pt { arc: number }
+export interface Pt {
+  x: number;
+  y: number;
+}
+export interface PerimSample extends Pt {
+  arc: number;
+}
 
 export function rrPerim(w: number, h: number, r: number): number {
   const rr = Math.max(0, Math.min(r, Math.min(w, h) / 2));
@@ -41,12 +46,25 @@ export function shapePerim(w: number, h: number, r: number, kind: 'pill' | 'circ
   return rrPerim(w, h, r);
 }
 
-export function sampleAtArc(s: number, w: number, h: number, r: number, inset: number, outward: number, kind: 'pill' | 'circle', out?: Pt): Pt {
+export function sampleAtArc(
+  s: number,
+  w: number,
+  h: number,
+  r: number,
+  inset: number,
+  outward: number,
+  kind: 'pill' | 'circle',
+  out?: Pt
+): Pt {
   const o = out || { x: 0, y: 0 };
   const rr = Math.max(0, Math.min(r, Math.min(w, h) / 2));
   if (kind === 'circle') {
     const perim = 2 * Math.PI * rr;
-    if (perim <= 0.0001) { o.x = w * 0.5; o.y = h * 0.5; return o; }
+    if (perim <= 0.0001) {
+      o.x = w * 0.5;
+      o.y = h * 0.5;
+      return o;
+    }
     s = ((s % perim) + perim) % perim;
     const theta = -Math.PI / 2 + (s / perim) * Math.PI * 2;
     const rad = Math.max(0, rr - inset + outward);
@@ -54,37 +72,61 @@ export function sampleAtArc(s: number, w: number, h: number, r: number, inset: n
     o.y = h * 0.5 + rad * Math.sin(theta);
     return o;
   }
-  const topLen = Math.max(0, w - 2 * rr), sideLen = Math.max(0, h - 2 * rr);
+  const topLen = Math.max(0, w - 2 * rr),
+    sideLen = Math.max(0, h - 2 * rr);
   const arcLen = (Math.PI * rr) / 2;
   const perim = 2 * (topLen + sideLen) + 4 * arcLen;
   s = ((s % perim) + perim) % perim;
   const rad = Math.max(0, rr - inset + outward);
   let d = s;
-  if (d < topLen) { o.x = rr + d; o.y = inset - outward; return o; }
+  if (d < topLen) {
+    o.x = rr + d;
+    o.y = inset - outward;
+    return o;
+  }
   d -= topLen;
   if (d < arcLen) {
     const theta = -Math.PI / 2 + (arcLen > 0 ? d / arcLen : 0) * (Math.PI / 2);
-    o.x = (w - rr) + rad * Math.cos(theta); o.y = rr + rad * Math.sin(theta); return o;
+    o.x = w - rr + rad * Math.cos(theta);
+    o.y = rr + rad * Math.sin(theta);
+    return o;
   }
   d -= arcLen;
-  if (d < sideLen) { o.x = w - inset + outward; o.y = rr + d; return o; }
+  if (d < sideLen) {
+    o.x = w - inset + outward;
+    o.y = rr + d;
+    return o;
+  }
   d -= sideLen;
   if (d < arcLen) {
     const theta = (arcLen > 0 ? d / arcLen : 0) * (Math.PI / 2);
-    o.x = (w - rr) + rad * Math.cos(theta); o.y = (h - rr) + rad * Math.sin(theta); return o;
+    o.x = w - rr + rad * Math.cos(theta);
+    o.y = h - rr + rad * Math.sin(theta);
+    return o;
   }
   d -= arcLen;
-  if (d < topLen) { o.x = w - rr - d; o.y = h - inset + outward; return o; }
+  if (d < topLen) {
+    o.x = w - rr - d;
+    o.y = h - inset + outward;
+    return o;
+  }
   d -= topLen;
   if (d < arcLen) {
     const theta = Math.PI / 2 + (arcLen > 0 ? d / arcLen : 0) * (Math.PI / 2);
-    o.x = rr + rad * Math.cos(theta); o.y = (h - rr) + rad * Math.sin(theta); return o;
+    o.x = rr + rad * Math.cos(theta);
+    o.y = h - rr + rad * Math.sin(theta);
+    return o;
   }
   d -= arcLen;
-  if (d < sideLen) { o.x = inset - outward; o.y = h - rr - d; return o; }
+  if (d < sideLen) {
+    o.x = inset - outward;
+    o.y = h - rr - d;
+    return o;
+  }
   d -= sideLen;
   const theta = Math.PI + (arcLen > 0 ? d / arcLen : 0) * (Math.PI / 2);
-  o.x = rr + rad * Math.cos(theta); o.y = rr + rad * Math.sin(theta);
+  o.x = rr + rad * Math.cos(theta);
+  o.y = rr + rad * Math.sin(theta);
   return o;
 }
 
@@ -93,7 +135,7 @@ export function buildStaticBlobPath(halfLen: number, segments: number): string {
   let d = '';
   for (let i = 0; i <= segments; i++) {
     const x = -halfLen + i * step;
-    d += (i === 0 ? 'M ' : 'L ') + x.toFixed(3) + ' 0 ';
+    d += `${i === 0 ? 'M ' : 'L '}${x.toFixed(3)} 0 `;
   }
   return d;
 }
@@ -101,7 +143,14 @@ export function buildStaticBlobPath(halfLen: number, segments: number): string {
 const _ta: Pt = { x: 0, y: 0 };
 const _tb: Pt = { x: 0, y: 0 };
 
-export function tangentAngleAtArc(s: number, w: number, h: number, r: number, inset: number, kind: 'pill' | 'circle'): number {
+export function tangentAngleAtArc(
+  s: number,
+  w: number,
+  h: number,
+  r: number,
+  inset: number,
+  kind: 'pill' | 'circle'
+): number {
   const eps = 0.1;
   sampleAtArc(s - eps, w, h, r, inset, 0, kind, _ta);
   sampleAtArc(s + eps, w, h, r, inset, 0, kind, _tb);
@@ -133,8 +182,10 @@ export function buildSvgMarkup(opts: GlowOptions, p: string): string {
   const innerR = Math.max(0, R - ringInset);
   // Filter region grows with scale so blurred strokes don't get clipped at
   // bigger sizes. The 200/540/440 baseline matches the canonical 1× pill.
-  const fX = (-200 * s).toFixed(0), fY = fX;
-  const fW = (540 * s).toFixed(0), fH = (440 * s).toFixed(0);
+  const fX = (-200 * s).toFixed(0),
+    fY = fX;
+  const fW = (540 * s).toFixed(0),
+    fH = (440 * s).toFixed(0);
   const fRect = `x="${fX}" y="${fY}" width="${fW}" height="${fH}"`;
   const fr = `${fRect} filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"`;
   // Stroke widths and blur stdDeviations are absolute SVG units; multiply
@@ -170,6 +221,6 @@ export function buildSvgMarkup(opts: GlowOptions, p: string): string {
     `<g id="${p}_eI" stroke="white">`,
     `<path id="${p}_eO" stroke-width="${sw(EXTRA_STROKE_OUTER)}" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.85" filter="url(#${p}_ebO)"/>`,
     `<path id="${p}_eC" stroke-width="${sw(EXTRA_STROKE_CORE)}" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="1.0" filter="url(#${p}_ebC)"/>`,
-    '</g></g></g>',
+    '</g></g></g>'
   ].join('');
 }
