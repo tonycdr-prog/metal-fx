@@ -10,7 +10,6 @@ No unresolved high- or medium-severity repository risks are currently recorded.
 
 | Debt item | Why it exists | Where | Risk if ignored | Suggested fix |
 |-----------|---------------|-------|-----------------|---------------|
-| Runtime `scale` updates do not rebuild glow or recompute default ring/shader scale | Creation and resize bake derived values; update patch sets only `scale` | `MetalFx.tsx`, `renderer/loop.ts:updateInstance` | Dynamic scale changes only partially apply | Treat scale as an initialization-only prop or recompute every derived value |
 | Reviewed large modules remain concentrated | Graphics state machines are inherently detailed | `repo-hygiene.config.json`, `MetalFx.tsx`, engine loop/glow/reflection modules | Future behavior can accumulate inside already dense modules | Honor recorded revisit triggers and require new review entries above 250 nonblank lines |
 
 ## 3) Security Concerns
@@ -58,6 +57,7 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - Renderer instances now own their preset and resolved theme. One shared WebGL context plans one pass per active material group, composites it only into matching instances, and captures each group's glow samples before rendering the next group. Homogeneous instances retain one shared pass.
 - WebGL, Canvas 2D, shader, and observer initialization failures now release partial resources and render the native child without effect layers. Component and cross-browser tests verify visibility, interaction, retry, and warning-free fallback.
 - The development toolchain now uses Vite 8, Vitest 4, vite-plugin-dts 5 with API Extractor 7, and Wrangler 4.110.0. Registry verification, the lockfile audit, and the production-only audit reported zero vulnerabilities on 2026-07-14; Node 22 and 24 both pass the package gate.
+- Runtime `scale` updates now recompute default shader sampling and ring thickness, rebuild glow geometry, and scale the reflection reference draw width without recreating the renderer. Engine, lifecycle, and cross-browser playground tests cover 1 → 2 → 0.5 updates and cleanup.
 
 ## 8) Evidence
 

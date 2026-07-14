@@ -39,6 +39,19 @@ export type { ReflectionTarget } from './constants';
 
 const targets: Set<ReflectionTarget> = new Set();
 
+export function getReflectionScaleMetrics(scale: number, dpr: number, hairlineWidth: number, anchorCssWidth: number) {
+  const effectiveScale = Math.max(0, scale);
+  const hairlineCssPx = Math.max(STROKE_CSS_PX * effectiveScale, hairlineWidth);
+  return {
+    strokeBandPx: Math.max(1, Math.round(hairlineCssPx * dpr)),
+    borderHighlightPx: Math.max(1, Math.round(Math.max(BORDER_HILITE_PX * effectiveScale, hairlineWidth) * dpr)),
+    referenceDrawPx: Math.max(
+      1,
+      Math.round(REF_DRAW_CSS_W * effectiveScale * Math.max(0.1, anchorCssWidth / 140) * dpr)
+    )
+  };
+}
+
 export function addReflectionTarget(
   el: HTMLElement,
   anchor: MetalFxInstance,
@@ -183,10 +196,12 @@ export function paintReflections(): void {
     // automatically grow when the host is rendered at non-1× layout (CSS
     // zoom: 2, etc.). Multiply absolute-pixel constants by the anchor's
     // scale so the reflection scales together with the metal effect itself.
-    const sScale = t.anchor.scale ?? 1;
-    const hairlineCssPx = Math.max(STROKE_CSS_PX * sScale, t.hairlineWidth);
-    const strokeBandPx = Math.max(1, Math.round(hairlineCssPx * dpr));
-    const borderHighlightPx = Math.max(1, Math.round(Math.max(BORDER_HILITE_PX * sScale, t.hairlineWidth) * dpr));
+    const { strokeBandPx, borderHighlightPx, referenceDrawPx } = getReflectionScaleMetrics(
+      t.anchor.scale,
+      dpr,
+      t.hairlineWidth,
+      sw / dpr
+    );
 
     const overscanCssPx = t.hairlineOuterCssPx;
     t.wrap.style.inset = `${-overscanCssPx}px`;
@@ -224,8 +239,7 @@ export function paintReflections(): void {
     grad.addColorStop(0.5, `rgba(0,0,0,${GRAD_MID})`);
     grad.addColorStop(1, `rgba(0,0,0,${GRAD_FAR})`);
 
-    const anchorCssW = sw / dpr;
-    const refWdpr = Math.max(1, Math.round(REF_DRAW_CSS_W * Math.max(0.1, anchorCssW / 140) * dpr));
+    const refWdpr = referenceDrawPx;
 
     let drawX: number, drawY: number, drawW: number, drawH: number;
     let flipX = false,

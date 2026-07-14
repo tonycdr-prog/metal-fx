@@ -94,3 +94,36 @@ test('falls back to visible interactive children when WebGL is unavailable', asy
   await expect(effects.first().locator('.metal-fx-canvas')).toBeHidden();
   expect(errors).toEqual([]);
 });
+
+test('updates glow geometry in a live WebGL playground without remounting the effect', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  page.on('pageerror', (error) => errors.push(error.message));
+
+  await page.goto('./');
+  const playground = page.getByLabel('Interactive playground');
+  const effect = playground.locator('.metal-fx-root');
+  const glow = effect.locator('.metal-fx-glow-svg');
+  const scale = playground.getByRole('slider', { name: 'Effect scale' });
+
+  await expect(effect).toHaveCount(1);
+  await expect(glow).toHaveCount(1);
+
+  await scale.evaluate((input: HTMLInputElement) => {
+    input.value = '2';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await expect.poll(() => glow.innerHTML()).toContain('stdDeviation="8.400"');
+  await expect(effect).toHaveCount(1);
+
+  await scale.evaluate((input: HTMLInputElement) => {
+    input.value = '0.5';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await expect.poll(() => glow.innerHTML()).toContain('stdDeviation="2.100"');
+  expect(errors).toEqual([]);
+});
