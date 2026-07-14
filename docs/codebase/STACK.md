@@ -5,9 +5,9 @@
 | Area | Value | Evidence |
 |------|-------|----------|
 | Primary language | TypeScript/TSX; the library compiler range is `^5.3.0` and the lock currently resolves TypeScript 5.9.3 | `package.json`, `package-lock.json` |
-| Runtime + version | Browser DOM, Canvas 2D, SVG, and WebGL; CI uses Node 20. The supported consumer Node/browser matrix is [TODO]. | `src/MetalFx.tsx`, `src/engine/renderer/core.ts`, `.github/workflows/*.yml` |
+| Runtime + version | Browser DOM, Canvas 2D, SVG, and WebGL; CI and package support cover Node 22.x and 24.x. | `src/MetalFx.tsx`, `src/engine/renderer/core.ts`, `.github/workflows/*.yml`, `package.json` |
 | Package manager | npm with lockfile version 3 | `package-lock.json` |
-| Module/build system | ESM source; Vite 5 library build emits ES and CommonJS-labelled bundles plus rolled-up declarations | `package.json`, `vite.config.ts` |
+| Module/build system | ESM source; Vite 8 library build emits ES and CommonJS-labelled bundles plus bundled declarations | `package.json`, `vite.config.ts` |
 
 ## 2) Production Frameworks and Dependencies
 
@@ -22,8 +22,8 @@ There are no bundled runtime `dependencies`; React and React DOM are externalize
 
 | Tool | Purpose | Evidence |
 |------|---------|----------|
-| TypeScript 5 | Strict type checking and declaration generation | `tsconfig.json`, `tsconfig.build.json` |
-| Vite 5 + React plugin | Library and demo builds/dev server | `vite.config.ts`, `vite.config.demo.ts` |
+| TypeScript 5.9 | Strict type checking and declaration generation | `tsconfig.json`, `tsconfig.build.json`, `package-lock.json` |
+| Vite 8 + React plugin | Library and demo builds/dev server | `vite.config.ts`, `vite.config.demo.ts` |
 | `vite-plugin-dts` | Rolled-up `dist/index.d.ts` | `vite.config.ts` |
 | Tailwind CSS 4 | Demo styling only | `demo/tailwind.css`, `vite.config.demo.ts` |
 | Biome 2.4.9 | Pinned formatter/linter enforced by npm scripts and pull-request CI | `biome.json`, `package.json`, `.github/workflows/quality.yml` |

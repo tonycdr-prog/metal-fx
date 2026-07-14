@@ -29,5 +29,13 @@
     "typescript": ["tsc"],
     "vite": ["vite"],
     "wrangler": ["wrangler"]
+  },
+  "dependencyConfigReferences": {
+    "@microsoft/api-extractor": [
+      {
+        "file": "vite.config.ts",
+        "text": "bundleTypes: true"
+      }
+    ]
   }
 }

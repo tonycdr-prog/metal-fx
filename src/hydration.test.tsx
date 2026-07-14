@@ -36,6 +36,7 @@ describe('MetalFx hydration', () => {
   afterEach(() => {
     document.body.innerHTML = '';
     vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it.each(['auto', 'dark', 'light'] as const)('hydrates %s without warnings', async (theme) => {
