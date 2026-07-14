@@ -50,6 +50,7 @@ interface CreateInstanceOptions {
   theme?: PresetTheme;
   onAfterFrame?: () => void;
   onFirstCopy?: () => void;
+  onContextFailure?: () => void;
 }
 
 export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
@@ -82,7 +83,8 @@ export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
       glowPixelsH: 0,
       glowReadbackMs: -Infinity,
       onAfterFrame: opts.onAfterFrame,
-      onFirstCopy: opts.onFirstCopy
+      onFirstCopy: opts.onFirstCopy,
+      onContextFailure: opts.onContextFailure
     };
     registerScaleOverrides(instance, opts);
     resizeInstanceCanvas(instance);
@@ -364,8 +366,9 @@ function tick(now: number): void {
 }
 
 function startSharedLoop(): void {
-  if (!SHARED || SHARED.rafId !== 0) return;
-  SHARED.rafId = requestAnimationFrame(tick);
+  const shared = SHARED;
+  if (shared?.rafId !== 0 || shared.contextLost) return;
+  shared.rafId = requestAnimationFrame(tick);
 }
 
 function stopSharedLoop(): void {

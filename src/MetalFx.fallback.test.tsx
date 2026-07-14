@@ -18,6 +18,7 @@ vi.mock('./engine/glow/registry', () => ({ deleteGlowHandles: vi.fn(), setGlowHa
 vi.mock('./engine/reflection/paint', () => ({ addReflectionTarget: vi.fn(), removeReflectionTarget: vi.fn() }));
 vi.mock('./engine/reflection/reflectionScheduler', () => ({ scheduleReflectionPaint: vi.fn() }));
 
+import { addReflectionTarget, removeReflectionTarget } from './engine/reflection/paint';
 import { MetalFx } from './MetalFx';
 
 describe('MetalFx renderer fallback', () => {
@@ -124,5 +125,33 @@ describe('MetalFx renderer fallback', () => {
     expect(engine.destroyInstance).not.toHaveBeenCalled();
     expect(engine.unregisterGlowInstance).not.toHaveBeenCalled();
     expect(container.querySelector<HTMLDivElement>('.metal-fx-root')?.dataset.fallback).toBe('true');
+  });
+
+  it('releases renderer, glow, and reflection ownership when context restoration fails', () => {
+    const target = { current: document.createElement('div') };
+    const onClick = vi.fn();
+    act(() =>
+      root.render(
+        <MetalFx reflectionTargets={[target]} theme="dark">
+          <button type="button" onClick={onClick}>
+            Keep using child
+          </button>
+        </MetalFx>
+      )
+    );
+
+    const options = engine.createInstance.mock.calls[0]?.[0] as { onContextFailure?: () => void };
+    expect(addReflectionTarget).toHaveBeenCalledOnce();
+    expect(options.onContextFailure).toBeTypeOf('function');
+    act(() => options.onContextFailure?.());
+
+    const wrapper = container.querySelector<HTMLDivElement>('.metal-fx-root');
+    expect(wrapper?.dataset.fallback).toBe('true');
+    expect(wrapper?.style.visibility).toBe('visible');
+    expect(engine.destroyInstance).toHaveBeenCalledOnce();
+    expect(engine.unregisterGlowInstance).toHaveBeenCalledOnce();
+    expect(removeReflectionTarget).toHaveBeenCalledWith(target.current, expect.anything());
+    container.querySelector('button')?.click();
+    expect(onClick).toHaveBeenCalledOnce();
   });
 });

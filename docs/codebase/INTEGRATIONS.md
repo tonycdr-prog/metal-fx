@@ -28,7 +28,7 @@ No runtime HTTP APIs, databases, queues, analytics, or observability services we
 ## 4) Reliability and Failure Behavior
 
 - Network retry/backoff/timeouts/circuit breakers: not applicable to the runtime; it makes no network calls.
-- WebGL context loss is detected, rendering pauses, and the shader pipeline is rebuilt on `webglcontextrestored`.
+- WebGL context loss cancels shared rendering immediately. A successful `webglcontextrestored` event atomically replaces the shader pipeline and resumes existing active instances; a failed rebuild releases effect resources and listeners before preserving the native child fallback.
 - Page visibility stops/restarts the shared RAF, and intersection visibility suppresses per-instance work.
 - WebGL/canvas creation failures are caught by the React lifecycle adapter, which releases partial resources and preserves a visible native child without effect layers.
 
