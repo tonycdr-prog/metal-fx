@@ -28,6 +28,8 @@ npm run lint
 npm run hygiene
 npm run typecheck
 npm run typecheck:demo
+npm run test
+npm run test:browser
 npm run build
 npm run build:demo
 npm run package:check
