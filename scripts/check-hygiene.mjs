@@ -27,7 +27,8 @@ function repoPath(path) {
 
 const files = walk(root);
 const textFiles = files.filter((path) => textExtensions.has(extname(path)) && !path.endsWith('.codebase-scan.txt'));
-const corpus = textFiles.map((path) => readFileSync(path, 'utf8')).join('\n');
+const textByPath = new Map(textFiles.map((path) => [path, readFileSync(path, 'utf8')]));
+const corpus = [...textByPath.values()].join('\n');
 const usageCorpus = textFiles
   .filter((path) => {
     const name = repoPath(path);
@@ -42,7 +43,7 @@ const usageCorpus = textFiles
       name === 'playwright.config.ts'
     );
   })
-  .map((path) => readFileSync(path, 'utf8'))
+  .map((path) => textByPath.get(path) ?? '')
   .join('\n');
 
 function checkFileSizes() {
@@ -116,20 +117,60 @@ function checkScriptsAndDependencies() {
     }
   }
   const allDependencies = { ...pkg.dependencies, ...pkg.devDependencies, ...pkg.peerDependencies };
+  const configuredDependencies = new Set();
+  const configReferences = config.dependencyConfigReferences;
+  if (
+    configReferences !== undefined &&
+    (!configReferences || typeof configReferences !== 'object' || Array.isArray(configReferences))
+  ) {
+    errors.push('repo-hygiene.config.json: dependencyConfigReferences must be an object.');
+  } else {
+    for (const [dependency, references] of Object.entries(configReferences ?? {})) {
+      if (!(dependency in allDependencies)) {
+        errors.push(`repo-hygiene.config.json: dependencyConfigReferences contains unknown dependency ${dependency}.`);
+      }
+      if (!Array.isArray(references)) {
+        errors.push(`repo-hygiene.config.json: dependencyConfigReferences.${dependency} must be an array.`);
+        continue;
+      }
+      for (const [index, reference] of references.entries()) {
+        const label = `dependencyConfigReferences.${dependency}[${index}]`;
+        if (!reference || typeof reference !== 'object' || Array.isArray(reference)) {
+          errors.push(`repo-hygiene.config.json: ${label} must be an object.`);
+          continue;
+        }
+        const { file, text } = reference;
+        if (typeof file !== 'string' || !file.trim() || typeof text !== 'string' || !text) {
+          errors.push(`repo-hygiene.config.json: ${label} requires non-empty file and text strings.`);
+          continue;
+        }
+        const path = resolve(root, file);
+        if (path !== root && !path.startsWith(`${root}${sep}`)) {
+          errors.push(`repo-hygiene.config.json: ${label}.file must stay within the repository.`);
+          continue;
+        }
+        const contents = textByPath.get(path);
+        if (contents === undefined) {
+          errors.push(`repo-hygiene.config.json: ${label}.file does not reference a tracked text file (${file}).`);
+          continue;
+        }
+        if (!contents.includes(text)) {
+          errors.push(`repo-hygiene.config.json: ${label}.text was not found in ${file}.`);
+          continue;
+        }
+        configuredDependencies.add(dependency);
+      }
+    }
+  }
   for (const dependency of Object.keys(allDependencies)) {
     const base = dependency.startsWith('@types/') ? dependency.slice('@types/'.length).replace('__', '/') : dependency;
     const commands = config.dependencyCommands[dependency] ?? [];
-    const configReferences = config.dependencyConfigReferences?.[dependency] ?? [];
-    const configured = configReferences.some(({ file, text }) => {
-      const path = join(root, file);
-      return existsSync(path) && readFileSync(path, 'utf8').includes(text);
-    });
     const used =
       usageCorpus.includes(`'${dependency}'`) ||
       usageCorpus.includes(`"${dependency}"`) ||
       (dependency.startsWith('@types/') && (usageCorpus.includes(`'${base}'`) || usageCorpus.includes(`"${base}"`))) ||
       commands.some((command) => new RegExp(`(^|[;&|\\s])${command}(?=\\s|$)`, 'm').test(scripts)) ||
-      configured;
+      configuredDependencies.has(dependency);
     if (!used) errors.push(`package.json: dependency ${dependency} appears unused.`);
   }
 }
