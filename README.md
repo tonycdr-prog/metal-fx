@@ -124,6 +124,7 @@ const chipRef = useRef<HTMLButtonElement>(null);
 ```
 
 Reflections are skipped automatically when the resolved theme is `light` — no DOM scanning, no per-frame work in light mode.
+When multiple live effects reference one target, the first live effect owns its reflection. If it unmounts, the target transfers to the next live owner without replacing its decoration.
 
 ## Performance
 

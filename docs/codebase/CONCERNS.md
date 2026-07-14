@@ -18,7 +18,6 @@ No unresolved high- or medium-severity repository risks are currently recorded.
 | Risk | OWASP category | Evidence | Current mitigation | Gap |
 |------|----------------|----------|--------------------|-----|
 | Injected stylesheet and inline styles conflict with strict CSP | N/A | `styles.ts`, `glow/glow.ts`, `README.md` | Consumer documentation explicitly describes the limitation | No nonce/external stylesheet option is exposed; CSP-compatible rendering needs a future API/design project |
-| DOM mutation of reflection targets | N/A | `reflection/paint.ts` | Blocks form-control tags and restores styles it applied | Multiple anchors targeting one element share the first registration without explicit ownership semantics |
 
 No auth, tenant data, server input, or network trust boundary exists in this client-only library.
 
@@ -58,6 +57,7 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - Renderer instances now own their preset and resolved theme. One shared WebGL context plans one pass per active material group, composites it only into matching instances, and captures each group's glow samples before rendering the next group. Homogeneous instances retain one shared pass.
 - WebGL, Canvas 2D, shader, and observer initialization failures now release partial resources and render the native child without effect layers. Component and cross-browser tests verify visibility, interaction, retry, and warning-free fallback.
 - The development toolchain now uses Vite 8, Vitest 4, vite-plugin-dts 5 with API Extractor 7, and Wrangler 4.110.0. Registry verification, the lockfile audit, and the production-only audit reported zero vulnerabilities on 2026-07-14; Node 22 and 24 both pass the package gate.
+- Reflection targets now explicitly track all live owners. The first live owner supplies the reflection; removing it transfers ownership deterministically, while final cleanup removes only MetalFx-created decoration and restores only styles MetalFx still owns.
 
 ## 8) Evidence
 

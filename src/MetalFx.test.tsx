@@ -28,6 +28,7 @@ vi.mock('./engine/reflection/reflectionScheduler', () => ({ scheduleReflectionPa
 
 import { injectGlow } from './engine/glow/glow';
 import { deleteGlowHandles, setGlowHandles } from './engine/glow/registry';
+import { addReflectionTarget, removeReflectionTarget } from './engine/reflection/paint';
 import { MetalFx } from './MetalFx';
 
 describe('MetalFx', () => {
@@ -82,6 +83,52 @@ describe('MetalFx', () => {
     expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { paused: true });
     expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { opacityMul: 1 });
     expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { preset: 'silver', theme: 'light' });
+  });
+
+  it('releases its reflection ownership by instance across StrictMode cleanup and remount', () => {
+    const target = { current: document.createElement('button') };
+    act(() =>
+      root.render(
+        <StrictMode>
+          <MetalFx reflectionTargets={[target]} theme="dark">
+            <button type="button">Use effect</button>
+          </MetalFx>
+        </StrictMode>
+      )
+    );
+
+    expect(addReflectionTarget).toHaveBeenCalledTimes(2);
+    expect(removeReflectionTarget).toHaveBeenCalledTimes(1);
+    expect(removeReflectionTarget).toHaveBeenLastCalledWith(target.current, expect.anything());
+
+    act(() => root.unmount());
+    expect(removeReflectionTarget).toHaveBeenCalledTimes(2);
+  });
+
+  it('moves reflection ownership when a ref becomes live and later changes target', () => {
+    const target = { current: null as HTMLElement | null };
+    const render = () =>
+      act(() =>
+        root.render(
+          <MetalFx reflectionTargets={[target]} theme="dark">
+            <button type="button">Use effect</button>
+          </MetalFx>
+        )
+      );
+
+    render();
+    expect(addReflectionTarget).not.toHaveBeenCalled();
+
+    const first = document.createElement('div');
+    target.current = first;
+    render();
+    expect(addReflectionTarget).toHaveBeenLastCalledWith(first, expect.anything(), expect.anything());
+
+    const second = document.createElement('div');
+    target.current = second;
+    render();
+    expect(removeReflectionTarget).toHaveBeenLastCalledWith(first, expect.anything());
+    expect(addReflectionTarget).toHaveBeenLastCalledWith(second, expect.anything(), expect.anything());
   });
 
   it('cleans up the renderer instance on final unmount', () => {

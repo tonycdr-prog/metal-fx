@@ -6,6 +6,11 @@
  */
 import type { MetalFxInstance } from '../renderer/core';
 
+export interface ReflectionOwner {
+  anchor: MetalFxInstance;
+  anchorEl: HTMLElement;
+}
+
 export const RANGE_PX = 12;
 export const ATTACH_RANGE_PX = 32;
 export const OVERLAP_MIN_PX = 1;
@@ -32,6 +37,7 @@ export interface ReflectionTarget {
   el: HTMLElement;
   anchor: MetalFxInstance;
   anchorEl: HTMLElement;
+  owners: ReflectionOwner[];
   wrap: HTMLDivElement;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -42,6 +48,9 @@ export interface ReflectionTarget {
   hairlineOuterCssPx: number;
   appliedPositionRelative: boolean;
   appliedIsolation: boolean;
+  priorPosition: string;
+  priorIsolation: string;
+  priorReflectHost: string | null;
   resizeObserver: ResizeObserver | null;
   mutationObserver: MutationObserver | null;
 }
