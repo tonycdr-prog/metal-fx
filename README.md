@@ -17,6 +17,9 @@ npm install metal-fx
 React DOM 18 or later. The package provides both ESM named imports and CommonJS `require()` from its root
 entry point.
 
+If WebGL or the required Canvas 2D context is unavailable, `MetalFx` omits the visual effect and leaves the
+wrapped child visible, natively styled, and interactive. Capability failure does not require an error boundary.
+
 ## Quick start
 
 ```tsx
@@ -117,6 +120,7 @@ Reflections are skipped automatically when the resolved theme is `light` — no 
 - `IntersectionObserver` pauses per-instance copies when the host scrolls offscreen. When every instance is offscreen the GL render is skipped too.
 - `ResizeObserver` callbacks are debounced through RAF.
 - The GL context, program, and buffer are released when the last `<MetalFx>` unmounts.
+- Failed graphics initialization is transactional: partial resources are released and later mounts can retry.
 
 ## Server-side rendering
 

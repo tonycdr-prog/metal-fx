@@ -5,8 +5,9 @@ import type { MetalFxTheme } from '../types';
 export function useResolvedTheme(theme: MetalFxTheme): 'dark' | 'light' {
   const [resolved, setResolved] = useState<'dark' | 'light'>(() => {
     if (theme !== 'auto') return theme;
-    if (typeof window === 'undefined' || !window.matchMedia) return 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Keep the server output and the first client render deterministic. The
+    // client preference is applied after hydration by the effect below.
+    return 'dark';
   });
 
   useEffect(() => {
