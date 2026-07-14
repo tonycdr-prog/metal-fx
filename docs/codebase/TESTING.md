@@ -32,7 +32,7 @@ npm run build:demo
 |-------|----------|----------------|-------|
 | Unit | Yes | Color conversion, tweening, and glow geometry | Covers normalization, easing/clamping, and geometry branches |
 | Integration | Yes | Basic child interaction, valid prop updates, final renderer cleanup | Engine, glow, and reflection boundaries are mocked deterministically |
-| SSR/hydration | Partial | Server import/render; hydration infrastructure | Current `useLayoutEffect` warning is intentionally visible; warning-free hydration remains a TODO tied to REQ-004/REQ-005 |
+| SSR/hydration | Yes | Server import/render and client hydration | Covers auto/dark/light themes, StrictMode cleanup/remount, prop updates, media-query changes, and warning-free hydration |
 | E2E/visual | Smoke | Built demo and forced no-WebGL fallback in Chromium, Firefox, and WebKit | Serves the build under the `/metal-fx/` Pages subpath and checks static assets, representative mounts, normal and fallback child interaction, and unexpected page/console errors. Traces/screenshots are retained on failure. Firefox CI explicitly permits its software WebGL renderer and forces EGL because hosted runners do not expose a supported hardware driver. |
 | Packaging | Yes | ES/CJS exports, strict TypeScript, and tarball contents | `npm run test:package` installs only the packed artifact in isolated fixtures |
 
@@ -47,7 +47,6 @@ npm run build:demo
 - Coverage tool + threshold: no threshold configured in this foundation.
 - CI quality gates: `.github/workflows/quality.yml` runs `npm run check` on Node 22 and 24, plus a separate browser-smoke job that installs Chromium, Firefox, and WebKit and uploads failure artifacts.
 - Pages deployment runs only after the complete Quality workflow succeeds on `main` and checks out that exact tested commit.
-- Known test gap: warning-free SSR/hydration is an explicit TODO until the dedicated production fix lands; the current server warning is not suppressed.
 - Highest-value remaining gaps: context loss/restore, pause/visibility, reflection target ownership, and visual regression baselines.
 
 ## 6) Evidence

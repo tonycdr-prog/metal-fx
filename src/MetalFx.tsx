@@ -13,7 +13,6 @@ import type { MetalFxProps } from './types';
 // even in SSR-hydration scenarios where effects haven't fired yet.
 ensureStylesInjected();
 
-// Hoisted to avoid allocating new objects on every render.
 const CANVAS_STYLE: CSSProperties = { position: 'absolute', inset: 0, width: '100%', height: '100%' };
 const INNER_STYLE: CSSProperties = { position: 'absolute', inset: 3 };
 const GLOW_HOST_STYLE: CSSProperties = {
@@ -52,12 +51,6 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
   },
   forwardedRef
 ) {
-  // DOM refs — rootRef/canvasRef/glowHostRef/contentRef are for direct DOM access.
-  // instanceRef/glowHandlesRef hold engine objects that survive React re-renders.
-  // themeRef lets the glow callback read the current theme without a closure
-  // over a stale value — mutated during render, never triggers a re-render.
-  // initialWrapperRadiusRef caches the CSS border-radius read at mount time so
-  // measure() can fall back to it when no explicit borderRadius prop is given.
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const glowHostRef = useRef<HTMLDivElement | null>(null);
@@ -70,58 +63,47 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
   const [ready, setReady] = useState(false);
   const [fallback, setFallback] = useState(false);
   const resolvedTheme = useResolvedTheme(theme);
-  // Write during render (not in an effect) so the glow callback always sees
-  // the up-to-date theme on the very next tick.
   themeRef.current = resolvedTheme;
   const shape: 'pill' | 'circle' = variant === 'circle' ? 'circle' : 'pill';
   const glowEnabled = !disableGlow;
 
   useImperativeHandle(forwardedRef, () => rootRef.current as HTMLDivElement, []);
 
-  const resolveRadius = (w: number, h: number) => {
-    // variant='circle' is the user's explicit promise that the wrapped
-    // element should render as a circle. Always pick min(w,h)/2 so the
-    // engine produces a true circle even when the child's CSS border-radius
-    // is read in a different coordinate space than the bounding rect (the
-    // exact failure mode under CSS `zoom: 2`, where getComputedStyle
-    // returns source pixels but getBoundingClientRect returns zoomed ones).
-    if (shape === 'circle') return Math.min(w, h) / 2;
+  const resolveRadius = (width: number, height: number) => {
+    if (shape === 'circle') return Math.min(width, height) / 2;
 
     const raw =
       typeof borderRadius === 'number'
         ? borderRadius
         : (() => {
-            const childEl = contentRef.current?.firstElementChild as HTMLElement | null;
-            if (childEl) {
-              const parsed = parseFloat(getComputedStyle(childEl).borderTopLeftRadius);
+            const child = contentRef.current?.firstElementChild as HTMLElement | null;
+            if (child) {
+              const parsed = parseFloat(getComputedStyle(child).borderTopLeftRadius);
               if (Number.isFinite(parsed) && parsed > 0) return parsed;
             }
             return initialWrapperRadiusRef.current;
           })();
-    return Math.min(raw, Math.min(w, h) / 2);
+    return Math.min(raw, Math.min(width, height) / 2);
   };
 
   useEffect(() => {
-    const inst = instanceRef.current;
-    if (inst) updateInstance(inst, { preset, theme: resolvedTheme });
+    const instance = instanceRef.current;
+    if (instance) updateInstance(instance, { preset, theme: resolvedTheme });
   }, [preset, resolvedTheme]);
-  // `paused` is per-instance: it freezes only this instance's 2D canvas while
-  // the shared GL loop keeps running for any other unpaused instance.
+
   useEffect(() => {
-    const inst = instanceRef.current;
-    if (!inst) return;
-    updateInstance(inst, { paused });
+    const instance = instanceRef.current;
+    if (instance) updateInstance(instance, { paused });
   }, [paused]);
 
-  // Re-sync optional shader/ring/scale overrides if they change at runtime.
   useEffect(() => {
-    const inst = instanceRef.current;
-    if (!inst) return;
+    const instance = instanceRef.current;
+    if (!instance) return;
     const patch: Partial<Parameters<typeof updateInstance>[1]> = {};
     if (shaderScale !== undefined) patch.shaderScale = shaderScale;
     if (ringCssPx !== undefined) patch.ringCssPx = ringCssPx;
-    if (scale !== undefined) patch.scale = scale;
-    if (Object.keys(patch).length > 0) updateInstance(inst, patch);
+    patch.scale = scale;
+    updateInstance(instance, patch);
   }, [shaderScale, ringCssPx, scale]);
 
   useMetalFxLifecycle({
@@ -133,6 +115,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     themeRef,
     initialWrapperRadiusRef,
     shape,
+    glowEnabled,
     paused,
     shaderScale,
     ringCssPx,
@@ -144,48 +127,37 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     setFallback
   });
 
-  // strength=1 maps directly to a full-opacity composite (opacityMul=1) for
-  // every variant. Per-preset toning lives in `shaderOpacity` inside each
-  // PresetMode, not here, so buttons and circles share the same headroom.
   useEffect(() => {
-    const inst = instanceRef.current;
-    if (!inst) return;
-    updateInstance(inst, { opacityMul: Math.max(0, Math.min(1, strength)) });
+    const instance = instanceRef.current;
+    if (instance) updateInstance(instance, { opacityMul: Math.max(0, Math.min(1, strength)) });
   }, [strength]);
 
-  // onAfterFrame is wired here rather than at createInstance time so instances
-  // without reflectionTargets never schedule the reflection RAF.
-  // Reflections are dark-mode only — no DOM work in light mode.
   useEffect(() => {
-    const inst = instanceRef.current;
+    const instance = instanceRef.current;
     const root = rootRef.current;
-    if (!inst || !root || !reflectionTargets || resolvedTheme !== 'dark') return;
-    inst.onAfterFrame = scheduleReflectionPaint;
-    const live = reflectionTargets.flatMap((r) => (r.current ? [r.current] : []));
-    for (const el of live) addReflectionTarget(el, inst, root);
+    if (!instance || !root || !reflectionTargets || resolvedTheme !== 'dark') return;
+    instance.onAfterFrame = scheduleReflectionPaint;
+    const live = reflectionTargets.flatMap((target) => (target.current ? [target.current] : []));
+    for (const element of live) addReflectionTarget(element, instance, root);
     return () => {
-      inst.onAfterFrame = undefined;
-      for (const el of live) removeReflectionTarget(el);
+      instance.onAfterFrame = undefined;
+      for (const element of live) removeReflectionTarget(element);
     };
   }, [reflectionTargets, resolvedTheme]);
 
-  // Separate from the main lifecycle effect so borderRadius / variant / theme
-  // changes re-sync the radius without destroying and recreating the instance.
-  // Shape is derived from variant and identical to inst.kind; the suppression
-  // below documents the intentional trigger dependencies for radius syncing.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: trigger deps for radius re-sync
+  // Shape is included because it is the renderer-recreation trigger; theme is
+  // included because automatic theme resolution can change after hydration.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional radius synchronization triggers
   useEffect(() => {
     const root = rootRef.current;
-    const inst = instanceRef.current;
-    if (!root || !inst) return;
-    const cornerRadius = resolveRadius(inst.cssWidth, inst.cssHeight);
-    updateInstance(inst, { cornerRadius });
+    const instance = instanceRef.current;
+    if (!root || !instance) return;
+    const cornerRadius = resolveRadius(instance.cssWidth, instance.cssHeight);
+    updateInstance(instance, { cornerRadius });
     root.style.setProperty('--mfx-radius', `${cornerRadius}px`);
     root.style.borderRadius = `${cornerRadius}px`;
   }, [borderRadius, resolvedTheme, variant, shape]);
 
-  // --mfx-strength is consumed by downstream CSS (e.g. content opacity rules).
-  // Spread style last so consumer inline styles can still override other props.
   const wrapperStyle = useMemo<CSSProperties>(
     () => ({
       ...style,

@@ -1,4 +1,4 @@
-import { type MutableRefObject, type RefObject, useLayoutEffect } from 'react';
+import { type MutableRefObject, type RefObject, useEffect, useLayoutEffect, useRef } from 'react';
 import { type GlowHandles, injectGlow } from '../engine/glow/glow';
 import { deleteGlowHandles, setGlowHandles } from '../engine/glow/registry';
 import type { PresetName, PresetTheme } from '../engine/presets';
@@ -12,6 +12,8 @@ import {
   updateInstance
 } from '../engine/renderer/loop';
 
+const useSafeLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
 interface UseMetalFxLifecycleOptions {
   canvasRef: RefObject<HTMLCanvasElement>;
   rootRef: RefObject<HTMLDivElement>;
@@ -21,6 +23,7 @@ interface UseMetalFxLifecycleOptions {
   themeRef: MutableRefObject<PresetTheme>;
   initialWrapperRadiusRef: MutableRefObject<number>;
   shape: 'pill' | 'circle';
+  glowEnabled: boolean;
   paused: boolean;
   shaderScale?: number;
   ringCssPx?: number;
@@ -32,7 +35,7 @@ interface UseMetalFxLifecycleOptions {
   setFallback: (fallback: boolean) => void;
 }
 
-/** Owns the mount-to-engine transaction and restores a plain child if it fails. */
+/** Owns renderer and optional glow lifecycles, restoring a plain child if renderer setup fails. */
 export function useMetalFxLifecycle({
   canvasRef,
   rootRef,
@@ -42,6 +45,7 @@ export function useMetalFxLifecycle({
   themeRef,
   initialWrapperRadiusRef,
   shape,
+  glowEnabled,
   paused,
   shaderScale,
   ringCssPx,
@@ -52,13 +56,19 @@ export function useMetalFxLifecycle({
   setReady,
   setFallback
 }: UseMetalFxLifecycleOptions): void {
-  // biome-ignore lint/correctness/useExhaustiveDependencies: prop updates are synchronized by focused MetalFx effects
-  useLayoutEffect(() => {
+  const glowEnabledRef = useRef(glowEnabled);
+  glowEnabledRef.current = glowEnabled;
+
+  useSafeLayoutEffect(() => {
     const canvas = canvasRef.current;
     const root = rootRef.current;
     const glowHost = glowHostRef.current;
     if (!canvas || !root) return;
 
+    const initialRadius = root.style.getPropertyValue('border-radius');
+    const initialRadiusPriority = root.style.getPropertyPriority('border-radius');
+    const initialCustomRadius = root.style.getPropertyValue('--mfx-radius');
+    const initialCustomRadiusPriority = root.style.getPropertyPriority('--mfx-radius');
     const computed = getComputedStyle(root);
     const parsed = parseFloat(computed.borderTopLeftRadius);
     initialWrapperRadiusRef.current = Number.isFinite(parsed) ? parsed : 0;
@@ -73,7 +83,13 @@ export function useMetalFxLifecycle({
     let resizeRaf = 0;
     let resizeObserver: ResizeObserver | null = null;
     let intersectionObserver: IntersectionObserver | null = null;
-    let glowRegistered = false;
+
+    const restoreRadiusStyles = () => {
+      if (initialRadius) root.style.setProperty('border-radius', initialRadius, initialRadiusPriority);
+      else root.style.removeProperty('border-radius');
+      if (initialCustomRadius) root.style.setProperty('--mfx-radius', initialCustomRadius, initialCustomRadiusPriority);
+      else root.style.removeProperty('--mfx-radius');
+    };
 
     const cleanup = () => {
       resizeObserver?.disconnect();
@@ -81,13 +97,16 @@ export function useMetalFxLifecycle({
       if (resizeRaf !== 0) cancelAnimationFrame(resizeRaf);
       const instance = instanceRef.current;
       if (instance) {
-        deleteGlowHandles(instance);
-        if (glowRegistered) unregisterGlowInstance(instance);
+        if (glowHandlesRef.current) {
+          deleteGlowHandles(instance);
+          unregisterGlowInstance(instance);
+        }
         destroyInstance(instance);
       }
       instanceRef.current = null;
       glowHandlesRef.current = null;
-      if (glowHost) glowHost.replaceChildren();
+      glowHost?.replaceChildren();
+      restoreRadiusStyles();
     };
 
     try {
@@ -110,16 +129,6 @@ export function useMetalFxLifecycle({
       root.style.setProperty('--mfx-radius', `${initial.cornerRadius}px`);
       root.style.borderRadius = `${initial.cornerRadius}px`;
 
-      if (glowHost) {
-        glowHandlesRef.current = injectGlow(glowHost, {
-          width: initial.cssWidth,
-          height: initial.cssHeight,
-          cornerRadius: initial.cornerRadius,
-          kind: shape,
-          scale
-        });
-      }
-
       resizeObserver = new ResizeObserver(() => {
         if (resizeRaf !== 0) return;
         resizeRaf = requestAnimationFrame(() => {
@@ -134,16 +143,22 @@ export function useMetalFxLifecycle({
           });
           root.style.setProperty('--mfx-radius', `${next.cornerRadius}px`);
           root.style.borderRadius = `${next.cornerRadius}px`;
-          if (glowHost) {
+          if (!glowEnabledRef.current || !glowHost || !glowHandlesRef.current) return;
+          try {
             glowHost.replaceChildren();
             glowHandlesRef.current = injectGlow(glowHost, {
               width: next.cssWidth,
               height: next.cssHeight,
               cornerRadius: next.cornerRadius,
               kind: shape,
-              scale
+              scale: liveInstance.scale
             });
-            if (glowHandlesRef.current) setGlowHandles(liveInstance, glowHandlesRef.current, themeRef);
+            setGlowHandles(liveInstance, glowHandlesRef.current, themeRef);
+          } catch {
+            deleteGlowHandles(liveInstance);
+            unregisterGlowInstance(liveInstance);
+            glowHandlesRef.current = null;
+            glowHost.replaceChildren();
           }
         });
       });
@@ -160,12 +175,6 @@ export function useMetalFxLifecycle({
         );
         intersectionObserver.observe(root);
       }
-
-      if (glowHandlesRef.current) {
-        setGlowHandles(instance, glowHandlesRef.current, themeRef);
-        registerGlowInstance(instance);
-        glowRegistered = true;
-      }
       setFallback(false);
     } catch {
       cleanup();
@@ -175,4 +184,39 @@ export function useMetalFxLifecycle({
 
     return cleanup;
   }, [shape]);
+
+  // Shape changes replace the renderer instance, so glow ownership must move
+  // even if the enabled state itself did not change.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: shape is an intentional lifecycle trigger
+  useEffect(() => {
+    const instance = instanceRef.current;
+    const glowHost = glowHostRef.current;
+    if (!instance || !glowHost || !glowEnabled) return;
+    let handles: GlowHandles;
+    try {
+      handles = injectGlow(glowHost, {
+        width: instance.cssWidth,
+        height: instance.cssHeight,
+        cornerRadius: instance.cornerRadius,
+        kind: instance.kind,
+        scale: instance.scale
+      });
+      glowHandlesRef.current = handles;
+      setGlowHandles(instance, handles, themeRef);
+      registerGlowInstance(instance);
+    } catch {
+      deleteGlowHandles(instance);
+      unregisterGlowInstance(instance);
+      glowHandlesRef.current = null;
+      glowHost.replaceChildren();
+      return;
+    }
+    return () => {
+      if (instanceRef.current !== instance || !glowHandlesRef.current) return;
+      deleteGlowHandles(instance);
+      unregisterGlowInstance(instance);
+      glowHandlesRef.current = null;
+      glowHost.replaceChildren();
+    };
+  }, [glowEnabled, shape]);
 }

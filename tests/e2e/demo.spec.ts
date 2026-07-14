@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('demo mounts representative effects and keeps interactive children usable', async ({ page }) => {
+test('demo mounts representative effects and keeps interactive children usable', async ({ browserName, page }) => {
   const errors: string[] = [];
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text());
@@ -26,7 +26,37 @@ test('demo mounts representative effects and keeps interactive children usable',
   const upgrade = page.getByRole('button', { name: 'Upgrade to Pro' }).first();
   await upgrade.click();
   await expect(upgrade).toBeEnabled();
-  await expect(page.getByLabel('Interactive playground').locator('.metal-fx-root')).toHaveCount(1);
+  const playground = page.getByLabel('Interactive playground');
+  const playgroundEffect = playground.locator('.metal-fx-root');
+  await expect(playgroundEffect).toHaveCount(1);
+  await expect(playgroundEffect.locator('.metal-fx-glow-svg')).toHaveCount(1);
+
+  await playground.getByRole('button', { name: 'No Glow' }).click();
+  await expect(playgroundEffect.locator('.metal-fx-glow-svg')).toHaveCount(0);
+
+  await playground.getByRole('button', { name: 'No Glow' }).click();
+  await expect(playgroundEffect.locator('.metal-fx-glow-svg')).toHaveCount(1);
+
+  const states = page.getByLabel('Interaction States');
+  const interactive = states.getByRole('button', { name: 'Hover, focus, press' });
+  await interactive.hover();
+  await expect(interactive).toHaveAttribute('data-hovered', 'true');
+
+  await page.mouse.down();
+  await expect(interactive).toHaveAttribute('data-pressed', 'true');
+  await page.mouse.move(0, 0);
+  await expect(interactive).not.toHaveAttribute('data-pressed', 'true');
+  await page.mouse.up();
+
+  const keyboardFocus = states.getByRole('button', { name: 'Keyboard focus' });
+  await keyboardFocus.focus();
+  await page.keyboard.press(browserName === 'webkit' ? 'Alt+Shift+Tab' : 'Shift+Tab');
+  await expect(interactive).toBeFocused();
+  await interactive.press('Space');
+  await expect(states.getByTestId('activation-state')).toHaveText('Activated 1 time');
+  await expect(states.getByRole('button', { name: 'Disabled' })).toBeDisabled();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(states.getByTestId('motion-state')).toHaveText('Reduced motion: on');
   expect(errors).toEqual([]);
 });
 

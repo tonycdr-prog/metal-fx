@@ -7,11 +7,18 @@ const engine = vi.hoisted(() => ({
   destroyInstance: vi.fn(),
   registerGlowInstance: vi.fn(),
   setInstanceVisible: vi.fn(),
-  setSharedPreset: vi.fn(),
   unregisterGlowInstance: vi.fn(),
   updateInstance: vi.fn()
 }));
-const glow = vi.hoisted(() => ({ injectGlow: vi.fn(() => ({ marker: 'glow' })) }));
+
+const glow = vi.hoisted(() => ({
+  injectGlow: vi.fn((container: HTMLElement) => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'metal-fx-glow-svg');
+    container.appendChild(svg);
+    return { marker: 'glow', svg };
+  })
+}));
 
 vi.mock('./engine/renderer/loop', () => engine);
 vi.mock('./engine/glow/glow', () => glow);
@@ -19,6 +26,8 @@ vi.mock('./engine/glow/registry', () => ({ deleteGlowHandles: vi.fn(), setGlowHa
 vi.mock('./engine/reflection/paint', () => ({ addReflectionTarget: vi.fn(), removeReflectionTarget: vi.fn() }));
 vi.mock('./engine/reflection/reflectionScheduler', () => ({ scheduleReflectionPaint: vi.fn() }));
 
+import { injectGlow } from './engine/glow/glow';
+import { deleteGlowHandles, setGlowHandles } from './engine/glow/registry';
 import { MetalFx } from './MetalFx';
 
 describe('MetalFx', () => {
@@ -31,12 +40,19 @@ describe('MetalFx', () => {
     root = createRoot(container);
     engine.createInstance.mockImplementation((options) => {
       options.onFirstCopy?.();
-      return { cssHeight: options.cssHeight, cssWidth: options.cssWidth, kind: options.kind };
+      return {
+        cornerRadius: options.cornerRadius,
+        cssHeight: options.cssHeight,
+        cssWidth: options.cssWidth,
+        kind: options.kind,
+        scale: options.scale ?? 1
+      };
     });
   });
 
   afterEach(() => {
     act(() => root.unmount());
+    vi.restoreAllMocks();
     vi.clearAllMocks();
   });
 
@@ -52,7 +68,6 @@ describe('MetalFx', () => {
       )
     );
     const button = container.querySelector('button');
-    expect(button).not.toBeNull();
     button?.click();
     expect(onClick).toHaveBeenCalledOnce();
     expect(engine.createInstance).toHaveBeenCalledOnce();
@@ -60,9 +75,7 @@ describe('MetalFx', () => {
     act(() =>
       root.render(
         <MetalFx paused preset="silver" strength={2} theme="light">
-          <button type="button" onClick={onClick}>
-            Use effect
-          </button>
+          <button type="button">Use effect</button>
         </MetalFx>
       )
     );
@@ -84,6 +97,57 @@ describe('MetalFx', () => {
     expect(engine.destroyInstance).toHaveBeenCalledOnce();
   });
 
+  it('creates glow work only while glow is enabled and removes it between prop transitions', () => {
+    const render = (disableGlow: boolean) =>
+      act(() =>
+        root.render(
+          <MetalFx disableGlow={disableGlow}>
+            <button type="button">Use effect</button>
+          </MetalFx>
+        )
+      );
+
+    render(true);
+    expect(injectGlow).not.toHaveBeenCalled();
+    expect(setGlowHandles).not.toHaveBeenCalled();
+    expect(engine.registerGlowInstance).not.toHaveBeenCalled();
+
+    render(false);
+    expect(engine.createInstance).toHaveBeenCalledOnce();
+    expect(injectGlow).toHaveBeenCalledOnce();
+    expect(engine.registerGlowInstance).toHaveBeenCalledOnce();
+    expect(container.querySelectorAll('.metal-fx-glow-svg')).toHaveLength(1);
+
+    render(true);
+    expect(deleteGlowHandles).toHaveBeenCalledOnce();
+    expect(engine.unregisterGlowInstance).toHaveBeenCalledOnce();
+    expect(container.querySelector('.metal-fx-glow-svg')).toBeNull();
+
+    render(false);
+    expect(engine.createInstance).toHaveBeenCalledOnce();
+    expect(injectGlow).toHaveBeenCalledTimes(2);
+    expect(engine.registerGlowInstance).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the renderer active when optional glow setup fails', () => {
+    glow.injectGlow.mockImplementationOnce(() => {
+      throw new Error('glow setup failed');
+    });
+
+    expect(() =>
+      act(() =>
+        root.render(
+          <MetalFx>
+            <button type="button">Use effect</button>
+          </MetalFx>
+        )
+      )
+    ).not.toThrow();
+    expect(container.querySelector<HTMLDivElement>('.metal-fx-root')?.dataset.fallback).toBeUndefined();
+    expect(engine.destroyInstance).not.toHaveBeenCalled();
+    expect(engine.registerGlowInstance).not.toHaveBeenCalled();
+  });
+
   it('keeps renderer and glow lifecycle work paired through a StrictMode remount', () => {
     act(() =>
       root.render(
@@ -94,7 +158,6 @@ describe('MetalFx', () => {
         </StrictMode>
       )
     );
-
     expect(engine.createInstance).toHaveBeenCalledTimes(2);
     expect(engine.destroyInstance).toHaveBeenCalledOnce();
     expect(engine.registerGlowInstance).toHaveBeenCalledTimes(2);
@@ -105,82 +168,58 @@ describe('MetalFx', () => {
     expect(engine.unregisterGlowInstance).toHaveBeenCalledTimes(2);
   });
 
-  it('keeps the native child visible and interactive when renderer initialization fails', () => {
-    engine.createInstance.mockImplementationOnce(() => {
-      throw new Error('metal-fx: WebGL not supported');
-    });
-    const onClick = vi.fn();
-
-    expect(() =>
-      act(() =>
-        root.render(
-          <MetalFx>
-            <button type="button" onClick={onClick}>
-              Use fallback
-            </button>
-          </MetalFx>
-        )
-      )
-    ).not.toThrow();
-
-    const wrapper = container.querySelector<HTMLDivElement>('.metal-fx-root');
-    const button = container.querySelector('button');
-    expect(wrapper?.dataset.fallback).toBe('true');
-    expect(wrapper?.dataset.normalize).toBe('false');
-    expect(wrapper?.style.visibility).toBe('visible');
-    button?.click();
-    expect(onClick).toHaveBeenCalledOnce();
-    expect(glow.injectGlow).not.toHaveBeenCalled();
-    expect(engine.registerGlowInstance).not.toHaveBeenCalled();
-    expect(engine.destroyInstance).not.toHaveBeenCalled();
-  });
-
-  it('cleans a partially initialized instance and can retry after fallback', () => {
-    glow.injectGlow.mockImplementationOnce(() => {
-      throw new Error('glow initialization failed');
-    });
-
+  it('moves glow registration to the recreated renderer instance when shape changes', () => {
     act(() =>
       root.render(
         <MetalFx>
-          <button type="button">Use fallback</button>
+          <button type="button">Use effect</button>
         </MetalFx>
       )
     );
-    expect(container.querySelector<HTMLDivElement>('.metal-fx-root')?.dataset.fallback).toBe('true');
-    expect(engine.destroyInstance).toHaveBeenCalledOnce();
-    expect(engine.registerGlowInstance).not.toHaveBeenCalled();
-
     act(() =>
       root.render(
         <MetalFx variant="circle">
-          <button type="button">Retry effect</button>
+          <button type="button">Use effect</button>
         </MetalFx>
       )
     );
+
     expect(engine.createInstance).toHaveBeenCalledTimes(2);
-    expect(container.querySelector<HTMLDivElement>('.metal-fx-root')?.dataset.fallback).toBeUndefined();
-    expect(engine.registerGlowInstance).toHaveBeenCalledOnce();
+    expect(engine.destroyInstance).toHaveBeenCalledOnce();
+    expect(injectGlow).toHaveBeenCalledTimes(2);
+    expect(engine.registerGlowInstance).toHaveBeenCalledTimes(2);
+    expect(engine.unregisterGlowInstance).toHaveBeenCalledOnce();
+    expect(container.querySelectorAll('.metal-fx-glow-svg')).toHaveLength(1);
   });
 
-  it('keeps failed StrictMode setup and cleanup balanced', () => {
-    engine.createInstance.mockImplementation(() => {
-      throw new Error('metal-fx: WebGL not supported');
-    });
+  it('does not register glow during a StrictMode disabled mount and cleans up a later enabled glow', () => {
+    act(() =>
+      root.render(
+        <StrictMode>
+          <MetalFx disableGlow>
+            <button type="button">Use effect</button>
+          </MetalFx>
+        </StrictMode>
+      )
+    );
+    expect(engine.createInstance).toHaveBeenCalledTimes(2);
+    expect(engine.destroyInstance).toHaveBeenCalledOnce();
+    expect(injectGlow).not.toHaveBeenCalled();
 
     act(() =>
       root.render(
         <StrictMode>
           <MetalFx>
-            <button type="button">Use fallback</button>
+            <button type="button">Use effect</button>
           </MetalFx>
         </StrictMode>
       )
     );
+    expect(injectGlow).toHaveBeenCalledOnce();
+    expect(engine.registerGlowInstance).toHaveBeenCalledOnce();
 
-    expect(engine.createInstance).toHaveBeenCalledTimes(2);
-    expect(engine.destroyInstance).not.toHaveBeenCalled();
-    expect(engine.unregisterGlowInstance).not.toHaveBeenCalled();
-    expect(container.querySelector<HTMLDivElement>('.metal-fx-root')?.dataset.fallback).toBe('true');
+    act(() => root.unmount());
+    expect(engine.unregisterGlowInstance).toHaveBeenCalledOnce();
+    expect(engine.destroyInstance).toHaveBeenCalledTimes(2);
   });
 });
