@@ -15,6 +15,17 @@ const CSS = /* css */ `
   background: #ffffff;
   color: #1d1d1d;
 }
+.metal-fx-root[data-fallback='true'] {
+  isolation: auto;
+  background: transparent;
+  color: inherit;
+}
+.metal-fx-root[data-fallback='true']::before,
+.metal-fx-root[data-fallback='true']::after,
+.metal-fx-root[data-fallback='true'] > .metal-fx-canvas,
+.metal-fx-root[data-fallback='true'] > .metal-fx-inner {
+  display: none;
+}
 
 .metal-fx-root::before {
   content: '';

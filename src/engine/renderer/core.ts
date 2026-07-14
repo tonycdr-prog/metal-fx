@@ -128,27 +128,40 @@ function buildGLPipeline(gl: WebGLRenderingContext): {
   buffer: WebGLBuffer;
   uniforms: Record<string, WebGLUniformLocation | null>;
 } {
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  let vert: WebGLShader | null = null;
+  let frag: WebGLShader | null = null;
+  let program: WebGLProgram | null = null;
+  let buffer: WebGLBuffer | null = null;
+  try {
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-  const vert = compileShader(gl, gl.VERTEX_SHADER, VERT_SHADER_SRC);
-  const frag = compileShader(gl, gl.FRAGMENT_SHADER, FRAG_SHADER_SRC);
-  const program = linkProgram(gl, vert, frag);
-  // biome-ignore lint/correctness/useHookAtTopLevel: WebGL method, not a React hook
-  gl.useProgram(program);
+    vert = compileShader(gl, gl.VERTEX_SHADER, VERT_SHADER_SRC);
+    frag = compileShader(gl, gl.FRAGMENT_SHADER, FRAG_SHADER_SRC);
+    program = linkProgram(gl, vert, frag);
+    // biome-ignore lint/correctness/useHookAtTopLevel: WebGL method, not a React hook
+    gl.useProgram(program);
 
-  const buffer = gl.createBuffer();
-  if (!buffer) throw new Error('metal-fx: gl.createBuffer returned null');
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
-  const posLoc = gl.getAttribLocation(program, 'a_position');
-  gl.enableVertexAttribArray(posLoc);
-  gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+    buffer = gl.createBuffer();
+    if (!buffer) throw new Error('metal-fx: gl.createBuffer returned null');
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+    const posLoc = gl.getAttribLocation(program, 'a_position');
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
 
-  const uniforms: Record<string, WebGLUniformLocation | null> = {};
-  for (const n of UNIFORM_NAMES) uniforms[n] = gl.getUniformLocation(program, n);
-
-  return { program, buffer, uniforms };
+    const uniforms: Record<string, WebGLUniformLocation | null> = {};
+    for (const name of UNIFORM_NAMES) uniforms[name] = gl.getUniformLocation(program, name);
+    gl.deleteShader(vert);
+    gl.deleteShader(frag);
+    return { program, buffer, uniforms };
+  } catch (error) {
+    if (buffer) gl.deleteBuffer(buffer);
+    if (program) gl.deleteProgram(program);
+    if (vert) gl.deleteShader(vert);
+    if (frag) gl.deleteShader(frag);
+    throw error;
+  }
 }
 
 export function ensureSharedRenderer(): SharedRenderer {
@@ -182,8 +195,6 @@ export function ensureSharedRenderer(): SharedRenderer {
   }
   if (!gl) throw new Error('metal-fx: WebGL not supported');
 
-  const { program, buffer, uniforms } = buildGLPipeline(gl);
-
   const onContextLost = (e: Event) => {
     e.preventDefault();
     if (SHARED) SHARED.contextLost = true;
@@ -198,33 +209,48 @@ export function ensureSharedRenderer(): SharedRenderer {
     SHARED.contextLost = false;
     _onContextRestored?.();
   };
-  glCanvas.addEventListener('webglcontextlost', onContextLost as EventListener, false);
-  glCanvas.addEventListener('webglcontextrestored', onContextRestored as EventListener, false);
+  let pipeline: ReturnType<typeof buildGLPipeline> | null = null;
+  try {
+    pipeline = buildGLPipeline(gl);
+    glCanvas.addEventListener('webglcontextlost', onContextLost as EventListener, false);
+    glCanvas.addEventListener('webglcontextrestored', onContextRestored as EventListener, false);
 
-  SHARED = {
-    glCanvas,
-    gl,
-    program,
-    buffer,
-    uniforms,
-    preset: PRESETS.chromatic.modes.dark,
-    defaultPresetName: 'chromatic',
-    defaultPresetTheme: 'dark',
-    presetDirty: true,
-    contextLost: false,
-    useOffscreen,
-    startMs: performance.now(),
-    pausedMs: 0,
-    pausedAtMs: null,
-    rafId: 0,
-    dpr,
-    instances: new Set(),
-    frameCount: 0,
-    glowQueue: [],
-    glowIdx: 0,
-    glowSkip: 0
-  };
-  return SHARED;
+    SHARED = {
+      glCanvas,
+      gl,
+      ...pipeline,
+      preset: PRESETS.chromatic.modes.dark,
+      defaultPresetName: 'chromatic',
+      defaultPresetTheme: 'dark',
+      presetDirty: true,
+      contextLost: false,
+      useOffscreen,
+      startMs: performance.now(),
+      pausedMs: 0,
+      pausedAtMs: null,
+      rafId: 0,
+      dpr,
+      instances: new Set(),
+      frameCount: 0,
+      glowQueue: [],
+      glowIdx: 0,
+      glowSkip: 0
+    };
+    return SHARED;
+  } catch (error) {
+    glCanvas.removeEventListener('webglcontextlost', onContextLost as EventListener, false);
+    glCanvas.removeEventListener('webglcontextrestored', onContextRestored as EventListener, false);
+    if (pipeline) {
+      gl.deleteBuffer(pipeline.buffer);
+      gl.deleteProgram(pipeline.program);
+    }
+    try {
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+    } catch {
+      // Best-effort cleanup for incomplete or browser-rejected contexts.
+    }
+    throw error;
+  }
 }
 
 export function teardownSharedRenderer(): void {
