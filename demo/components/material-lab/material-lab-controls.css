@@ -1,0 +1,113 @@
+.material-lab-controls {
+  background: var(--panel-bg);
+  border: 1px solid var(--lab-border);
+  border-radius: 18px;
+  color: var(--text);
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  position: sticky;
+  top: 12px;
+}
+.material-lab-controls header {
+  border-bottom: 1px solid var(--lab-border);
+  display: grid;
+  gap: 5px;
+  padding-bottom: 15px;
+}
+.material-lab-controls header strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.material-lab-controls header span {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.material-lab-strength {
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+.material-lab-controls fieldset,
+.material-lab-controls label,
+.material-lab-strength {
+  border: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  gap: 8px;
+  letter-spacing: 0.04em;
+  margin: 0;
+  padding: 0;
+}
+.material-lab-controls label,
+.material-lab-strength {
+  display: grid;
+}
+.material-lab-controls legend {
+  margin-bottom: 8px;
+  padding: 0;
+}
+.material-lab-segmented {
+  background: var(--lab-control);
+  border-radius: 10px;
+  display: grid;
+  gap: 3px;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 3px;
+}
+.material-lab-controls button,
+.material-lab-controls select {
+  background: var(--lab-control);
+  border: 0;
+  border-radius: 9px;
+  color: var(--text);
+  font: inherit;
+  min-height: 40px;
+  padding: 0 11px;
+}
+.material-lab-controls select {
+  color-scheme: dark;
+}
+.material-lab-controls option {
+  background: #1d1d1d;
+  color: #fbfbfb;
+}
+.material-lab-controls button {
+  cursor: pointer;
+}
+.material-lab-controls button:hover,
+.material-lab-controls select:hover {
+  background: var(--lab-control-hover);
+}
+.material-lab-segmented button {
+  background: transparent;
+  padding: 0 6px;
+}
+.material-lab-segmented button[aria-pressed="true"],
+.material-lab-motion-toggle[aria-pressed="true"] {
+  background: var(--tab-active-bg);
+  box-shadow: var(--tab-active-shadow);
+  color: var(--tab-active-color);
+}
+.material-lab-controls input {
+  accent-color: #f8f8f8;
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.material-lab-controls output {
+  color: var(--text);
+  justify-self: end;
+}
+.material-lab-controls .material-lab-motion-toggle {
+  border: 1px solid var(--lab-border);
+}
+.material-lab-controls button:focus-visible,
+.material-lab-controls select:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.72);
+  outline-offset: 3px;
+}
+@media (max-width: 780px) {
+  .material-lab-controls {
+    position: static;
+  }
+}

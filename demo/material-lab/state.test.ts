@@ -6,7 +6,6 @@ describe('Material Lab query state', () => {
     expect(readMaterialLabState('?material-lab=1')).toEqual({
       environment: 'studio-sweep',
       fixture: 'foundation',
-      interaction: 'off',
       preview: 'pill',
       recipe: 'molten-chrome',
       preset: 'chromatic',
@@ -34,7 +33,6 @@ describe('Material Lab query state', () => {
     ).toEqual({
       fixture: 'foundation',
       environment: 'studio-sweep',
-      interaction: 'off',
       preview: 'pill',
       recipe: 'molten-chrome',
       preset: 'chromatic',
@@ -44,12 +42,11 @@ describe('Material Lab query state', () => {
     });
   });
 
-  it('serializes every selectable field while retaining unrelated query values', () => {
+  it('drops removed interaction state while retaining unrelated query values', () => {
     const search = buildMaterialLabSearch(
       {
         fixture: 'foundation',
         environment: 'spectral-wash',
-        interaction: 'press-hold',
         recipe: 'copper',
         preview: 'circle',
         preset: 'gold',
@@ -57,10 +54,13 @@ describe('Material Lab query state', () => {
         strength: 62,
         paused: true
       },
-      '?source=review'
+      '?source=review&interaction=press-hold'
     );
     expect(search).toBe(
-      '?source=review&material-lab=1&fixture=foundation&recipe=copper&environment=spectral-wash&interaction=press-hold&preview=circle&preset=gold&theme=light&strength=62&paused=1'
+      '?source=review&material-lab=1&fixture=foundation&recipe=copper&environment=spectral-wash&preview=circle&preset=gold&theme=light&strength=62&paused=1'
+    );
+    expect(readMaterialLabState('?material-lab=1&interaction=press-hold')).toEqual(
+      readMaterialLabState('?material-lab=1')
     );
     expect(isMaterialLabRequested(search)).toBe(true);
   });

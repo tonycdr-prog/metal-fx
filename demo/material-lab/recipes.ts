@@ -9,7 +9,6 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     state: {
       environment: 'studio-sweep',
       fixture: 'foundation',
-      interaction: 'off',
       preview: 'pill',
       preset: 'chromatic',
       theme: 'dark',
@@ -25,7 +24,6 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     state: {
       environment: 'studio-sweep',
       fixture: 'foundation',
-      interaction: 'off',
       preview: 'content',
       preset: 'silver',
       theme: 'light',
@@ -41,7 +39,6 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     state: {
       environment: 'studio-sweep',
       fixture: 'foundation',
-      interaction: 'off',
       preview: 'circle',
       preset: 'silver',
       theme: 'dark',
@@ -57,7 +54,6 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     state: {
       environment: 'spectral-wash',
       fixture: 'foundation',
-      interaction: 'off',
       preview: 'pill',
       preset: 'chromatic',
       theme: 'dark',
@@ -73,7 +69,6 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     state: {
       environment: 'warm-cool-split',
       fixture: 'foundation',
-      interaction: 'off',
       preview: 'content',
       preset: 'gold',
       theme: 'dark',
@@ -89,7 +84,6 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     state: {
       environment: 'dark-tunnel',
       fixture: 'foundation',
-      interaction: 'off',
       preview: 'circle',
       preset: 'silver',
       theme: 'dark',
@@ -105,7 +99,6 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     state: {
       environment: 'moving-softbox',
       fixture: 'foundation',
-      interaction: 'off',
       preview: 'pill',
       preset: 'chromatic',
       theme: 'dark',

@@ -1,8 +1,8 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { MetalFx } from '../../../src';
 import type { MaterialLabEnvironment } from '../../material-lab/environments';
 import type { MaterialLabRecipe, MaterialLabState } from '../../material-lab/types';
-import { useInteractionSignal } from '../../material-lab/useInteractionSignal';
+import './material-lab-preview.css';
 
 interface MaterialLabPreviewProps {
   environment: { animated: boolean; id: MaterialLabEnvironment; label: string; surface: string };
@@ -15,22 +15,22 @@ interface MaterialLabPreviewProps {
 function PreviewContent({ preview }: Pick<MaterialLabState, 'preview'>) {
   if (preview === 'circle') {
     return (
-      <button aria-label="Material Lab circle action" className="material-lab-circle" type="button">
-        +
+      <button aria-label="Send" className="material-lab-circle" type="button">
+        ↑
       </button>
     );
   }
   if (preview === 'content') {
     return (
       <button className="material-lab-content-card" type="button">
-        <span>Experimental surface</span>
-        <strong>Review the treatment in context.</strong>
+        <span>Workspace plan</span>
+        <strong>Upgrade to Pro</strong>
       </button>
     );
   }
   return (
     <button className="material-lab-pill" type="button">
-      Material sample
+      Upgrade to Pro
     </button>
   );
 }
@@ -43,11 +43,8 @@ export function MaterialLabPreview({
   state
 }: MaterialLabPreviewProps) {
   const isPaused = reducedMotion || state.paused;
-  const [stage, setStage] = useState<HTMLDivElement | null>(null);
   const reflectionTarget = useRef<HTMLElement>(null);
   const reflectionTargets = useMemo(() => [reflectionTarget], []);
-  const signal = useInteractionSignal(state.interaction, reducedMotion, stage);
-  const breathing = state.interaction === 'idle-breathing' && !isPaused && pageVisible;
   const animateEnvironment = environment.animated && pageVisible && !reducedMotion && !isPaused;
   return (
     <section
@@ -56,16 +53,13 @@ export function MaterialLabPreview({
       style={{ background: recipe.presentation.backdrop, color: recipe.presentation.content }}
     >
       <div className="material-lab-preview-meta">
-        <span>Live preview</span>
+        <span>{recipe.label}</span>
         <span>{reducedMotion ? 'Reduced motion: static' : isPaused ? 'Motion paused' : 'Motion active'}</span>
       </div>
       <div
-        className={`material-lab-stage ${breathing ? 'material-lab-stage-breathing' : ''} ${animateEnvironment ? 'material-lab-environment-moving' : ''}`}
-        data-interaction-mode={state.interaction}
-        data-interaction-signal={signal.toFixed(2)}
-        data-testid="interaction-stage"
-        ref={setStage}
-        style={{ background: environment.surface, transform: `translateX(${signal * 8}px)` }}
+        className={`material-lab-stage ${animateEnvironment ? 'material-lab-environment-moving' : ''}`}
+        data-testid="material-lab-stage"
+        style={{ background: environment.surface }}
       >
         <MetalFx
           disableGlow={reducedMotion}
@@ -83,13 +77,17 @@ export function MaterialLabPreview({
           className="material-lab-reflection-target"
           ref={reflectionTarget}
         >
-          Reflection target
+          Nearby surface
         </aside>
       </div>
-      <p>
-        Native MetalFx: preset, theme, strength, shape, pause state, and the nearby reflection target. The environment
-        and interactions are demo presentation.
-      </p>
+      <footer className="material-lab-preview-details">
+        <p>{recipe.description}</p>
+        <div>
+          <span>{state.preset}</span>
+          <span>{environment.label}</span>
+          <span>{state.strength}%</span>
+        </div>
+      </footer>
     </section>
   );
 }
