@@ -88,4 +88,3 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - `repo-hygiene.config.json`
 - `scripts/check-hygiene.mjs`
 - `tests/package/packed-artifact.mjs`
-- `.github/workflows/quality.yml`
