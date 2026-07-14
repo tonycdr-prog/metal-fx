@@ -18,7 +18,6 @@ import {
   destroyInstance,
   registerGlowInstance,
   setInstanceVisible,
-  setSharedPreset,
   unregisterGlowInstance,
   updateInstance
 } from './engine/renderer/loop';
@@ -118,7 +117,8 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
   };
 
   useEffect(() => {
-    setSharedPreset(preset, resolvedTheme);
+    const inst = instanceRef.current;
+    if (inst) updateInstance(inst, { preset, theme: resolvedTheme });
   }, [preset, resolvedTheme]);
   // `paused` is per-instance: it freezes only this instance's 2D canvas while
   // the shared GL loop keeps running for any other unpaused instance.
@@ -173,6 +173,8 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       shaderScale,
       ringCssPx,
       scale,
+      preset,
+      theme: resolvedTheme,
       onFirstCopy: () => setReady(true)
     });
     root.style.setProperty('--mfx-radius', `${initial.cornerRadius}px`);
