@@ -17,7 +17,7 @@ MetalFx props -> layout measurement -> shared WebGL frame -> per-instance 2D rin
 2. `ensureSharedRenderer` lazily creates one 96px-base WebGL surface, compiles the shader, and stores global GL state.
 3. The shared RAF loop renders at a 66ms interval (approximately 15 fps), grouping active instances by preset and resolved theme while skipping hidden or fully paused instances.
 4. Each active group receives one shader pass; matching instances receive a cropped copy on their own 2D canvas, then the center is removed with `destination-out` to form a ring.
-5. A round-robin callback samples each instance's group-correct throttled `gl.readPixels` buffer and moves/tints the instance SVG glow.
+5. A round-robin callback captures one target instance's group-correct throttled `gl.readPixels` buffer and moves/tints that instance's SVG glow.
 6. Dark-mode instances with reflection targets schedule a separate throttled paint that mirrors the anchor canvas into injected target canvases.
 
 ## 3) Layer/Module Responsibilities

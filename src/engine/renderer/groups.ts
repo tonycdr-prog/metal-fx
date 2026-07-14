@@ -1,7 +1,9 @@
+import { PRESETS, type PresetMode } from '../presets';
 import type { MetalFxInstance } from './core';
 
 export interface RenderGroup {
   key: string;
+  mode: PresetMode;
   instances: MetalFxInstance[];
 }
 
@@ -10,7 +12,7 @@ export function planRenderGroups(instances: Iterable<MetalFxInstance>): RenderGr
   for (const instance of instances) {
     if (!instance.visible || (instance.paused && instance.everCopied)) continue;
     const key = `${instance.preset}:${instance.theme}`;
-    const group = groups.get(key) ?? { key, instances: [] };
+    const group = groups.get(key) ?? { key, mode: PRESETS[instance.preset].modes[instance.theme], instances: [] };
     group.instances.push(instance);
     groups.set(key, group);
   }

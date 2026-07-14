@@ -74,8 +74,8 @@ export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
     everCopied: false,
     dpr: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
     scale,
-    preset: opts.preset ?? 'chromatic',
-    theme: opts.theme ?? 'dark',
+    preset: opts.preset ?? renderer.defaultPresetName,
+    theme: opts.theme ?? renderer.defaultPresetTheme,
     glowPixels: new Uint8Array(0),
     glowPixelsW: 0,
     glowPixelsH: 0,
@@ -172,8 +172,14 @@ export function setInstanceVisible(inst: MetalFxInstance, visible: boolean): voi
 
 export function setSharedPreset(name: PresetName, theme: PresetTheme): void {
   const s = ensureSharedRenderer();
+  s.defaultPresetName = name;
+  s.defaultPresetTheme = theme;
   s.preset = PRESETS[name].modes[theme];
   s.presetDirty = true;
+  for (const instance of s.instances) {
+    instance.preset = name;
+    instance.theme = theme;
+  }
 }
 
 export function pauseShared(): void {
@@ -332,11 +338,20 @@ function tick(now: number): void {
   if (now - lastFrameMs < FRAME_INTERVAL_MS) return;
   lastFrameMs = now;
 
+  let glowTarget: MetalFxInstance | null = null;
+  if (_glowCallback && SHARED.glowQueue.length > 0 && ++SHARED.glowSkip % GLOW_SKIP_FRAMES === 0) {
+    const queue = SHARED.glowQueue;
+    if (SHARED.glowIdx >= queue.length) SHARED.glowIdx = 0;
+    const candidate = queue[SHARED.glowIdx];
+    SHARED.glowIdx++;
+    // A paused ring keeps its last halo position; hidden instances have no
+    // visible glow to update. The next scheduled turn advances the queue.
+    if (candidate.visible && !candidate.paused) glowTarget = candidate;
+  }
+
   for (const group of planRenderGroups(SHARED.instances)) {
-    const first = group.instances[0];
-    renderSharedFrame(now, PRESETS[first.preset].modes[first.theme]);
-    const glowInstances = group.instances.filter((inst) => SHARED?.glowQueue.includes(inst));
-    for (const inst of glowInstances) ensureGlowPixels(inst);
+    renderSharedFrame(now, group.mode);
+    if (glowTarget && group.instances.includes(glowTarget)) ensureGlowPixels(glowTarget);
     let frame: CanvasImageSource = SHARED.glCanvas;
     if (SHARED.useOffscreen) frame = (SHARED.glCanvas as OffscreenCanvas).transferToImageBitmap();
     for (const inst of group.instances) {
@@ -346,15 +361,7 @@ function tick(now: number): void {
     if (frame instanceof ImageBitmap) frame.close();
   }
 
-  if (_glowCallback && SHARED.glowQueue.length > 0 && ++SHARED.glowSkip % GLOW_SKIP_FRAMES === 0) {
-    const queue = SHARED.glowQueue;
-    if (SHARED.glowIdx >= queue.length) SHARED.glowIdx = 0;
-    const inst = queue[SHARED.glowIdx];
-    // Skip glow frames for paused instances so their halo also freezes
-    // (otherwise the catch-light would keep travelling on a frozen ring).
-    if (inst.visible && !inst.paused) _glowCallback(inst, now);
-    SHARED.glowIdx++;
-  }
+  if (glowTarget) _glowCallback?.(glowTarget, now);
 }
 
 function startSharedLoop(): void {

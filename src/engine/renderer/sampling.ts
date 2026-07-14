@@ -1,11 +1,9 @@
 /**
  * Pixel readback and luminance/colour sampling from the shared GL canvas.
  *
- * All glow luminance/color sampling reads from a shared pixel buffer
- * (SHARED.glowPixels). The buffer is refreshed via gl.readPixels at most
- * every GLOW_READBACK_INTERVAL_MS to avoid the expensive GPU→CPU pipeline
- * flush on every frame. The plasma shader evolves slowly so 200ms-stale
- * data is visually indistinguishable.
+ * Each glow reads from its instance's material-correct pixel buffer. The
+ * round-robin scheduler refreshes only the instance it is about to update,
+ * and per-instance throttling avoids repeated GPU→CPU pipeline flushes.
  */
 import { GLOW_READBACK_INTERVAL_MS } from '../perfConfig';
 import { CANONICAL_PILL_H, CANONICAL_PILL_W, type MetalFxInstance, SHARED, type ShaderRGB } from './core';
@@ -27,12 +25,12 @@ export function ensureGlowPixels(inst: MetalFxInstance): void {
 }
 
 /**
- * Map per-instance CSS-px glow coordinates to the shared GL pixel buffer.
+ * Map per-instance CSS-px glow coordinates to its captured GL pixel buffer.
  *
  * The GL canvas is shared across all instances. Each instance "sees" a
  * different crop of it (computed identically to copyShaderToInstance).
  * This function reverses that mapping: given a CSS-px coordinate on the
- * instance, it returns the (bx, by) index into SHARED.glowPixels.
+ * instance, it returns the (bx, by) index into inst.glowPixels.
  *
  * readPixels stores rows bottom-up (GL convention) so Y is flipped.
  */
@@ -96,7 +94,6 @@ const _rgb: ShaderRGB = { r: 255, g: 255, b: 255 };
 
 export function sampleShaderLumAt(inst: MetalFxInstance, cssPxX: number, cssPxY: number, radius: number): number {
   if (!SHARED) return 0;
-  ensureGlowPixels(inst);
   const m = mapToGlowBuf(inst, cssPxX, cssPxY);
   const s = sampleRegion(inst.glowPixels, inst.glowPixelsW, inst.glowPixelsH, m.bx, m.by, radius);
   return s.count > 0 ? s.lum / s.count : 0;
@@ -109,7 +106,6 @@ export function sampleShaderRGBAt(inst: MetalFxInstance, cssPxX: number, cssPxY:
     _rgb.b = 255;
     return _rgb;
   }
-  ensureGlowPixels(inst);
   const m = mapToGlowBuf(inst, cssPxX, cssPxY);
   const s = sampleRegion(inst.glowPixels, inst.glowPixelsW, inst.glowPixelsH, m.bx, m.by, radius);
   if (s.count === 0) {
@@ -136,7 +132,6 @@ export function sampleShaderRGBChromatic(
     _rgb.b = 255;
     return _rgb;
   }
-  ensureGlowPixels(inst);
   const m = mapToGlowBuf(inst, cssPxX, cssPxY);
   const { glowPixels: buf, glowPixelsW: W, glowPixelsH: H } = inst;
   const r = Math.max(1, radius | 0);

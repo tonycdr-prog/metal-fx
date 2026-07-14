@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { PRESETS } from '../presets';
 import type { MetalFxInstance } from './core';
 import { planRenderGroups } from './groups';
 
@@ -18,6 +19,8 @@ describe('planRenderGroups', () => {
       ['gold:dark', 2],
       ['silver:light', 1]
     ]);
+    expect(groups[0].mode).toBe(PRESETS.gold.modes.dark);
+    expect(groups[1].mode).toBe(PRESETS.silver.modes.light);
   });
 
   it('skips hidden and fully paused instances but includes an initial paused frame', () => {
