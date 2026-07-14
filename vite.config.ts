@@ -16,7 +16,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'MetalFx',
-      fileName: (format) => `index.${format === 'es' ? 'es' : 'cjs'}.js`,
+      fileName: (format) => (format === 'es' ? 'index.es.js' : 'index.cjs'),
       formats: ['es', 'cjs']
     },
     rollupOptions: {

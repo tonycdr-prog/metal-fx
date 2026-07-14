@@ -11,9 +11,9 @@ const required = new Set([
   'package.json',
   'dist/index.d.ts',
   'dist/index.es.js',
-  'dist/index.cjs.js'
+  'dist/index.cjs'
 ]);
-const allowed = /^(LICENSE|README\.md|package\.json|dist\/index\.(?:d\.ts|es\.js|cjs\.js))$/;
+const allowed = /^(LICENSE|README\.md|package\.json|dist\/index\.(?:d\.ts|es\.js|cjs))$/;
 const actual = new Set(files.map(({ path }) => path));
 const errors = [];
 

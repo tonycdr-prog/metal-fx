@@ -10,6 +10,13 @@ Animated WebGL "liquid metal" effect for React. Wrap a button, chip, or icon and
 npm install metal-fx
 ```
 
+## Compatibility
+
+`metal-fx` supports Node.js 22.x and 24.x, the maintained LTS lines verified by the
+[official Node.js release schedule](https://nodejs.org/en/about/previous-releases). It supports React and
+React DOM 18 or later. The package provides both ESM named imports and CommonJS `require()` from its root
+entry point.
+
 ## Quick start
 
 ```tsx
