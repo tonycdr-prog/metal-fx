@@ -25,7 +25,7 @@ No auth, tenant data, server input, or network trust boundary exists in this cli
 | Concern | Evidence | Current symptom | Scaling risk | Suggested improvement |
 |---------|----------|-----------------|-------------|-----------------------|
 | Glow queue updates one instance per rendered frame | `renderer/loop.ts`, `perfConfig.ts` | At ~15 fps, N instances each update at roughly 15/N fps | Many instances produce visibly stale halo movement | Measure and set a documented instance budget or adapt work to elapsed time |
-| Full-resolution instance canvases do not cap DPR | `renderer/loop.ts:resizeInstanceCanvas` | GL is capped at DPR 2, destination/reflection canvases are not | Large/high-DPR elements increase memory and 2D copy cost | Cap or make destination DPR configurable after visual benchmarking |
+| Full-resolution instance canvases do not cap DPR | `renderer/loop.ts:resizeInstanceCanvas`, `docs/characterization/scheduling-and-dpr.md` | Chromium DSF 3 evidence confirms GL caps at 2 while destination/reflection buffers retain full scale | Large/high-DPR elements increase memory and 2D copy cost | Establish visual/memory acceptance criteria before considering a cap or configuration |
 
 The existing visibility gating, 15fps throttle, shared GL surface, readback throttle, and last-instance teardown are strong mitigations.
 
@@ -51,7 +51,7 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - `MetalFx` theme resolution and shared glow registry were extracted; remaining large files have recorded reasons and revisit triggers.
 - Module boundaries, explicit public exports, dependency usage, test locations, package contents, and script config references now have executable checks.
 - CommonJS now resolves to the generated `dist/index.cjs` bundle, while ESM continues to resolve to `dist/index.es.js`. The packed-artifact fixtures verify ESM named imports, CommonJS `require()`, strict TypeScript public types, and the approved tarball file list on Node 22.x and 24.x through `npm run test:package` and the quality workflow.
-- Vitest covers deterministic engine transforms, React lifecycle, fallback behavior, server rendering, and warning-free hydration. Playwright smoke tests normal and forced no-WebGL behavior in Chromium, Firefox, and WebKit with failure traces/screenshots retained by CI. Visual-regression coverage remains a tracked concern.
+- Vitest covers deterministic engine transforms, React lifecycle, fallback behavior, server rendering, and warning-free hydration. Playwright covers normal and forced no-WebGL behavior in Chromium, Firefox, and WebKit, plus a narrow deterministic Chromium visual baseline, with failure traces/screenshots retained by CI.
 - `disableGlow` now skips glow SVG injection and renderer registration entirely. Prop transitions remove or recreate one correctly sized glow without recreating the renderer; React lifecycle tests and the cross-browser playground test verify registration, cleanup, and DOM behavior.
 - Renderer instances now own their preset and resolved theme. One shared WebGL context plans one pass per active material group, composites it only into matching instances, and captures each group's glow samples before rendering the next group. Homogeneous instances retain one shared pass.
 - WebGL, Canvas 2D, shader, and observer initialization failures now release partial resources and render the native child without effect layers. Component and cross-browser tests verify visibility, interaction, retry, and warning-free fallback.
