@@ -7,7 +7,6 @@ Remediation acceptance contract: `spec/spec-process-stabilization-acceptance.md`
 | Severity | Concern | Evidence | Impact | Suggested action |
 |----------|---------|----------|--------|------------------|
 | High | Per-component `preset`/`theme` props write one shared renderer preset | `MetalFx.tsx:156`, `renderer/loop.ts:135`, mixed presets in `demo/components/Examples.tsx` | Last effect wins; concurrent instances display the wrong palette/theme | Make preset selection an instance property and render/group by preset, or explicitly redesign/document a page-global controller |
-| High | CommonJS export is CommonJS syntax in `index.cjs.js` under `"type": "module"` | `package.json`, `vite.config.ts`; Node 18 verification returned `ERR_REQUIRE_ESM` | The advertised `require` path fails on Node 18 | Emit `index.cjs` and point `main`/`exports.require` to it; test packed artifacts on the supported Node matrix |
 | High | No automated behavior or browser tests | `package.json`, `.github/workflows/quality.yml` | The quality workflow catches static/build/package drift but not graphics, lifecycle, SSR, or browser regressions | Add focused unit, component, SSR/hydration, and multi-browser tests to the existing gate |
 | Medium | No graceful browser capability fallback | `renderer/core.ts`, `renderer/loop.ts`, `MetalFx.tsx` | WebGL/Canvas failure throws while the child remains hidden until first copy | Catch initialization failure, expose/report it, and render the child without effects |
 | Medium | SSR-safe claim has warning/mismatch edges | `MetalFx.tsx`, `README.md`; `renderToString` emitted a `useLayoutEffect` warning | Noisy SSR and possible dark/light hydration mismatch under `theme="auto"` | Use an isomorphic layout effect and defer client theme resolution until after hydration |
@@ -59,7 +58,6 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 ## 7) Intent vs. Reality
 
 - Intent: each component accepts its own preset/theme. Reality: all components copy the single last-written shared preset.
-- Intent: both ESM `import` and CommonJS `require` are exported. Reality: the require target fails on Node 18 because its extension is `.js` inside an ESM package.
 - Intent: SSR-safe with clean rehydration. Reality: server rendering succeeds but warns about `useLayoutEffect`, and auto theme can differ on the first client render.
 - Intent: `disableGlow` disables the overlay. Reality: it hides the glow host while background glow work remains registered.
 
@@ -71,6 +69,7 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - Unreferenced/duplicate header assets were removed and public assets are checked for references and duplicate bytes.
 - `MetalFx` theme resolution and shared glow registry were extracted; remaining large files have recorded reasons and revisit triggers.
 - Module boundaries, explicit public exports, dependency usage, test locations, package contents, and script config references now have executable checks.
+- CommonJS now resolves to the generated `dist/index.cjs` bundle, while ESM continues to resolve to `dist/index.es.js`. The packed-artifact fixtures verify ESM named imports, CommonJS `require()`, strict TypeScript public types, and the approved tarball file list on Node 22.x and 24.x through `npm run test:package` and the quality workflow.
 
 ## 9) Evidence
 
@@ -88,3 +87,5 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - `AGENTS.md`
 - `repo-hygiene.config.json`
 - `scripts/check-hygiene.mjs`
+- `tests/package/packed-artifact.mjs`
+- `.github/workflows/quality.yml`

@@ -3,9 +3,12 @@
   "version": "1.0.4",
   "description": "Animated WebGL metal shader effect for React buttons and UI components",
   "type": "module",
-  "main": "dist/index.cjs.js",
+  "main": "./dist/index.cjs",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
+  "engines": {
+    "node": "^22.0.0 || ^24.0.0"
+  },
   "exports": {
     ".": {
       "import": {
@@ -14,7 +17,7 @@
       },
       "require": {
         "types": "./dist/index.d.ts",
-        "default": "./dist/index.cjs.js"
+        "default": "./dist/index.cjs"
       }
     }
   },
@@ -33,7 +36,9 @@
     "lint": "biome check . && npm run hygiene",
     "hygiene": "node scripts/check-hygiene.mjs",
     "package:check": "node scripts/check-package.mjs",
-    "check": "npm run lint && npm run typecheck && npm run typecheck:demo && npm run build && npm run build:demo && npm run package:check",
+    "test:package": "node tests/package/packed-artifact.mjs",
+    "audit:prod": "npm audit --omit=dev",
+    "check": "npm run lint && npm run typecheck && npm run typecheck:demo && npm run build && npm run build:demo && npm run package:check && npm run test:package && npm run audit:prod",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
