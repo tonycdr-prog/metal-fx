@@ -123,7 +123,12 @@ export function useMetalFxLifecycle({
         scale,
         preset,
         theme: resolvedTheme,
-        onFirstCopy: () => setReady(true)
+        onFirstCopy: () => setReady(true),
+        onContextFailure: () => {
+          cleanup();
+          setFallback(true);
+          setReady(true);
+        }
       });
       instanceRef.current = instance;
       root.style.setProperty('--mfx-radius', `${initial.cornerRadius}px`);
