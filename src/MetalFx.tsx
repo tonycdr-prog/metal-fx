@@ -30,6 +30,8 @@ import type { MetalFxProps } from './types';
 // even in SSR-hydration scenarios where effects haven't fired yet.
 ensureStylesInjected();
 
+const useSafeLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
 // Hoisted to avoid allocating new objects on every render.
 const CANVAS_STYLE: CSSProperties = { position: 'absolute', inset: 0, width: '100%', height: '100%' };
 const INNER_STYLE: CSSProperties = { position: 'absolute', inset: 3 };
@@ -142,8 +144,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
   // useLayoutEffect (not useEffect) so the instance is created and the canvas
   // is sized synchronously before the browser paints — avoids a one-frame
   // flash of the unsized canvas.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: borderRadius changes handled by separate effect
-  useLayoutEffect(() => {
+  useSafeLayoutEffect(() => {
     const canvas = canvasRef.current;
     const root = rootRef.current;
     const glowHost = glowHostRef.current;
