@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
   "files": {
     "includes": [
       "**",
@@ -34,15 +34,6 @@
       "correctness": {
         "noUnusedImports": "error",
         "noUnusedVariables": "error"
-      },
-      "nursery": {
-        "noExcessiveLinesPerFile": {
-          "level": "error",
-          "options": {
-            "maxLines": 350,
-            "skipBlankLines": true
-          }
-        }
       },
       "performance": {
         "noBarrelFile": "error",
