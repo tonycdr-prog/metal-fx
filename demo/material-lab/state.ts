@@ -33,8 +33,8 @@ export function readMaterialLabState(search: string): MaterialLabState {
   const preset = params.get('preset');
   const theme = params.get('theme');
   const interaction = params.get('interaction');
-  const environment = findMaterialEnvironment(params.get('environment'));
   const recipe = findMaterialRecipe(params.get('recipe'));
+  const environment = findMaterialEnvironment(params.get('environment'), recipe.state.environment);
 
   return {
     ...recipe.state,

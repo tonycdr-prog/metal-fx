@@ -4,6 +4,7 @@ import { buildMaterialLabSearch, isMaterialLabRequested, readMaterialLabState } 
 describe('Material Lab query state', () => {
   it('uses the complete foundation state when only the lab route is requested', () => {
     expect(readMaterialLabState('?material-lab=1')).toEqual({
+      environment: 'studio-sweep',
       fixture: 'foundation',
       interaction: 'off',
       preview: 'pill',
@@ -18,6 +19,13 @@ describe('Material Lab query state', () => {
 
   it('uses the selected recipe strength when a strength override is invalid', () => {
     expect(readMaterialLabState('?material-lab=1&recipe=copper&strength=not-a-number').strength).toBe(88);
+  });
+
+  it('uses the selected recipe environment when an override is missing or invalid', () => {
+    expect(readMaterialLabState('?material-lab=1&recipe=holographic').environment).toBe('spectral-wash');
+    expect(readMaterialLabState('?material-lab=1&recipe=holographic&environment=unknown').environment).toBe(
+      'spectral-wash'
+    );
   });
 
   it('normalizes malformed state to a safe foundation fixture', () => {

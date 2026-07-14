@@ -43,6 +43,10 @@ export const MATERIAL_ENVIRONMENTS: readonly {
   }
 ];
 
-export function findMaterialEnvironment(id: string | null) {
-  return MATERIAL_ENVIRONMENTS.find((environment) => environment.id === id) ?? MATERIAL_ENVIRONMENTS[0];
+export function findMaterialEnvironment(id: string | null, fallback: MaterialLabEnvironment = 'studio-sweep') {
+  return (
+    MATERIAL_ENVIRONMENTS.find((environment) => environment.id === id) ??
+    MATERIAL_ENVIRONMENTS.find((environment) => environment.id === fallback) ??
+    MATERIAL_ENVIRONMENTS[0]
+  );
 }

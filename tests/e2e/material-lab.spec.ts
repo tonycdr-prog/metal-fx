@@ -23,8 +23,8 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   await expect(page).toHaveURL(/preview=content/);
   await lab.getByRole('button', { name: 'Resume preview motion' }).click();
   await expect(lab.getByRole('button', { name: 'Pause preview motion' })).toHaveAttribute('aria-pressed', 'false');
-  const environment = lab.getByRole('combobox').nth(1);
-  const interaction = lab.getByRole('combobox').nth(2);
+  const environment = lab.getByLabel('Lighting environment');
+  const interaction = lab.getByLabel('Demo interaction');
   const stage = lab.getByTestId('interaction-stage');
   await environment.selectOption('moving-softbox');
   await expect(stage).toHaveClass(/material-lab-environment-moving/);
@@ -42,6 +42,7 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   await expect(stage).toHaveClass(/material-lab-stage-breathing/);
   await lab.getByRole('button', { name: 'Pause preview motion' }).click();
   await expect(stage).not.toHaveClass(/material-lab-stage-breathing/);
+  await expect(stage).not.toHaveClass(/material-lab-environment-moving/);
   expect(errors).toEqual([]);
 });
 

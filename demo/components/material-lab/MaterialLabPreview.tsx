@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { MetalFx } from '../../../src';
 import type { MaterialLabEnvironment } from '../../material-lab/environments';
 import type { MaterialLabRecipe, MaterialLabState } from '../../material-lab/types';
@@ -45,8 +45,9 @@ export function MaterialLabPreview({
   const isPaused = reducedMotion || state.paused;
   const [stage, setStage] = useState<HTMLDivElement | null>(null);
   const reflectionTarget = useRef<HTMLElement>(null);
+  const reflectionTargets = useMemo(() => [reflectionTarget], []);
   const signal = useInteractionSignal(state.interaction, reducedMotion, stage);
-  const breathing = state.interaction === 'idle-breathing' && !isPaused;
+  const breathing = state.interaction === 'idle-breathing' && !isPaused && pageVisible;
   const animateEnvironment = environment.animated && pageVisible && !reducedMotion && !isPaused;
   return (
     <section
@@ -70,7 +71,7 @@ export function MaterialLabPreview({
           disableGlow={reducedMotion}
           paused={isPaused}
           preset={state.preset}
-          reflectionTargets={state.theme === 'dark' ? [reflectionTarget] : undefined}
+          reflectionTargets={state.theme === 'dark' ? reflectionTargets : undefined}
           theme={state.theme}
           variant={state.preview === 'circle' ? 'circle' : 'button'}
           strength={state.strength / 100}
