@@ -58,7 +58,7 @@ export function MaterialLabPreview({
       </div>
       <div
         className={`material-lab-stage ${animateEnvironment ? 'material-lab-environment-moving' : ''}`}
-        data-testid="interaction-stage"
+        data-testid="material-lab-stage"
         style={{ background: environment.surface }}
       >
         <MetalFx

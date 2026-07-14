@@ -131,7 +131,7 @@
   text-transform: capitalize;
 }
 .material-lab-preview button:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.72);
+  outline: 2px solid currentColor;
   outline-offset: 3px;
 }
 @media (max-width: 780px) {

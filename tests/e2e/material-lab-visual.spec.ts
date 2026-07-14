@@ -26,7 +26,7 @@ test('renders the deterministic Material Lab evidence fixture', async ({ page })
     content: '*,*::before,*::after{animation:none!important;transition:none!important}'
   });
 
-  const stage = page.getByTestId('interaction-stage');
+  const stage = page.getByTestId('material-lab-stage');
   await expect(stage).toBeVisible();
   await expect(stage.locator('.metal-fx-root')).toHaveCount(1);
   await expect

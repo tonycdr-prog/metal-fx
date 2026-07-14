@@ -25,7 +25,7 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   await lab.getByRole('button', { name: 'Resume preview motion' }).click();
   await expect(lab.getByRole('button', { name: 'Pause preview motion' })).toHaveAttribute('aria-pressed', 'false');
   const environment = lab.getByLabel('Environment');
-  const stage = lab.getByTestId('interaction-stage');
+  const stage = lab.getByTestId('material-lab-stage');
   await expect(stage).toHaveCSS('transform', 'none');
   await expect(page).not.toHaveURL(/interaction=/);
   await environment.selectOption('moving-softbox');
@@ -62,7 +62,10 @@ test('uses the showcase typography and keeps the mobile interface readable', asy
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 
   await lab.getByRole('button', { name: 'Brushed metal' }).click();
-  await expect(lab.getByRole('button', { name: 'Upgrade to Pro' })).toHaveCSS('color', 'rgb(23, 23, 25)');
+  const lightPreviewButton = lab.getByRole('button', { name: 'Upgrade to Pro' });
+  await expect(lightPreviewButton).toHaveCSS('color', 'rgb(23, 23, 25)');
+  await lightPreviewButton.focus();
+  await expect(lightPreviewButton).toHaveCSS('outline-color', 'rgb(23, 23, 25)');
   await expect(lab.getByRole('link', { name: 'Metal FX' })).toHaveAttribute('href', './');
 });
 
