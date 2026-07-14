@@ -95,6 +95,9 @@ describe('updateInstance scale', () => {
 
     updateInstance(metal, { scale: 0.5, ringCssPx: 4 });
     expect(metal).toMatchObject({ scale: 0.5, shaderScale: 5, ringCssPx: 4 });
+
+    updateInstance(metal, { scale: 1 });
+    expect(metal).toMatchObject({ scale: 1, shaderScale: 5, ringCssPx: 4 });
   });
 });
 
@@ -102,6 +105,7 @@ describe('shared renderer scheduling characterization', () => {
   const frames: Frame[] = [];
   const drawArrays = vi.fn();
   const contexts = new WeakMap<HTMLCanvasElement, CanvasRenderingContext2D>();
+  const liveInstances = new Set<MetalFxInstance>();
 
   function advance(now: number) {
     const frame = frames.shift();
@@ -111,7 +115,7 @@ describe('shared renderer scheduling characterization', () => {
 
   function instance(paused = false): MetalFxInstance {
     const canvas = document.createElement('canvas');
-    return createInstance({
+    const created = createInstance({
       hostCanvas: canvas,
       cssWidth: 140,
       cssHeight: 40,
@@ -119,6 +123,8 @@ describe('shared renderer scheduling characterization', () => {
       kind: 'pill',
       paused
     });
+    liveInstances.add(created);
+    return created;
   }
 
   beforeEach(() => {
@@ -144,6 +150,8 @@ describe('shared renderer scheduling characterization', () => {
   });
 
   afterEach(() => {
+    for (const instance of liveInstances) destroyInstance(instance);
+    liveInstances.clear();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
