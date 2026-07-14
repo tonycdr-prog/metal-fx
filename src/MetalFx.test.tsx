@@ -69,7 +69,7 @@ describe('MetalFx', () => {
 
     act(() =>
       root.render(
-        <MetalFx paused strength={2}>
+        <MetalFx paused preset="silver" strength={2} theme="light">
           <button type="button" onClick={onClick}>
             Use effect
           </button>
@@ -78,6 +78,7 @@ describe('MetalFx', () => {
     );
     expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { paused: true });
     expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { opacityMul: 1 });
+    expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { preset: 'silver', theme: 'light' });
   });
 
   it('cleans up the renderer instance on final unmount', () => {
@@ -167,6 +168,31 @@ describe('MetalFx', () => {
     act(() => root.unmount());
     expect(engine.destroyInstance).toHaveBeenCalledTimes(2);
     expect(engine.unregisterGlowInstance).toHaveBeenCalledTimes(2);
+  });
+
+  it('moves glow registration to the recreated renderer instance when shape changes', () => {
+    act(() =>
+      root.render(
+        <MetalFx>
+          <button type="button">Use effect</button>
+        </MetalFx>
+      )
+    );
+
+    act(() =>
+      root.render(
+        <MetalFx variant="circle">
+          <button type="button">Use effect</button>
+        </MetalFx>
+      )
+    );
+
+    expect(engine.createInstance).toHaveBeenCalledTimes(2);
+    expect(engine.destroyInstance).toHaveBeenCalledOnce();
+    expect(injectGlow).toHaveBeenCalledTimes(2);
+    expect(engine.registerGlowInstance).toHaveBeenCalledTimes(2);
+    expect(engine.unregisterGlowInstance).toHaveBeenCalledOnce();
+    expect(container.querySelectorAll('.metal-fx-glow-svg')).toHaveLength(1);
   });
 
   it('does not register glow during a StrictMode disabled mount and cleans up a later enabled glow', () => {

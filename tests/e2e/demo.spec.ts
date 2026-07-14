@@ -21,6 +21,7 @@ test('demo mounts representative effects and keeps interactive children usable',
   expect((await page.request.get(faviconUrl)).ok()).toBe(true);
 
   await expect(page.getByLabel('Effect demonstrations').locator('.metal-fx-root')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Silver' }).click();
 
   const upgrade = page.getByRole('button', { name: 'Upgrade to Pro' }).first();
   await upgrade.click();
