@@ -1,9 +1,19 @@
 import { findMaterialRecipe } from './recipes';
 import type { MaterialLabPreview, MaterialLabState, MaterialLabTheme } from './types';
+import type { InteractionMode } from './useInteractionSignal';
 
 const PRESETS = new Set(['chromatic', 'silver', 'gold']);
 const PREVIEWS = new Set<MaterialLabPreview>(['pill', 'circle', 'content']);
 const THEMES = new Set<MaterialLabTheme>(['dark', 'light']);
+const INTERACTIONS = new Set<InteractionMode>([
+  'off',
+  'pointer-position',
+  'pointer-velocity',
+  'press-hold',
+  'scroll-response',
+  'proximity-response',
+  'idle-breathing'
+]);
 
 function clampStrength(value: string | null, fallback: number): number {
   if (value === null || value.trim() === '') return fallback;
@@ -21,11 +31,15 @@ export function readMaterialLabState(search: string): MaterialLabState {
   const preview = params.get('preview');
   const preset = params.get('preset');
   const theme = params.get('theme');
+  const interaction = params.get('interaction');
   const recipe = findMaterialRecipe(params.get('recipe'));
 
   return {
     ...recipe.state,
     recipe: recipe.id,
+    interaction: INTERACTIONS.has(interaction as InteractionMode)
+      ? (interaction as InteractionMode)
+      : recipe.state.interaction,
     preview: PREVIEWS.has(preview as MaterialLabPreview) ? (preview as MaterialLabPreview) : recipe.state.preview,
     preset: PRESETS.has(preset ?? '') ? (preset as MaterialLabState['preset']) : recipe.state.preset,
     theme: THEMES.has(theme as MaterialLabTheme) ? (theme as MaterialLabTheme) : recipe.state.theme,
@@ -39,6 +53,7 @@ export function buildMaterialLabSearch(state: MaterialLabState, search = window.
   params.set('material-lab', '1');
   params.set('fixture', state.fixture);
   params.set('recipe', state.recipe);
+  params.set('interaction', state.interaction);
   params.set('preview', state.preview);
   params.set('preset', state.preset);
   params.set('theme', state.theme);

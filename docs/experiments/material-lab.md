@@ -23,9 +23,12 @@ Supported foundation values are:
 - `theme=dark|light`
 - `strength=0..100`
 - `paused=0|1`
+- `interaction=off|pointer-position|pointer-velocity|press-hold|scroll-response|proximity-response|idle-breathing`
 
 Malformed values fall back to the molten-chrome foundation state. The lab deliberately mounts one live `MetalFx` preview. Its controls exercise only documented props: preset, theme, strength, circle/button shape, and pause. Treatments vary those native controls and deliberately separated stage, card, type, and background presentation rather than claiming new shader features.
 
 `?visual-test=1` remains a separate deterministic visual-regression scene. It takes precedence if both query flags are present.
 
 The Lab honours `prefers-reduced-motion` by pausing the preview and disabling its optional glow. The media-query subscription is owned by the lab hook and is removed on unmount.
+
+Interaction modes are demo-local stage movement only. Pointer and scroll signals are bounded, coalesced through a single requestAnimationFrame, and cancel their pending work on pointer exit, cancellation, hidden-page transitions, mode changes, and unmount. Idle breathing uses a CSS animation rather than a persistent JavaScript frame loop.

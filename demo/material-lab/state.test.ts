@@ -5,6 +5,7 @@ describe('Material Lab query state', () => {
   it('uses the complete foundation state when only the lab route is requested', () => {
     expect(readMaterialLabState('?material-lab=1')).toEqual({
       fixture: 'foundation',
+      interaction: 'off',
       preview: 'pill',
       recipe: 'molten-chrome',
       preset: 'chromatic',
@@ -24,6 +25,7 @@ describe('Material Lab query state', () => {
       readMaterialLabState('?material-lab=1&preview=wall&preset=plasma&theme=void&strength=490&paused=yes')
     ).toEqual({
       fixture: 'foundation',
+      interaction: 'off',
       preview: 'pill',
       recipe: 'molten-chrome',
       preset: 'chromatic',
@@ -37,6 +39,7 @@ describe('Material Lab query state', () => {
     const search = buildMaterialLabSearch(
       {
         fixture: 'foundation',
+        interaction: 'press-hold',
         recipe: 'copper',
         preview: 'circle',
         preset: 'gold',
@@ -47,7 +50,7 @@ describe('Material Lab query state', () => {
       '?source=review'
     );
     expect(search).toBe(
-      '?source=review&material-lab=1&fixture=foundation&recipe=copper&preview=circle&preset=gold&theme=light&strength=62&paused=1'
+      '?source=review&material-lab=1&fixture=foundation&recipe=copper&interaction=press-hold&preview=circle&preset=gold&theme=light&strength=62&paused=1'
     );
     expect(isMaterialLabRequested(search)).toBe(true);
   });
