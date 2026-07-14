@@ -53,6 +53,36 @@ describe('interaction signals', () => {
     act(() => root.unmount());
   });
 
+  it('resets pointer velocity history after leaving the stage', () => {
+    const host = document.createElement('div');
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue({ left: 0, width: 100 } as DOMRect);
+    let flush: FrameRequestCallback | undefined;
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      flush = callback;
+      return 8;
+    });
+    const container = document.createElement('div');
+    const root = createRoot(container);
+
+    act(() => root.render(createElement(Harness, { host, mode: 'pointer-velocity' })));
+    act(() => {
+      host.dispatchEvent(pointerMove(25));
+      flush?.(0);
+      host.dispatchEvent(pointerMove(75));
+      flush?.(0);
+    });
+    expect(container.textContent).toBe('1.00');
+
+    act(() => {
+      host.dispatchEvent(new Event('pointerleave'));
+      flush?.(0);
+      host.dispatchEvent(pointerMove(100));
+      flush?.(0);
+    });
+    expect(container.textContent).toBe('0.00');
+    act(() => root.unmount());
+  });
+
   it('balances listeners and cancels pending work through a StrictMode cleanup', () => {
     const host = document.createElement('div');
     vi.spyOn(host, 'getBoundingClientRect').mockReturnValue({ left: 0, width: 100 } as DOMRect);
