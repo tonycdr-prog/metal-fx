@@ -24,8 +24,12 @@ export default defineConfig({
     },
     {
       name: 'chromium-material-lab-visual',
-      testMatch: /material-lab-visual\.spec\.ts$/,
-      use: { ...devices['Desktop Chrome'], deviceScaleFactor: 1, viewport: { width: 960, height: 720 } }
+      testMatch: /(^|[/\\])material-lab-visual\.spec\.ts$/,
+      use: {
+        ...devices['Desktop Chrome'],
+        deviceScaleFactor: 1,
+        viewport: { width: 960, height: 720 }
+      }
     },
     {
       name: 'firefox',

@@ -7,7 +7,11 @@ test('renders the deterministic Material Lab evidence fixture', async ({ page })
     window.requestAnimationFrame = (callback) => {
       const id = ++nextFrame;
       callbacks.set(id, callback);
-      queueMicrotask(() => callbacks.get(id)?.(1000));
+      queueMicrotask(() => {
+        const pendingCallback = callbacks.get(id);
+        callbacks.delete(id);
+        pendingCallback?.(1000);
+      });
       return id;
     };
     window.cancelAnimationFrame = (id) => callbacks.delete(id);
@@ -19,8 +23,7 @@ test('renders the deterministic Material Lab evidence fixture', async ({ page })
   );
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({
-    content:
-      '*,*::before,*::after{animation:none!important;transition:none!important}.material-lab-reflection-target{visibility:hidden!important}.material-lab-pill{font-size:0!important}'
+    content: '*,*::before,*::after{animation:none!important;transition:none!important}'
   });
 
   const stage = page.getByTestId('interaction-stage');
@@ -36,6 +39,6 @@ test('renders the deterministic Material Lab evidence fixture', async ({ page })
     .toBe(true);
   await expect(stage).toHaveScreenshot('material-lab-holographic.png', {
     animations: 'disabled',
-    maxDiffPixelRatio: 0.002
+    maxDiffPixels: 1000
   });
 });
