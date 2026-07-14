@@ -8,6 +8,7 @@ describe('Material Lab query state', () => {
     ).toEqual({
       fixture: 'foundation',
       preview: 'pill',
+      recipe: 'molten-chrome',
       preset: 'chromatic',
       theme: 'dark',
       strength: 100,
@@ -17,11 +18,19 @@ describe('Material Lab query state', () => {
 
   it('serializes every selectable field while retaining unrelated query values', () => {
     const search = buildMaterialLabSearch(
-      { fixture: 'foundation', preview: 'circle', preset: 'gold', theme: 'light', strength: 62, paused: true },
+      {
+        fixture: 'foundation',
+        recipe: 'copper',
+        preview: 'circle',
+        preset: 'gold',
+        theme: 'light',
+        strength: 62,
+        paused: true
+      },
       '?source=review'
     );
     expect(search).toBe(
-      '?source=review&material-lab=1&fixture=foundation&preview=circle&preset=gold&theme=light&strength=62&paused=1'
+      '?source=review&material-lab=1&fixture=foundation&recipe=copper&preview=circle&preset=gold&theme=light&strength=62&paused=1'
     );
     expect(isMaterialLabRequested(search)).toBe(true);
   });

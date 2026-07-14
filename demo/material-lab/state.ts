@@ -1,4 +1,4 @@
-import { FOUNDATION_RECIPE } from './recipes';
+import { findMaterialRecipe } from './recipes';
 import type { MaterialLabPreview, MaterialLabState, MaterialLabTheme } from './types';
 
 const PRESETS = new Set(['chromatic', 'silver', 'gold']);
@@ -7,7 +7,7 @@ const THEMES = new Set<MaterialLabTheme>(['dark', 'light']);
 
 function clampStrength(value: string | null): number {
   const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return FOUNDATION_RECIPE.state.strength;
+  if (!Number.isFinite(parsed)) return 90;
   return Math.round(Math.min(100, Math.max(0, parsed)));
 }
 
@@ -20,15 +20,15 @@ export function readMaterialLabState(search: string): MaterialLabState {
   const preview = params.get('preview');
   const preset = params.get('preset');
   const theme = params.get('theme');
+  const recipe = findMaterialRecipe(params.get('recipe'));
 
   return {
-    fixture: 'foundation',
-    preview: PREVIEWS.has(preview as MaterialLabPreview)
-      ? (preview as MaterialLabPreview)
-      : FOUNDATION_RECIPE.state.preview,
-    preset: PRESETS.has(preset ?? '') ? (preset as MaterialLabState['preset']) : FOUNDATION_RECIPE.state.preset,
-    theme: THEMES.has(theme as MaterialLabTheme) ? (theme as MaterialLabTheme) : FOUNDATION_RECIPE.state.theme,
-    strength: clampStrength(params.get('strength')),
+    ...recipe.state,
+    recipe: recipe.id,
+    preview: PREVIEWS.has(preview as MaterialLabPreview) ? (preview as MaterialLabPreview) : recipe.state.preview,
+    preset: PRESETS.has(preset ?? '') ? (preset as MaterialLabState['preset']) : recipe.state.preset,
+    theme: THEMES.has(theme as MaterialLabTheme) ? (theme as MaterialLabTheme) : recipe.state.theme,
+    strength: params.has('strength') ? clampStrength(params.get('strength')) : recipe.state.strength,
     paused: params.get('paused') === '1'
   };
 }
@@ -37,6 +37,7 @@ export function buildMaterialLabSearch(state: MaterialLabState, search = window.
   const params = new URLSearchParams(search);
   params.set('material-lab', '1');
   params.set('fixture', state.fixture);
+  params.set('recipe', state.recipe);
   params.set('preview', state.preview);
   params.set('preset', state.preset);
   params.set('theme', state.theme);

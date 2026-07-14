@@ -2,6 +2,14 @@ import type { MetalFxPreset, MetalFxTheme } from '../../src';
 
 export type MaterialLabFixture = 'foundation';
 export type MaterialLabPreview = 'pill' | 'circle' | 'content';
+export type MaterialLabRecipeId =
+  | 'molten-chrome'
+  | 'brushed-metal'
+  | 'mercury'
+  | 'holographic'
+  | 'copper'
+  | 'obsidian'
+  | 'electric-plasma';
 export type MaterialLabTheme = Exclude<MetalFxTheme, 'auto'>;
 
 export interface MaterialLabState {
@@ -9,13 +17,19 @@ export interface MaterialLabState {
   paused: boolean;
   preset: MetalFxPreset;
   preview: MaterialLabPreview;
+  recipe: MaterialLabRecipeId;
   strength: number;
   theme: MaterialLabTheme;
 }
 
 export interface MaterialLabRecipe {
   description: string;
-  id: MaterialLabFixture;
+  id: MaterialLabRecipeId;
   label: string;
-  state: MaterialLabState;
+  presentation: {
+    backdrop: string;
+    content: string;
+    surface: string;
+  };
+  state: Omit<MaterialLabState, 'recipe'>;
 }

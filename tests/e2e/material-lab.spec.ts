@@ -5,7 +5,9 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   page.on('console', (message) => message.type() === 'error' && errors.push(message.text()));
   page.on('pageerror', (error) => errors.push(error.message));
 
-  await page.goto('./?material-lab=1&fixture=foundation&preview=circle&preset=gold&theme=light&strength=62&paused=1');
+  await page.goto(
+    './?material-lab=1&fixture=foundation&recipe=copper&preview=circle&preset=gold&theme=light&strength=62&paused=1'
+  );
   await expect(page.getByRole('heading', { name: 'A single surface for honest treatment studies.' })).toBeVisible();
   const lab = page.getByRole('main');
   await expect(lab.getByLabel('Live Material Lab preview').locator('.metal-fx-root')).toHaveCount(1);
@@ -22,6 +24,20 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   await lab.getByRole('button', { name: 'Resume preview motion' }).click();
   await expect(lab.getByRole('button', { name: 'Pause preview motion' })).toHaveAttribute('aria-pressed', 'false');
   expect(errors).toEqual([]);
+});
+
+test('selects every experimental treatment through stable query state', async ({ page }) => {
+  await page.goto('./?material-lab=1');
+  const treatments = page.getByLabel('Experimental material treatments').getByRole('button');
+  await expect(treatments).toHaveCount(7);
+  for (const treatment of await treatments.all()) {
+    const label = await treatment.textContent();
+    await treatment.click();
+    await expect(treatment).toHaveAttribute('aria-current', 'true');
+    await expect(page).toHaveURL(/recipe=/);
+    await expect(page.getByLabel('Live Material Lab preview').locator('.metal-fx-root')).toHaveCount(1);
+    expect(label).toBeTruthy();
+  }
 });
 
 test('leaves the standard demo and visual fixture routes intact', async ({ page }) => {

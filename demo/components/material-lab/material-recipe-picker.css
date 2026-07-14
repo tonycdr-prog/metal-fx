@@ -1,0 +1,37 @@
+.material-recipe-picker {
+  border-bottom: 1px solid var(--lab-line);
+  display: grid;
+  gap: 10px;
+  padding: 18px 0;
+}
+.material-recipe-picker p {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  margin: 0;
+  text-transform: uppercase;
+}
+.material-recipe-picker div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.material-recipe-picker button {
+  background: transparent;
+  border: 1px solid var(--lab-line);
+  color: inherit;
+  cursor: pointer;
+  font:
+    600 12px / 1 Inter,
+    sans-serif;
+  min-height: 34px;
+  padding: 0 10px;
+}
+.material-recipe-picker button[aria-current="true"] {
+  background: var(--lab-ink);
+  color: var(--lab-paper);
+}
+.material-recipe-picker button:focus-visible {
+  outline: 3px solid var(--lab-red);
+  outline-offset: 2px;
+}
