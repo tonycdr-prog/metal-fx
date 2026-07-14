@@ -1,0 +1,211 @@
+.material-lab {
+  --lab-ink: #121416;
+  --lab-paper: #e7e2d8;
+  --lab-line: color-mix(in srgb, var(--lab-ink) 18%, transparent);
+  --lab-red: #c44d2b;
+  box-sizing: border-box;
+  color: var(--lab-ink);
+  margin: 0 auto;
+  max-width: 1100px;
+  min-height: 100dvh;
+  padding: clamp(24px, 5vw, 72px) clamp(18px, 4vw, 56px);
+}
+.material-lab *,
+.material-lab *::before,
+.material-lab *::after {
+  box-sizing: border-box;
+}
+.material-lab-heading {
+  border-bottom: 1px solid var(--lab-line);
+  display: grid;
+  gap: 12px;
+  padding-bottom: clamp(28px, 5vw, 56px);
+}
+.material-lab-heading p {
+  color: var(--lab-red);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  margin: 0;
+  text-transform: uppercase;
+}
+.material-lab-heading h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(38px, 6vw, 76px);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 0.94;
+  margin: 0;
+  max-width: 760px;
+}
+.material-lab-heading span {
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 470px;
+}
+.material-lab-workspace {
+  display: grid;
+  gap: clamp(28px, 5vw, 64px);
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.55fr);
+  padding-top: clamp(28px, 5vw, 64px);
+}
+.material-lab-preview {
+  border: 1px solid var(--lab-line);
+  min-height: 440px;
+  padding: 18px;
+  position: relative;
+}
+.material-lab-preview-dark {
+  background: #161719;
+  color: #efede7;
+}
+.material-lab-preview-light {
+  background: var(--lab-paper);
+  color: var(--lab-ink);
+}
+.material-lab-preview-meta {
+  display: flex;
+  font-size: 11px;
+  font-weight: 600;
+  justify-content: space-between;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.material-lab-stage {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 325px;
+}
+.material-lab-preview p {
+  border-top: 1px solid currentColor;
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0;
+  opacity: 0.72;
+  padding-top: 12px;
+}
+.material-lab-pill,
+.material-lab-circle,
+.material-lab-content-card {
+  background: #24262a;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  color: #faf7f0;
+  font:
+    600 14px / 1.1 Inter,
+    sans-serif;
+}
+.material-lab-pill {
+  border-radius: 999px;
+  height: 46px;
+  min-width: 186px;
+  padding: 0 24px;
+}
+.material-lab-circle {
+  border-radius: 50%;
+  font-size: 24px;
+  height: 58px;
+  width: 58px;
+}
+.material-lab-content-card {
+  border-radius: 20px;
+  display: grid;
+  gap: 12px;
+  min-width: 230px;
+  padding: 22px;
+  text-align: left;
+}
+.material-lab-content-card span {
+  font-size: 11px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.material-lab-content-card strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.05;
+}
+.material-lab-controls {
+  align-content: start;
+  display: grid;
+  gap: 22px;
+}
+.material-lab-strength {
+  display: grid;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 9px;
+  grid-template-columns: 1fr auto;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.material-lab-strength input {
+  grid-column: 1 / -1;
+}
+.material-lab-controls fieldset,
+.material-lab-controls label {
+  border: 0;
+  display: grid;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 9px;
+  letter-spacing: 0.08em;
+  margin: 0;
+  padding: 0;
+  text-transform: uppercase;
+}
+.material-lab-controls legend {
+  margin-bottom: 9px;
+  padding: 0;
+}
+.material-lab-segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+.material-lab-controls button,
+.material-lab-controls select {
+  background: transparent;
+  border: 1px solid var(--lab-line);
+  color: inherit;
+  font: inherit;
+  min-height: 42px;
+  padding: 0 12px;
+}
+.material-lab-controls button {
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.material-lab-segmented button + button {
+  border-left: 0;
+}
+.material-lab-segmented button[aria-pressed="true"],
+.material-lab-motion-toggle[aria-pressed="true"] {
+  background: var(--lab-ink);
+  color: var(--lab-paper);
+}
+.material-lab-controls input {
+  accent-color: var(--lab-red);
+  width: 100%;
+}
+.material-lab-controls output {
+  color: var(--lab-red);
+  justify-self: end;
+}
+.material-lab-controls .material-lab-motion-toggle {
+  border-color: var(--lab-red);
+}
+.material-lab-controls button:focus-visible,
+.material-lab-controls select:focus-visible,
+.material-lab-preview button:focus-visible {
+  outline: 3px solid var(--lab-red);
+  outline-offset: 3px;
+}
+@media (max-width: 720px) {
+  .material-lab-workspace {
+    grid-template-columns: 1fr;
+  }
+  .material-lab-preview {
+    min-height: 390px;
+  }
+}

@@ -28,7 +28,6 @@
 .copy-btn .t-icon[data-icon="b"] svg {
   opacity: 1;
 }
-
 @media (prefers-reduced-motion: reduce) {
   .t-icon {
     transition: none;
@@ -60,16 +59,14 @@
 
 /* Metal-fx light-mode overrides (targets library internal classes) */
 html[data-theme="light"] .metal-fx {
-  background: #ffffff;
+  background: #fff;
   color: #121212;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 html[data-theme="light"] .metal-fx-inner {
-  background: #ffffff;
+  background: #fff;
 }
-html[data-theme="light"] .metal-fx::before {
-  box-shadow: none;
-}
+html[data-theme="light"] .metal-fx::before,
 html[data-theme="light"] .metal-fx::after {
   box-shadow: none;
 }
