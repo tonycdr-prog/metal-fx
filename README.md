@@ -27,10 +27,10 @@ tested CI coverage, not a contractual guarantee for every historical or embedded
 requires browser DOM, WebGL, and Canvas 2D support; when WebGL or Canvas 2D cannot initialize, the wrapped child
 continues to work without the metal, glow, or reflection layers.
 
-MetalFx currently injects a stylesheet, inline style attributes, and SVG glow markup. A strict `style-src` CSP
-that blocks inline styles can therefore prevent the visual effect from rendering. MetalFx does not currently offer
-a CSP nonce or an external-stylesheet integration path. CSP-compatible rendering is a future API/design project;
-do not treat the current package as compatible with a strict no-inline-style policy.
+MetalFx currently injects a stylesheet and applies inline style attributes to its SVG glow markup. A strict
+`style-src` CSP that blocks those styles can therefore prevent the visual effect from rendering. MetalFx does not
+currently offer a CSP nonce or an external-stylesheet integration path. CSP-compatible rendering is a future
+API/design project; do not treat the current package as compatible with a strict no-inline-style policy.
 
 ## Quick start
 
