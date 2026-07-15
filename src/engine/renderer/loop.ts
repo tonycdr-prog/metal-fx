@@ -1,7 +1,6 @@
 /** Animation loop, per-frame compositing, and instance lifecycle. */
-import { hexToRgb } from '../color';
 import { FRAME_INTERVAL_MS, GLOW_SKIP_FRAMES } from '../perfConfig';
-import { PRESETS, type PresetMode, type PresetName, type PresetTheme } from '../presets';
+import { PRESETS, type PresetName, type PresetTheme } from '../presets';
 import {
   CANONICAL_PILL_H,
   CANONICAL_PILL_W,
@@ -12,6 +11,7 @@ import {
   teardownSharedRenderer
 } from './core';
 import { planRenderGroups } from './groups';
+import { renderSharedFrame } from './render';
 import { ensureGlowPixels } from './sampling';
 import { applyScalePatch, defaultRingCssPx, defaultShaderScale, registerScaleOverrides } from './scale';
 
@@ -78,6 +78,7 @@ export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
       scale,
       preset: opts.preset ?? renderer.defaultPresetName,
       theme: opts.theme ?? renderer.defaultPresetTheme,
+      finish: renderer.defaultFinishName,
       glowPixels: new Uint8Array(0),
       glowPixelsW: 0,
       glowPixelsH: 0,
@@ -266,51 +267,6 @@ function copyShaderToInstance(inst: MetalFxInstance, src: CanvasImageSource): vo
   inst.onAfterFrame?.();
 }
 
-function uploadPresetUniforms(): void {
-  if (!SHARED) return;
-  const { gl, uniforms, preset, glCanvas } = SHARED;
-  if (uniforms.u_resolution) gl.uniform2f(uniforms.u_resolution, glCanvas.width, glCanvas.height);
-  for (let i = 0; i < 7; i++) {
-    const cLoc = uniforms[`u_color${i + 1}`];
-    if (cLoc) {
-      const [r, g, b] = hexToRgb(preset.colors[i]);
-      gl.uniform3f(cLoc, r, g, b);
-    }
-    const aLoc = uniforms[`u_alpha${i + 1}`];
-    if (aLoc) gl.uniform1f(aLoc, preset.alphas[i]);
-  }
-  if (uniforms.u_intensity) gl.uniform1f(uniforms.u_intensity, preset.intensity);
-  if (uniforms.u_scale) gl.uniform1f(uniforms.u_scale, preset.scale);
-  if (uniforms.u_direction) gl.uniform1f(uniforms.u_direction, (preset.direction * Math.PI) / 180);
-  if (uniforms.u_softness) gl.uniform1f(uniforms.u_softness, preset.softness);
-  if (uniforms.u_distortion) gl.uniform1f(uniforms.u_distortion, preset.distortion);
-  if (uniforms.u_complexity) gl.uniform1f(uniforms.u_complexity, preset.complexity);
-  if (uniforms.u_shape) gl.uniform1f(uniforms.u_shape, preset.shape);
-  if (uniforms.u_vignette) gl.uniform1f(uniforms.u_vignette, preset.vignette);
-  if (uniforms.u_vigOpacity) gl.uniform1f(uniforms.u_vigOpacity, preset.vigOpacity);
-  if (uniforms.u_blur) gl.uniform1f(uniforms.u_blur, preset.blur);
-  if (uniforms.u_shaderOpacity) gl.uniform1f(uniforms.u_shaderOpacity, preset.shaderOpacity);
-  SHARED.presetDirty = false;
-}
-
-function renderSharedFrame(now: number, preset: PresetMode): void {
-  if (!SHARED) return;
-  const { gl, uniforms, glCanvas } = SHARED;
-  SHARED.preset = preset;
-  SHARED.presetDirty = true;
-  const t = ((now - SHARED.startMs - SHARED.pausedMs) / 1000) * preset.speed;
-
-  gl.viewport(0, 0, glCanvas.width, glCanvas.height);
-  gl.clearColor(0, 0, 0, 0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-
-  if (SHARED.presetDirty) uploadPresetUniforms();
-  if (uniforms.u_time) gl.uniform1f(uniforms.u_time, t);
-
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
-  SHARED.frameCount++;
-}
-
 let lastFrameMs = 0;
 
 function tick(now: number): void {
@@ -351,7 +307,7 @@ function tick(now: number): void {
   }
 
   for (const group of planRenderGroups(SHARED.instances)) {
-    renderSharedFrame(now, group.mode);
+    renderSharedFrame(now, group.mode, group.finish);
     if (glowTarget && group.instances.includes(glowTarget)) ensureGlowPixels(glowTarget);
     let frame: CanvasImageSource = SHARED.glCanvas;
     if (SHARED.useOffscreen) frame = (SHARED.glCanvas as OffscreenCanvas).transferToImageBitmap();

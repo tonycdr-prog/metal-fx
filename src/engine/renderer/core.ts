@@ -10,6 +10,7 @@
  *   4. The animation loop is capped at ~15fps — the blur + slow plasma motion
  *      makes higher rates imperceptible.
  */
+import { FINISHES, type FinishName, type FinishProfile } from '../finishes';
 import { CANONICAL_GL_SIZE, GL_DPR_CAP } from '../perfConfig';
 import { PRESETS, type PresetMode, type PresetName, type PresetTheme } from '../presets';
 import { compileShader, FRAG_SHADER_SRC, linkProgram, VERT_SHADER_SRC } from '../shaders';
@@ -50,6 +51,7 @@ export interface MetalFxInstance {
   scale: number;
   preset: PresetName;
   theme: PresetTheme;
+  finish: FinishName;
   glowPixels: Uint8Array;
   glowPixelsW: number;
   glowPixelsH: number;
@@ -70,8 +72,10 @@ export interface SharedRenderer {
   buffer: WebGLBuffer;
   uniforms: Record<string, WebGLUniformLocation | null>;
   preset: PresetMode;
+  finish: FinishProfile;
   defaultPresetName: PresetName;
   defaultPresetTheme: PresetTheme;
+  defaultFinishName: FinishName;
   presetDirty: boolean;
   contextLost: boolean;
   useOffscreen: boolean;
@@ -125,7 +129,12 @@ const UNIFORM_NAMES = [
   'u_vignette',
   'u_vigOpacity',
   'u_blur',
-  'u_shaderOpacity'
+  'u_shaderOpacity',
+  'u_finishGrain',
+  'u_finishGrainScale',
+  'u_finishFlow',
+  'u_finishSpectral',
+  'u_finishContrast'
 ];
 
 function buildGLPipeline(gl: WebGLRenderingContext): {
@@ -245,8 +254,10 @@ export function ensureSharedRenderer(): SharedRenderer {
       gl,
       ...pipeline,
       preset: PRESETS.chromatic.modes.dark,
+      finish: FINISHES.polished,
       defaultPresetName: 'chromatic',
       defaultPresetTheme: 'dark',
+      defaultFinishName: 'polished',
       presetDirty: true,
       contextLost: false,
       useOffscreen,

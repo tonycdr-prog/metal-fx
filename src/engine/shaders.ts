@@ -27,6 +27,11 @@
  *   u_vigOpacity      float — vignette darkening strength (0..1)
  *   u_blur            float — sample-radius for the 9-tap blur (0..1)
  *   u_shaderOpacity   float — final alpha multiplier (0..1)
+ *   u_finishGrain     float — directional micro-banding amplitude
+ *   u_finishGrainScale float — micro-banding spatial frequency
+ *   u_finishFlow      float — low-frequency coordinate flow
+ *   u_finishSpectral  float — RGB palette separation
+ *   u_finishContrast  float — finish-local contrast curve
  */
 export const VERT_SHADER_SRC = /* glsl */ `
   attribute vec2 a_position;
@@ -43,6 +48,8 @@ export const FRAG_SHADER_SRC = /* glsl */ `
   uniform float u_intensity, u_scale, u_direction;
   uniform float u_softness, u_distortion, u_complexity, u_shape;
   uniform float u_vignette, u_vigOpacity, u_blur, u_shaderOpacity;
+  uniform float u_finishGrain, u_finishGrainScale, u_finishFlow;
+  uniform float u_finishSpectral, u_finishContrast;
 
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
   vec2 mod289v2(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -138,6 +145,13 @@ export const FRAG_SHADER_SRC = /* glsl */ `
     vec2 p = (uv - 0.5) * u_scale;
     p.x *= aspect;
     p += vec2(cos(u_direction), sin(u_direction)) * t * 0.15;
+    if (u_finishFlow > 0.0001) {
+      vec2 flow = vec2(
+        sin(p.y * 1.7 + t * 0.38),
+        cos(p.x * 1.5 - t * 0.32)
+      );
+      p += flow * u_finishFlow * 0.42;
+    }
 
     float freq = 3.0 + cpx * 8.0;
     float val = 0.0;
@@ -147,9 +161,27 @@ export const FRAG_SHADER_SRC = /* glsl */ `
     val += sin(length(p) * freq * 0.8 - t * 1.5);
     vec2 w = warp(p, t);
     val += (w.x + w.y) * dist;
+    if (u_finishGrain > 0.0001) {
+      vec2 grainDirection = vec2(cos(u_direction), sin(u_direction));
+      float grainAxis = dot(p, grainDirection);
+      float grainVariation = sin(dot(p, vec2(-grainDirection.y, grainDirection.x)) * 3.0 + t * 0.05);
+      val += sin(grainAxis * u_finishGrainScale + grainVariation * 1.8) * u_finishGrain;
+    }
     val = val * 0.2 * u_intensity + 0.5;
 
-    return palette(clamp(val, 0.0, 1.0));
+    float field = clamp(val, 0.0, 1.0);
+    vec3 color = palette(field);
+    if (u_finishSpectral > 0.0001) {
+      vec3 interference = 0.5 + 0.5 * cos(
+        6.2831853 * (field + vec3(0.0, 0.3333, 0.6667)) + (p.x - p.y) * 1.4 + t * 0.2
+      );
+      float spectralMix = clamp(u_finishSpectral * 3.5, 0.0, 0.65);
+      color = mix(color, color * (0.6 + interference * 0.85), spectralMix);
+    }
+    if (abs(u_finishContrast - 1.0) > 0.0001) {
+      color = pow(max(color, vec3(0.0)), vec3(u_finishContrast));
+    }
+    return color;
   }
 
   void main() {
