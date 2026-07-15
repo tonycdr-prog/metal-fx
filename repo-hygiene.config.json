@@ -26,6 +26,11 @@
       "kind": "declarative",
       "reason": "Most lines are one GLSL program whose locality is more valuable than artificial splitting.",
       "revisitWhen": "Split only when a second independently compiled shader program is added."
+    },
+    "tests/e2e/demo.spec.ts": {
+      "kind": "reviewed",
+      "reason": "One cross-engine journey suite for the demo surface; the tests share the WebGL context-exposure fixture and navigation setup, and splitting would duplicate both.",
+      "revisitWhen": "Split by concern (showcase journey, context loss/fallback, focus) if the file approaches 350 nonblank lines."
     }
   },
   "allowedPublicAssets": [],
