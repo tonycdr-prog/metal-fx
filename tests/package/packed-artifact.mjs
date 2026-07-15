@@ -147,7 +147,7 @@ if (!MetalFx || PRESETS.gold.name !== 'gold' || typeof createInstance !== 'funct
   type MetalFxProps
 } from 'metal-fx';
 
-const props: MetalFxProps = { children: null, preset: 'gold', finish: 'brushed', theme: 'dark' };
+const props: MetalFxProps = { children: null, preset: 'gold', finish: 'brushed', interactive: true, theme: 'dark' };
 const preset: MetalFxPreset = PRESETS.gold.name;
 const finish: MetalFxFinish = FINISHES.brushed.name;
 const rendererExports = { createInstance, destroyInstance, pauseShared, resumeShared, setSharedPreset, updateInstance };

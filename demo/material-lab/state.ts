@@ -36,6 +36,7 @@ export function readMaterialLabState(search: string): MaterialLabState {
     preset: PRESETS.has(preset ?? '') ? (preset as MaterialLabState['preset']) : recipe.state.preset,
     theme: THEMES.has(theme as MaterialLabTheme) ? (theme as MaterialLabTheme) : recipe.state.theme,
     strength: clampStrength(params.get('strength'), recipe.state.strength),
+    interactive: params.get('interactive') === '1',
     paused: params.get('paused') === '1'
   };
 }
@@ -48,6 +49,7 @@ export function buildMaterialLabSearch(state: MaterialLabState, search = window.
   params.set('environment', state.environment);
   params.set('finish', state.finish);
   params.delete('interaction');
+  params.set('interactive', state.interactive ? '1' : '0');
   params.set('preview', state.preview);
   params.set('preset', state.preset);
   params.set('theme', state.theme);

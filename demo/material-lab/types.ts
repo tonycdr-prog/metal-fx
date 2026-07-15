@@ -17,6 +17,7 @@ export interface MaterialLabState {
   environment: MaterialLabEnvironment;
   finish: MetalFxFinish;
   fixture: MaterialLabFixture;
+  interactive: boolean;
   paused: boolean;
   preset: MetalFxPreset;
   preview: MaterialLabPreview;

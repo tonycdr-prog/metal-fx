@@ -83,6 +83,10 @@ export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
       preset: opts.preset ?? renderer.defaultPresetName,
       theme: opts.theme ?? renderer.defaultPresetTheme,
       finish: opts.finish ?? renderer.defaultFinishName,
+      lightX: 0.5,
+      lightY: 0.5,
+      lightIntensity: 0,
+      press: 0,
       glowPixels: new Uint8Array(0),
       glowPixelsW: 0,
       glowPixelsH: 0,
@@ -143,6 +147,10 @@ export function updateInstance(
       | 'preset'
       | 'theme'
       | 'finish'
+      | 'lightX'
+      | 'lightY'
+      | 'lightIntensity'
+      | 'press'
     >
   >
 ): void {
@@ -155,12 +163,45 @@ export function updateInstance(
     inst.cssHeight = patch.cssHeight;
     dirty = true;
   }
-  if (patch.cornerRadius !== undefined) inst.cornerRadius = patch.cornerRadius;
+  let visualDirty = dirty;
+  if (patch.cornerRadius !== undefined && patch.cornerRadius !== inst.cornerRadius) {
+    inst.cornerRadius = patch.cornerRadius;
+    visualDirty = true;
+  }
   applyScalePatch(inst, patch);
-  if (patch.opacityMul !== undefined) inst.opacityMul = patch.opacityMul;
-  if (patch.preset !== undefined) inst.preset = patch.preset;
-  if (patch.theme !== undefined) inst.theme = patch.theme;
-  if (patch.finish !== undefined) inst.finish = patch.finish;
+  if (patch.scale !== undefined || patch.shaderScale !== undefined || patch.ringCssPx !== undefined) visualDirty = true;
+  if (patch.opacityMul !== undefined && patch.opacityMul !== inst.opacityMul) {
+    inst.opacityMul = patch.opacityMul;
+    visualDirty = true;
+  }
+  if (patch.preset !== undefined && patch.preset !== inst.preset) {
+    inst.preset = patch.preset;
+    visualDirty = true;
+  }
+  if (patch.theme !== undefined && patch.theme !== inst.theme) {
+    inst.theme = patch.theme;
+    visualDirty = true;
+  }
+  if (patch.finish !== undefined && patch.finish !== inst.finish) {
+    inst.finish = patch.finish;
+    visualDirty = true;
+  }
+  if (patch.lightX !== undefined && patch.lightX !== inst.lightX) {
+    inst.lightX = patch.lightX;
+    visualDirty = true;
+  }
+  if (patch.lightY !== undefined && patch.lightY !== inst.lightY) {
+    inst.lightY = patch.lightY;
+    visualDirty = true;
+  }
+  if (patch.lightIntensity !== undefined && patch.lightIntensity !== inst.lightIntensity) {
+    inst.lightIntensity = patch.lightIntensity;
+    visualDirty = true;
+  }
+  if (patch.press !== undefined && patch.press !== inst.press) {
+    inst.press = patch.press;
+    visualDirty = true;
+  }
   if (patch.paused !== undefined && patch.paused !== inst.paused) {
     inst.paused = patch.paused;
     // Unpausing should kick the loop if it had idled because every visible
@@ -170,6 +211,12 @@ export function updateInstance(
     }
   }
   if (dirty) resizeInstanceCanvas(inst);
+  if (visualDirty) {
+    inst.everCopied = false;
+    if (inst.visible && SHARED && SHARED.rafId === 0 && SHARED.pausedAtMs === null && !SHARED.contextLost) {
+      startSharedLoop();
+    }
+  }
 }
 
 export function setInstanceVisible(inst: MetalFxInstance, visible: boolean): void {
@@ -307,7 +354,7 @@ function tick(now: number): void {
   if (glowPlan) SHARED.glowIdx = glowPlan.nextIndex;
 
   for (const group of planRenderGroups(SHARED.instances)) {
-    renderSharedFrame(now, group.mode, group.finish);
+    renderSharedFrame(now, group.mode, group.finish, group.lightX, group.lightY, group.lightIntensity, group.press);
     for (const glowTarget of glowTargets) {
       if (group.instances.includes(glowTarget)) ensureGlowPixels(glowTarget);
     }

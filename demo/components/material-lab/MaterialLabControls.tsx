@@ -103,6 +103,15 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
       </div>
 
       <button
+        aria-pressed={state.interactive}
+        className="material-lab-motion-toggle"
+        onClick={() => onChange({ interactive: !state.interactive })}
+        type="button"
+      >
+        {state.interactive ? 'Disable responsive lighting' : 'Enable responsive lighting'}
+      </button>
+
+      <button
         aria-pressed={state.paused}
         className="material-lab-motion-toggle"
         onClick={() => onChange({ paused: !state.paused })}

@@ -33,14 +33,29 @@ function uploadMaterialUniforms(): void {
   if (uniforms.u_finishFlow) gl.uniform1f(uniforms.u_finishFlow, finish.flow);
   if (uniforms.u_finishSpectral) gl.uniform1f(uniforms.u_finishSpectral, finish.spectral);
   if (uniforms.u_finishContrast) gl.uniform1f(uniforms.u_finishContrast, finish.contrast);
+  if (uniforms.u_lightPosition) gl.uniform2f(uniforms.u_lightPosition, SHARED.lightX, SHARED.lightY);
+  if (uniforms.u_lightIntensity) gl.uniform1f(uniforms.u_lightIntensity, SHARED.lightIntensity);
+  if (uniforms.u_press) gl.uniform1f(uniforms.u_press, SHARED.press);
   SHARED.presetDirty = false;
 }
 
-export function renderSharedFrame(now: number, preset: PresetMode, finish: FinishProfile): void {
+export function renderSharedFrame(
+  now: number,
+  preset: PresetMode,
+  finish: FinishProfile,
+  lightX = 0.5,
+  lightY = 0.5,
+  lightIntensity = 0,
+  press = 0
+): void {
   if (!SHARED) return;
   const { gl, glCanvas, uniforms } = SHARED;
   SHARED.preset = preset;
   SHARED.finish = finish;
+  SHARED.lightX = lightX;
+  SHARED.lightY = lightY;
+  SHARED.lightIntensity = lightIntensity;
+  SHARED.press = press;
   SHARED.presetDirty = true;
   const time = ((now - SHARED.startMs - SHARED.pausedMs) / 1000) * preset.speed * finish.speed;
 

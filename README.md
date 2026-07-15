@@ -85,6 +85,19 @@ flows, bands, and separates light:
 Instances with the same preset, resolved theme, and finish share one shader pass. Mixing finishes intentionally adds
 one pass per active material group.
 
+## Responsive lighting
+
+Pointer position, pointer press, and keyboard activation can influence the metal itself:
+
+```tsx
+<MetalFx interactive>
+  <button>Upgrade to Pro</button>
+</MetalFx>
+```
+
+This is opt-in and does not transform the wrapped content. An actively lit instance temporarily uses its own material
+pass; after pointer/focus leaves, it returns to the normal shared pass. Keyboard activation uses a centered light.
+
 ## Theme
 
 ```tsx

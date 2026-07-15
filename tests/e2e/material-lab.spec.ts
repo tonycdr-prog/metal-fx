@@ -6,7 +6,7 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   page.on('pageerror', (error) => errors.push(error.message));
 
   await page.goto(
-    './?material-lab=1&fixture=foundation&recipe=copper&interaction=press-hold&finish=brushed&preview=circle&preset=gold&theme=light&strength=62&paused=1'
+    './?material-lab=1&fixture=foundation&recipe=copper&interaction=press-hold&interactive=1&finish=brushed&preview=circle&preset=gold&theme=light&strength=62&paused=1'
   );
   await expect(page.getByRole('heading', { name: 'Explore the finish.' })).toBeVisible();
   const lab = page.getByRole('main');
@@ -17,6 +17,11 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   await expect(lab.getByLabel('Theme')).toHaveValue('light');
   await expect(lab.getByLabel('Strength')).toHaveValue('62');
   await expect(lab.getByLabel('Interaction')).toHaveCount(0);
+  await expect(lab.getByRole('button', { name: 'Disable responsive lighting' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
+  await expect(lab.locator('.metal-fx-root')).toHaveAttribute('data-interactive', 'true');
   await expect(lab.getByRole('button', { name: 'Resume preview motion' })).toHaveAttribute('aria-pressed', 'true');
 
   await lab.getByLabel('Preset').selectOption('silver');
@@ -31,12 +36,47 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   const environment = lab.getByLabel('Environment');
   const stage = lab.getByTestId('material-lab-stage');
   await expect(stage).toHaveCSS('transform', 'none');
-  await expect(page).not.toHaveURL(/interaction=/);
+  await expect(page).not.toHaveURL(/[?&]interaction=/);
   await environment.selectOption('moving-softbox');
   await expect(stage).toHaveClass(/material-lab-environment-moving/);
   await lab.getByRole('button', { name: 'Pause preview motion' }).click();
   await expect(stage).not.toHaveClass(/material-lab-environment-moving/);
   expect(errors).toEqual([]);
+});
+
+test('responsive lighting repaints a paused material without moving its control', async ({ page }) => {
+  await page.goto(
+    './?material-lab=1&fixture=foundation&recipe=molten-chrome&finish=molten&interactive=1&preview=pill&preset=chromatic&theme=dark&strength=100&paused=1'
+  );
+  const lab = page.getByRole('main');
+  const root = lab.locator('.metal-fx-root');
+  const canvas = root.locator('canvas');
+  const button = lab.getByRole('button', { name: 'Upgrade to Pro' });
+  await expect(canvas).toBeVisible();
+  await expect(root).toHaveAttribute('data-interactive', 'true');
+  await expect(button).toHaveCSS('transform', 'none');
+
+  const readCanvas = () => canvas.evaluate((element) => (element as HTMLCanvasElement).toDataURL());
+  const idleFrame = await readCanvas();
+  const bounds = await root.boundingBox();
+  expect(bounds).not.toBeNull();
+  await page.mouse.move((bounds?.x ?? 0) + (bounds?.width ?? 0) * 0.8, (bounds?.y ?? 0) + (bounds?.height ?? 0) * 0.25);
+  await expect.poll(readCanvas).not.toBe(idleFrame);
+  const litFrame = await readCanvas();
+
+  await page.mouse.down();
+  await expect.poll(readCanvas).not.toBe(litFrame);
+  await page.mouse.up();
+  await expect(button).toHaveCSS('transform', 'none');
+
+  await button.focus();
+  await expect(button).toBeFocused();
+  await page.waitForTimeout(100);
+  const focusedFrame = await readCanvas();
+  await page.keyboard.down('Enter');
+  await expect.poll(readCanvas).not.toBe(focusedFrame);
+  await page.keyboard.up('Enter');
+  await expect(button).toBeFocused();
 });
 
 test('selects every experimental treatment through stable query state', async ({ page }) => {
