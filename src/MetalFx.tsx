@@ -4,6 +4,7 @@ import { addReflectionTarget, removeReflectionTarget } from './engine/reflection
 import { scheduleReflectionPaint } from './engine/reflection/reflectionScheduler';
 import type { MetalFxInstance } from './engine/renderer/core';
 import { updateInstance } from './engine/renderer/loop';
+import { useMaterialInteraction } from './hooks/useMaterialInteraction';
 import { useMetalFxLifecycle } from './hooks/useMetalFxLifecycle';
 import { useResolvedTheme } from './hooks/useResolvedTheme';
 import { ensureStylesInjected } from './styles';
@@ -36,6 +37,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     variant = 'button',
     preset = 'chromatic',
     finish = 'polished',
+    interactive = false,
     theme = 'auto',
     strength = 1,
     paused = false,
@@ -129,6 +131,8 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     setFallback
   });
 
+  useMaterialInteraction({ enabled: interactive, instanceRef, rootRef });
+
   useEffect(() => {
     const instance = instanceRef.current;
     if (instance) updateInstance(instance, { opacityMul: Math.max(0, Math.min(1, strength)) });
@@ -179,6 +183,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       data-shape={shape}
       data-theme={resolvedTheme}
       data-finish={finish}
+      data-interactive={interactive ? 'true' : undefined}
       data-paused={paused ? 'true' : undefined}
       data-fallback={fallback ? 'true' : undefined}
       data-normalize={!fallback && normalizeHostStyles ? 'true' : 'false'}

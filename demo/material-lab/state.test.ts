@@ -7,6 +7,7 @@ describe('Material Lab query state', () => {
       environment: 'studio-sweep',
       finish: 'molten',
       fixture: 'foundation',
+      interactive: false,
       preview: 'pill',
       recipe: 'molten-chrome',
       preset: 'chromatic',
@@ -35,6 +36,7 @@ describe('Material Lab query state', () => {
       )
     ).toEqual({
       fixture: 'foundation',
+      interactive: false,
       environment: 'studio-sweep',
       finish: 'molten',
       preview: 'pill',
@@ -52,6 +54,7 @@ describe('Material Lab query state', () => {
         fixture: 'foundation',
         environment: 'spectral-wash',
         finish: 'brushed',
+        interactive: true,
         recipe: 'copper',
         preview: 'circle',
         preset: 'gold',
@@ -62,7 +65,7 @@ describe('Material Lab query state', () => {
       '?source=review&interaction=press-hold'
     );
     expect(search).toBe(
-      '?source=review&material-lab=1&fixture=foundation&recipe=copper&environment=spectral-wash&finish=brushed&preview=circle&preset=gold&theme=light&strength=62&paused=1'
+      '?source=review&material-lab=1&fixture=foundation&recipe=copper&environment=spectral-wash&finish=brushed&interactive=1&preview=circle&preset=gold&theme=light&strength=62&paused=1'
     );
     expect(readMaterialLabState('?material-lab=1&interaction=press-hold')).toEqual(
       readMaterialLabState('?material-lab=1')

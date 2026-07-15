@@ -11,7 +11,7 @@ Open it on GitHub Pages with:
 The foundation fixture is fully query-selected so a reviewer can share an exact state:
 
 ```text
-/metal-fx/?material-lab=1&fixture=foundation&recipe=copper&finish=brushed&preview=circle&preset=gold&theme=light&strength=62&paused=1
+/metal-fx/?material-lab=1&fixture=foundation&recipe=holographic&environment=spectral-wash&finish=holographic&interactive=0&preview=pill&preset=chromatic&theme=dark&strength=92&paused=1
 ```
 
 Supported foundation values are:
@@ -19,6 +19,7 @@ Supported foundation values are:
 - `fixture=foundation`
 - `recipe=molten-chrome|brushed-metal|mercury|holographic|copper|obsidian|electric-plasma`
 - `finish=polished|brushed|molten|holographic`
+- `interactive=0|1`
 - `preview=pill|circle|content`
 - `preset=chromatic|silver|gold`
 - `theme=dark|light`
@@ -26,13 +27,13 @@ Supported foundation values are:
 - `paused=0|1`
 - `environment=studio-sweep|warm-cool-split|moving-softbox|dark-tunnel|spectral-wash`
 
-Malformed values fall back to the selected recipe state. The lab deliberately mounts one live `MetalFx` preview. Its controls exercise only documented props: finish, preset, theme, strength, circle/button shape, and pause. Recipes now select a genuine shader finish as well as their palette and presentation; the lighting environments remain explicitly demo-only CSS stage treatments.
+Malformed values fall back to the selected recipe state. The lab deliberately mounts one live `MetalFx` preview. Its controls exercise only documented props: finish, preset, theme, strength, circle/button shape, responsive lighting, and pause. Recipes now select a genuine shader finish as well as their palette and presentation; the lighting environments remain explicitly demo-only CSS stage treatments.
 
 `?visual-test=1` remains a separate deterministic visual-regression scene. It takes precedence if both query flags are present.
 
 The Lab honours `prefers-reduced-motion` by pausing the preview and disabling its optional glow. The media-query subscription is owned by the lab hook and is removed on unmount.
 
-The Lab intentionally has no interaction selector. Credible press, directional-lighting, and proximity responses require product and renderer design rather than stage translation.
+Responsive lighting is a simple opt-in toggle because it drives the real `interactive` renderer prop. Pointer position and press affect shader lighting; keyboard activation uses the centre of the material. The preview stage and wrapped control do not translate.
 
 The lighting environments are CSS stage treatments. They are not MetalFx shaders. The nearby target uses the public `reflectionTargets` prop in dark mode only; ownership remains with MetalFx and is released by its existing lifecycle cleanup. Animated environment classes are removed whenever the preview is paused, the page is hidden, reduced motion is requested, or the Lab unmounts.
 

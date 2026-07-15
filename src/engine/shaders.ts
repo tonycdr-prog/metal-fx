@@ -32,6 +32,9 @@
  *   u_finishFlow      float — low-frequency coordinate flow
  *   u_finishSpectral  float — RGB palette separation
  *   u_finishContrast  float — finish-local contrast curve
+ *   u_lightPosition   vec2  — opt-in pointer/focus light position
+ *   u_lightIntensity  float — responsive light strength (0..1)
+ *   u_press           float — pressed material response (0..1)
  */
 export const VERT_SHADER_SRC = /* glsl */ `
   attribute vec2 a_position;
@@ -50,6 +53,8 @@ export const FRAG_SHADER_SRC = /* glsl */ `
   uniform float u_vignette, u_vigOpacity, u_blur, u_shaderOpacity;
   uniform float u_finishGrain, u_finishGrainScale, u_finishFlow;
   uniform float u_finishSpectral, u_finishContrast;
+  uniform vec2 u_lightPosition;
+  uniform float u_lightIntensity, u_press;
 
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
   vec2 mod289v2(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -180,6 +185,15 @@ export const FRAG_SHADER_SRC = /* glsl */ `
     }
     if (abs(u_finishContrast - 1.0) > 0.0001) {
       color = pow(max(color, vec3(0.0)), vec3(u_finishContrast));
+    }
+    if (u_lightIntensity > 0.0001 || u_press > 0.0001) {
+      vec2 lightDelta = uv - u_lightPosition;
+      float lightFalloff = 1.0 - smoothstep(0.0, 0.45, dot(lightDelta, lightDelta));
+      color *= 1.0 + lightFalloff * 0.35 * u_lightIntensity;
+      if (u_press > 0.0001) {
+        float compression = 0.86 + lightFalloff * 0.34;
+        color *= mix(1.0, compression, u_press);
+      }
     }
     return color;
   }

@@ -52,6 +52,10 @@ export interface MetalFxInstance {
   preset: PresetName;
   theme: PresetTheme;
   finish: FinishName;
+  lightX: number;
+  lightY: number;
+  lightIntensity: number;
+  press: number;
   glowPixels: Uint8Array;
   glowPixelsW: number;
   glowPixelsH: number;
@@ -74,6 +78,10 @@ export interface SharedRenderer {
   uniforms: Record<string, WebGLUniformLocation | null>;
   preset: PresetMode;
   finish: FinishProfile;
+  lightX: number;
+  lightY: number;
+  lightIntensity: number;
+  press: number;
   defaultPresetName: PresetName;
   defaultPresetTheme: PresetTheme;
   defaultFinishName: FinishName;
@@ -134,7 +142,10 @@ const UNIFORM_NAMES = [
   'u_finishGrainScale',
   'u_finishFlow',
   'u_finishSpectral',
-  'u_finishContrast'
+  'u_finishContrast',
+  'u_lightPosition',
+  'u_lightIntensity',
+  'u_press'
 ];
 
 function buildGLPipeline(gl: WebGLRenderingContext): {
@@ -255,6 +266,10 @@ export function ensureSharedRenderer(): SharedRenderer {
       ...pipeline,
       preset: PRESETS.chromatic.modes.dark,
       finish: FINISHES.polished,
+      lightX: 0.5,
+      lightY: 0.5,
+      lightIntensity: 0,
+      press: 0,
       defaultPresetName: 'chromatic',
       defaultPresetTheme: 'dark',
       defaultFinishName: 'polished',

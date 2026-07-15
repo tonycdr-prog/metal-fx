@@ -78,4 +78,19 @@ describe('renderSharedFrame', () => {
     expect(gl.clear).toHaveBeenCalledTimes(1);
     expect(gl.drawArrays).toHaveBeenCalledWith(gl.TRIANGLES, 0, 6);
   });
+
+  it('uploads responsive lighting without changing the material profile', () => {
+    const uniform1f = vi.fn();
+    const gl = createGl(uniform1f);
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+      (_type) => gl as unknown as RenderingContext
+    );
+    ensureSharedRenderer();
+
+    renderSharedFrame(2_000, PRESETS.chromatic.modes.dark, FINISHES.polished, 0.75, 0.25, 1, 1);
+
+    expect(gl.uniform2f).toHaveBeenCalledWith('u_lightPosition', 0.75, 0.25);
+    expect(uniform1f).toHaveBeenCalledWith('u_lightIntensity', 1);
+    expect(uniform1f).toHaveBeenCalledWith('u_press', 1);
+  });
 });

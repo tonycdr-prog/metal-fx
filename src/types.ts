@@ -66,6 +66,13 @@ export interface MetalFxProps extends Omit<HTMLAttributes<HTMLDivElement>, 'chil
   finish?: MetalFxFinish;
 
   /**
+   * Let pointer position, pointer press, and keyboard activation influence the
+   * material lighting. Idle instances return to the normal shared shader pass.
+   * @default false
+   */
+  interactive?: boolean;
+
+  /**
    * Theme mode. `'auto'` (default) resolves via
    * `matchMedia('(prefers-color-scheme: dark)')` and switches live when the
    * OS theme changes. Pass `'dark'` or `'light'` to pin a specific mode.

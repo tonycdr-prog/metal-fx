@@ -64,6 +64,7 @@ export function MaterialLabPreview({
         <MetalFx
           disableGlow={reducedMotion}
           finish={state.finish}
+          interactive={state.interactive}
           paused={isPaused}
           preset={state.preset}
           reflectionTargets={state.theme === 'dark' ? reflectionTargets : undefined}
