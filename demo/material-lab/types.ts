@@ -1,4 +1,4 @@
-import type { MetalFxPreset, MetalFxTheme } from '../../src';
+import type { MetalFxFinish, MetalFxPreset, MetalFxTheme } from '../../src';
 import type { MaterialLabEnvironment } from './environments';
 
 export type MaterialLabFixture = 'foundation';
@@ -15,6 +15,7 @@ export type MaterialLabTheme = Exclude<MetalFxTheme, 'auto'>;
 
 export interface MaterialLabState {
   environment: MaterialLabEnvironment;
+  finish: MetalFxFinish;
   fixture: MaterialLabFixture;
   paused: boolean;
   preset: MetalFxPreset;

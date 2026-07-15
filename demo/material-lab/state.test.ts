@@ -5,6 +5,7 @@ describe('Material Lab query state', () => {
   it('uses the complete foundation state when only the lab route is requested', () => {
     expect(readMaterialLabState('?material-lab=1')).toEqual({
       environment: 'studio-sweep',
+      finish: 'molten',
       fixture: 'foundation',
       preview: 'pill',
       recipe: 'molten-chrome',
@@ -29,10 +30,13 @@ describe('Material Lab query state', () => {
 
   it('normalizes malformed state to a safe foundation fixture', () => {
     expect(
-      readMaterialLabState('?material-lab=1&preview=wall&preset=plasma&theme=void&strength=490&paused=yes')
+      readMaterialLabState(
+        '?material-lab=1&preview=wall&preset=plasma&finish=painted&theme=void&strength=490&paused=yes'
+      )
     ).toEqual({
       fixture: 'foundation',
       environment: 'studio-sweep',
+      finish: 'molten',
       preview: 'pill',
       recipe: 'molten-chrome',
       preset: 'chromatic',
@@ -47,6 +51,7 @@ describe('Material Lab query state', () => {
       {
         fixture: 'foundation',
         environment: 'spectral-wash',
+        finish: 'brushed',
         recipe: 'copper',
         preview: 'circle',
         preset: 'gold',
@@ -57,7 +62,7 @@ describe('Material Lab query state', () => {
       '?source=review&interaction=press-hold'
     );
     expect(search).toBe(
-      '?source=review&material-lab=1&fixture=foundation&recipe=copper&environment=spectral-wash&preview=circle&preset=gold&theme=light&strength=62&paused=1'
+      '?source=review&material-lab=1&fixture=foundation&recipe=copper&environment=spectral-wash&finish=brushed&preview=circle&preset=gold&theme=light&strength=62&paused=1'
     );
     expect(readMaterialLabState('?material-lab=1&interaction=press-hold')).toEqual(
       readMaterialLabState('?material-lab=1')

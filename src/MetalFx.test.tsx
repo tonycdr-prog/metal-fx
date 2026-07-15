@@ -76,14 +76,20 @@ describe('MetalFx', () => {
 
     act(() =>
       root.render(
-        <MetalFx paused preset="silver" strength={2} theme="light">
+        <MetalFx finish="brushed" paused preset="silver" strength={2} theme="light">
           <button type="button">Use effect</button>
         </MetalFx>
       )
     );
     expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { paused: true });
     expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { opacityMul: 1 });
-    expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), { preset: 'silver', theme: 'light' });
+    expect(engine.updateInstance).toHaveBeenCalledWith(expect.anything(), {
+      preset: 'silver',
+      theme: 'light',
+      finish: 'brushed'
+    });
+    expect(engine.createInstance).toHaveBeenCalledOnce();
+    expect(container.querySelector('.metal-fx-root')?.getAttribute('data-finish')).toBe('brushed');
   });
 
   it('releases its reflection ownership by instance across StrictMode cleanup and remount', () => {

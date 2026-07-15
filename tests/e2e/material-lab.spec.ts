@@ -6,13 +6,14 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   page.on('pageerror', (error) => errors.push(error.message));
 
   await page.goto(
-    './?material-lab=1&fixture=foundation&recipe=copper&interaction=press-hold&preview=circle&preset=gold&theme=light&strength=62&paused=1'
+    './?material-lab=1&fixture=foundation&recipe=copper&interaction=press-hold&finish=brushed&preview=circle&preset=gold&theme=light&strength=62&paused=1'
   );
   await expect(page.getByRole('heading', { name: 'Explore the finish.' })).toBeVisible();
   const lab = page.getByRole('main');
   await expect(lab.getByLabel('Live Material Lab preview').locator('.metal-fx-root')).toHaveCount(1);
   await expect(lab.getByRole('button', { name: 'Circle', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(lab.getByLabel('Preset')).toHaveValue('gold');
+  await expect(lab.getByLabel('Finish')).toHaveValue('brushed');
   await expect(lab.getByLabel('Theme')).toHaveValue('light');
   await expect(lab.getByLabel('Strength')).toHaveValue('62');
   await expect(lab.getByLabel('Interaction')).toHaveCount(0);
@@ -20,6 +21,9 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
 
   await lab.getByLabel('Preset').selectOption('silver');
   await expect(page).toHaveURL(/preset=silver/);
+  await lab.getByLabel('Finish').selectOption('holographic');
+  await expect(page).toHaveURL(/finish=holographic/);
+  await expect(lab.locator('.metal-fx-root')).toHaveAttribute('data-finish', 'holographic');
   await lab.getByRole('button', { name: 'Content' }).press('Enter');
   await expect(page).toHaveURL(/preview=content/);
   await lab.getByRole('button', { name: 'Resume preview motion' }).click();

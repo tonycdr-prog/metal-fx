@@ -134,6 +134,7 @@ if (!MetalFx || PRESETS.gold.name !== 'gold' || typeof createInstance !== 'funct
       'index.ts': `import {
   MetalFx,
   PRESETS,
+  FINISHES,
   createInstance,
   destroyInstance,
   pauseShared,
@@ -142,15 +143,17 @@ if (!MetalFx || PRESETS.gold.name !== 'gold' || typeof createInstance !== 'funct
   updateInstance,
   type MetalFxInstance,
   type MetalFxPreset,
+  type MetalFxFinish,
   type MetalFxProps
 } from 'metal-fx';
 
-const props: MetalFxProps = { children: null, preset: 'gold', theme: 'dark' };
+const props: MetalFxProps = { children: null, preset: 'gold', finish: 'brushed', theme: 'dark' };
 const preset: MetalFxPreset = PRESETS.gold.name;
+const finish: MetalFxFinish = FINISHES.brushed.name;
 const rendererExports = { createInstance, destroyInstance, pauseShared, resumeShared, setSharedPreset, updateInstance };
 const instance: MetalFxInstance | null = null;
 
-void [MetalFx, props, preset, rendererExports, instance];
+void [MetalFx, props, preset, finish, rendererExports, instance];
 `
     }
   );

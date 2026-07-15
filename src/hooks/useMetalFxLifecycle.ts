@@ -1,4 +1,5 @@
 import { type MutableRefObject, type RefObject, useEffect, useLayoutEffect, useRef } from 'react';
+import type { FinishName } from '../engine/finishes';
 import { type GlowHandles, injectGlow } from '../engine/glow/glow';
 import { deleteGlowHandles, setGlowHandles } from '../engine/glow/registry';
 import type { PresetName, PresetTheme } from '../engine/presets';
@@ -29,6 +30,7 @@ interface UseMetalFxLifecycleOptions {
   ringCssPx?: number;
   scale: number;
   preset: PresetName;
+  finish: FinishName;
   resolvedTheme: PresetTheme;
   resolveRadius: (width: number, height: number) => number;
   setReady: (ready: boolean) => void;
@@ -51,6 +53,7 @@ export function useMetalFxLifecycle({
   ringCssPx,
   scale,
   preset,
+  finish,
   resolvedTheme,
   resolveRadius,
   setReady,
@@ -122,6 +125,7 @@ export function useMetalFxLifecycle({
         ringCssPx,
         scale,
         preset,
+        finish,
         theme: resolvedTheme,
         onFirstCopy: () => setReady(true),
         onContextFailure: () => {

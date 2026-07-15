@@ -1,4 +1,4 @@
-import type { MetalFxPreset } from '../../../src';
+import type { MetalFxFinish, MetalFxPreset } from '../../../src';
 import { MATERIAL_ENVIRONMENTS } from '../../material-lab/environments';
 import type { MaterialLabPreview, MaterialLabState, MaterialLabTheme } from '../../material-lab/types';
 import './material-lab-controls.css';
@@ -10,6 +10,7 @@ const PREVIEWS: { label: string; value: MaterialLabPreview }[] = [
 ];
 
 const PRESETS: MetalFxPreset[] = ['chromatic', 'silver', 'gold'];
+const FINISHES: MetalFxFinish[] = ['polished', 'brushed', 'molten', 'holographic'];
 const THEMES: MaterialLabTheme[] = ['dark', 'light'];
 
 interface MaterialLabControlsProps {
@@ -39,6 +40,17 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
           ))}
         </div>
       </fieldset>
+
+      <label>
+        Finish
+        <select onChange={(event) => onChange({ finish: event.target.value as MetalFxFinish })} value={state.finish}>
+          {FINISHES.map((finish) => (
+            <option key={finish} value={finish}>
+              {finish[0].toUpperCase() + finish.slice(1)}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <label>
         Preset

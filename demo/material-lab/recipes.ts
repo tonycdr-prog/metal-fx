@@ -8,6 +8,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     presentation: { backdrop: '#1c100b', surface: '#2a1710', content: '#fff1de' },
     state: {
       environment: 'studio-sweep',
+      finish: 'molten',
       fixture: 'foundation',
       preview: 'pill',
       preset: 'chromatic',
@@ -23,6 +24,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     presentation: { backdrop: '#e6e5e1', surface: '#f5f4ef', content: '#252a2d' },
     state: {
       environment: 'studio-sweep',
+      finish: 'brushed',
       fixture: 'foundation',
       preview: 'content',
       preset: 'silver',
@@ -38,6 +40,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     presentation: { backdrop: '#14191e', surface: '#202a32', content: '#e8edf2' },
     state: {
       environment: 'studio-sweep',
+      finish: 'polished',
       fixture: 'foundation',
       preview: 'circle',
       preset: 'silver',
@@ -53,6 +56,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     presentation: { backdrop: '#151021', surface: '#241934', content: '#f2eaff' },
     state: {
       environment: 'spectral-wash',
+      finish: 'holographic',
       fixture: 'foundation',
       preview: 'pill',
       preset: 'chromatic',
@@ -68,6 +72,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     presentation: { backdrop: '#21120d', surface: '#3a1c12', content: '#ffe9d0' },
     state: {
       environment: 'warm-cool-split',
+      finish: 'brushed',
       fixture: 'foundation',
       preview: 'content',
       preset: 'gold',
@@ -83,6 +88,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     presentation: { backdrop: '#0e1011', surface: '#171a1c', content: '#e9e7e0' },
     state: {
       environment: 'dark-tunnel',
+      finish: 'polished',
       fixture: 'foundation',
       preview: 'circle',
       preset: 'silver',
@@ -98,6 +104,7 @@ export const MATERIAL_RECIPES: readonly MaterialLabRecipe[] = [
     presentation: { backdrop: '#111126', surface: '#19183b', content: '#edf0ff' },
     state: {
       environment: 'moving-softbox',
+      finish: 'molten',
       fixture: 'foundation',
       preview: 'pill',
       preset: 'chromatic',
