@@ -261,3 +261,24 @@ test('falls back cleanly when the restored WebGL pipeline cannot rebuild', async
   await expect(upgrade).toBeEnabled();
   expect(errors).toEqual([]);
 });
+
+test('keyboard focus indication stays visible on wrapped children', async ({ browserName, page }) => {
+  await page.goto('./');
+
+  const interactive = page.getByLabel('Interaction States').getByRole('button', { name: 'Hover, focus, press' });
+  await interactive.scrollIntoViewIfNeeded();
+  // WebKit on macOS only reaches buttons with the Option modifier held.
+  const tabKey = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
+  for (let presses = 0; presses < 40; presses += 1) {
+    await page.keyboard.press(tabKey);
+    if (await interactive.evaluate((element) => element === document.activeElement)) break;
+  }
+  await expect(interactive).toBeFocused();
+
+  const outline = await interactive.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { style: style.outlineStyle, width: style.outlineWidth };
+  });
+  expect(outline.style).not.toBe('none');
+  expect(Number.parseFloat(outline.width)).toBeGreaterThan(0);
+});
