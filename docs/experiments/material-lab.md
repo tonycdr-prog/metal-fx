@@ -11,7 +11,7 @@ Open it on GitHub Pages with:
 The foundation fixture is fully query-selected so a reviewer can share an exact state:
 
 ```text
-/metal-fx/?material-lab=1&fixture=foundation&recipe=holographic&environment=spectral-wash&finish=holographic&preview=pill&preset=chromatic&theme=dark&strength=92&paused=1
+/metal-fx/?material-lab=1&fixture=foundation&recipe=holographic&environment=spectral-wash&finish=holographic&interactive=0&preview=pill&preset=chromatic&theme=dark&strength=92&paused=1
 ```
 
 Supported foundation values are:

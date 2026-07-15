@@ -66,7 +66,9 @@ test('responsive lighting repaints a paused material without moving its control'
 
   await page.mouse.down();
   await expect.poll(readCanvas).not.toBe(litFrame);
+  const pressedFrame = await readCanvas();
   await page.mouse.up();
+  await expect.poll(readCanvas).not.toBe(pressedFrame);
   await expect(button).toHaveCSS('transform', 'none');
 
   await button.focus();
@@ -75,7 +77,9 @@ test('responsive lighting repaints a paused material without moving its control'
   const focusedFrame = await readCanvas();
   await page.keyboard.down('Enter');
   await expect.poll(readCanvas).not.toBe(focusedFrame);
+  const keyboardPressedFrame = await readCanvas();
   await page.keyboard.up('Enter');
+  await expect.poll(readCanvas).not.toBe(keyboardPressedFrame);
   await expect(button).toBeFocused();
 });
 
