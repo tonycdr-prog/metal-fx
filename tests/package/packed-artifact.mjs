@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const temporary = mkdtempSync(join(tmpdir(), 'metal-fx-package-'));
+const packageName = '@tonycdr-prog/metal-fx';
 const allowedPackageFiles = new Set([
   'LICENSE',
   'README.md',
@@ -29,13 +30,13 @@ function writeFixture(name, packageJson, files) {
 
 function installTarball(fixture) {
   run('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund'], fixture);
-  const installedPath = join(fixture, 'node_modules', 'metal-fx');
+  const installedPath = join(fixture, 'node_modules', ...packageName.split('/'));
   if (lstatSync(installedPath).isSymbolicLink()) {
     throw new Error('package fixture installed a workspace symlink instead of the packed tarball');
   }
   const installed = realpathSync(installedPath);
   if (installed === root || !relative(root, installed).startsWith('..')) {
-    throw new Error('package fixture resolved metal-fx from the workspace instead of the packed tarball');
+    throw new Error(`${packageName} fixture resolved from the workspace instead of the packed tarball`);
   }
 }
 
@@ -63,13 +64,13 @@ try {
     {
       private: true,
       dependencies: {
-        'metal-fx': tarball,
+        [packageName]: tarball,
         react: '18.3.1',
         'react-dom': '18.3.1'
       }
     },
     {
-      'index.cjs': `const packageExports = require('metal-fx');
+      'index.cjs': `const packageExports = require('${packageName}');
 if (!packageExports.MetalFx || !packageExports.PRESETS || typeof packageExports.createInstance !== 'function') {
   throw new Error('CommonJS consumer did not receive the documented public exports');
 }
@@ -85,13 +86,13 @@ if (!packageExports.MetalFx || !packageExports.PRESETS || typeof packageExports.
       private: true,
       type: 'module',
       dependencies: {
-        'metal-fx': tarball,
+        [packageName]: tarball,
         react: '18.3.1',
         'react-dom': '18.3.1'
       }
     },
     {
-      'index.mjs': `import { MetalFx, PRESETS, createInstance } from 'metal-fx';
+      'index.mjs': `import { MetalFx, PRESETS, createInstance } from '${packageName}';
 if (!MetalFx || PRESETS.gold.name !== 'gold' || typeof createInstance !== 'function') {
   throw new Error('ESM consumer did not receive the documented named exports');
 }
@@ -107,7 +108,7 @@ if (!MetalFx || PRESETS.gold.name !== 'gold' || typeof createInstance !== 'funct
       private: true,
       type: 'module',
       dependencies: {
-        'metal-fx': tarball,
+        [packageName]: tarball,
         react: '18.3.1',
         'react-dom': '18.3.1'
       },
@@ -145,7 +146,7 @@ if (!MetalFx || PRESETS.gold.name !== 'gold' || typeof createInstance !== 'funct
   type MetalFxPreset,
   type MetalFxFinish,
   type MetalFxProps
-} from 'metal-fx';
+} from '${packageName}';
 
 const props: MetalFxProps = { children: null, preset: 'gold', finish: 'brushed', interactive: true, theme: 'dark' };
 const preset: MetalFxPreset = PRESETS.gold.name;

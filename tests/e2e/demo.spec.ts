@@ -48,6 +48,12 @@ test('demo mounts representative effects and keeps interactive children usable',
   const faviconUrl = await page.locator('link[rel="icon"]').evaluate((link: HTMLLinkElement) => link.href);
   expect(new URL(faviconUrl).pathname).toBe('/metal-fx/favicon.png');
   expect((await page.request.get(faviconUrl)).ok()).toBe(true);
+  await expect(page.getByLabel('Installation')).toContainText('npm install @tonycdr-prog/metal-fx');
+  await expect(page.getByLabel('Usage')).toContainText("from '@tonycdr-prog/metal-fx'");
+  await expect(page.getByRole('link', { name: 'GitHub repository' })).toHaveAttribute(
+    'href',
+    'https://github.com/tonycdr-prog/metal-fx'
+  );
 
   await expect(page.getByLabel('Effect demonstrations').locator('.metal-fx-root')).toHaveCount(2);
   await page.getByRole('button', { name: 'Silver' }).click();

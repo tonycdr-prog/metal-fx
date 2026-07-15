@@ -1,5 +1,5 @@
 {
-  "name": "metal-fx",
+  "name": "@tonycdr-prog/metal-fx",
   "version": "1.0.4",
   "description": "Animated WebGL metal shader effect for React buttons and UI components",
   "type": "module",
@@ -40,8 +40,9 @@
     "test:browser": "playwright test",
     "test:package": "node tests/package/packed-artifact.mjs",
     "audit:prod": "npm audit --omit=dev",
+    "release:check": "node scripts/check-release.mjs",
     "check": "npm run lint && npm run typecheck && npm run typecheck:demo && npm run test && npm run build && npm run build:demo && npm run package:check && npm run test:package && npm run audit:prod",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run check"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
@@ -80,12 +81,16 @@
   ],
   "author": "Jakub Antalik",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jakubantalik/metal-fx.git"
+    "url": "git+https://github.com/tonycdr-prog/metal-fx.git"
   },
   "bugs": {
-    "url": "https://github.com/Jakubantalik/metal-fx/issues"
+    "url": "https://github.com/tonycdr-prog/metal-fx/issues"
   },
-  "homepage": "https://metal.jakubantalik.com"
+  "homepage": "https://tonycdr-prog.github.io/metal-fx/"
 }

@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -26,11 +30,15 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
+      - run: npm run release:check
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
       - run: npm run check
 
   publish:
     needs: verify
     runs-on: ubuntu-latest
+    environment: npm
     permissions:
       contents: read
       id-token: write
@@ -44,13 +52,17 @@ jobs:
 
       - run: npm ci
 
+      - run: npm run release:check
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+
       - run: npm run build
 
-      # Publish; --access public is required for unscoped packages on a
-      # personal account so the registry knows the package is open. The
-      # NPM_TOKEN secret must be a "Granular Access" or "Automation" token
-      # created at https://www.npmjs.com/settings/jakubkubo/tokens with
-      # publish rights to the metal-fx package.
+      - run: npm run package:check
+
+      # Scoped packages default to private visibility, so --access public is
+      # explicit. NPM_TOKEN must be a granular token with publish rights and
+      # 2FA bypass for @tonycdr-prog/metal-fx.
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

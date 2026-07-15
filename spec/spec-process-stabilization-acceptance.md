@@ -172,8 +172,8 @@ Names may differ only if a single documented `npm run check` command invokes all
 
 ### 5.3 Packaging and Scripts
 
-- **AC-015**: Given a clean packed tarball installed into a CommonJS fixture, when `require('metal-fx')` runs on each declared supported Node version, then it returns the documented public exports without `ERR_REQUIRE_ESM`.
-- **AC-016**: Given the same tarball installed into an ESM fixture, when `import { MetalFx } from 'metal-fx'` runs, then it succeeds on each declared supported Node version.
+- **AC-015**: Given a clean packed tarball installed into a CommonJS fixture, when `require('@tonycdr-prog/metal-fx')` runs on each declared supported Node version, then it returns the documented public exports without `ERR_REQUIRE_ESM`.
+- **AC-016**: Given the same tarball installed into an ESM fixture, when `import { MetalFx } from '@tonycdr-prog/metal-fx'` runs, then it succeeds on each declared supported Node version.
 - **AC-017**: Given a strict TypeScript fixture consuming the tarball, when it type-checks, then component props and power-user exports resolve without workspace path aliases or source files.
 - **AC-018**: Given `npm pack --dry-run --json`, when the file list is inspected, then it includes the license, README, package manifest, declarations, and runtime bundles, and excludes `_redirects`, demo assets, source maps not intentionally published, and unrelated files.
 - **AC-019**: Given a clean checkout after `npm ci`, when every script in `package.json` is invoked in its intended environment, then no script fails because a referenced repository file is missing.

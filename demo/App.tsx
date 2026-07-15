@@ -36,19 +36,19 @@ export function App() {
         <h2 className="text-base font-normal leading-[34px] text-(--section-title-color) mb-1">Installation</h2>
         <div className="flex items-center h-10 bg-(--code-bg) rounded-[10px] py-0.5 pr-10 pl-3 overflow-hidden relative">
           <code className="font-[Roboto_Mono,monospace] text-sm leading-[22px] text-(--code-text) whitespace-pre overflow-x-auto min-w-0 flex-1">
-            npm install metal-fx
+            npm install @tonycdr-prog/metal-fx
           </code>
-          <CopyButton getText={() => 'npm install metal-fx'} />
+          <CopyButton getText={() => 'npm install @tonycdr-prog/metal-fx'} />
         </div>
       </section>
 
       <section className="w-full mb-6" aria-label="Usage">
         <h2 className="text-base font-normal leading-[34px] text-(--section-title-muted) mb-1">Usage</h2>
         <div className="flex items-start h-auto bg-(--code-bg) rounded-[10px] py-1.5 pr-10 pl-3 overflow-hidden relative">
-          <code className="font-[Roboto_Mono,monospace] text-sm leading-[22px] text-(--code-text) whitespace-pre overflow-x-auto min-w-0 flex-1">{`import { MetalFx } from 'metal-fx';\n\n<MetalFx preset="chromatic" strength={1}>\n  <button>Upgrade to Pro</button>\n</MetalFx>`}</code>
+          <code className="font-[Roboto_Mono,monospace] text-sm leading-[22px] text-(--code-text) whitespace-pre overflow-x-auto min-w-0 flex-1">{`import { MetalFx } from '@tonycdr-prog/metal-fx';\n\n<MetalFx preset="chromatic" strength={1}>\n  <button>Upgrade to Pro</button>\n</MetalFx>`}</code>
           <CopyButton
             getText={() =>
-              `import { MetalFx } from 'metal-fx';\n\n<MetalFx preset="chromatic" strength={1}>\n  <button>Upgrade to Pro</button>\n</MetalFx>`
+              `import { MetalFx } from '@tonycdr-prog/metal-fx';\n\n<MetalFx preset="chromatic" strength={1}>\n  <button>Upgrade to Pro</button>\n</MetalFx>`
             }
           />
         </div>
