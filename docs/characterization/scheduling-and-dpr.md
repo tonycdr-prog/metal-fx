@@ -1,6 +1,6 @@
 # Renderer Scheduling and DPR Characterization
 
-This document records current behavior; it does not introduce an optimization or a support guarantee.
+This document records the measured scheduling model and the enforced backing-buffer budget. It is not a guarantee that every GPU produces byte-identical pixels.
 
 ## Scheduling model
 
@@ -15,14 +15,18 @@ The renderer owns one shared RAF loop. On each eligible render it plans active m
 | Surface | DSF 1 | DSF 3 | Observation |
 |---|---:|---:|---|
 | Shared WebGL surface | 96×96 | 192×192 | The 96 CSS-pixel canonical surface caps at DPR 2. |
-| Circle destination (40×40 CSS px) | 40×40 | 120×120 | Destination backing dimensions follow the full device scale factor. |
-| Pill destination (140×40 CSS px) | 140×40 | 420×120 | Shape does not alter the DPR rule; only CSS dimensions differ. |
-| Reflection backing canvas | target-dependent | target-dependent, approximately 3× its DSF-1 allocation | Reflection backing includes observer-derived overscan. For a 235×40 displayed canvas the captured backing buffer was 237×42 at DSF 1 and about 711×126 at DSF 3; one backing pixel can vary with fractional layout rounding. |
+| Circle destination (40×40 CSS px) | 40×40 | 80×80 | Destination backing dimensions cap at DPR 2. |
+| Pill destination (140×40 CSS px) | 140×40 | 280×80 | Shape does not alter the DPR rule; only CSS dimensions differ. |
+| Reflection backing canvas | target-dependent | target-dependent, approximately 2× its DSF-1 width and height | Reflection backing includes observer-derived overscan and caps at DPR 2; pixel area is approximately 4× DSF 1, and one backing pixel can vary with fractional layout rounding. |
 
-Destination and reflection canvases are currently uncapped. The reflection result is intentionally recorded as current behavior: DOM bounds may not include its overscan, so backing dimensions can be larger than the displayed canvas dimensions multiplied by DPR.
+At DSF 3, the cap reduces destination and reflection pixel allocation by about 56% compared with uncapped 3× backing (`2² / 3²`). DOM bounds may not include reflection overscan, so those backing dimensions can remain slightly larger than displayed CSS bounds multiplied by the capped DPR.
 
-## Risks and follow-up candidates
+## Glow budget
 
-- High-DPR destination and reflection surfaces grow quadratically in memory; this PR does not cap them.
-- A follow-up optimization should first define acceptable visual error for a destination/reflection DPR cap, then compare fixed representative screenshots and memory calculations at DSF 2 and 3.
-- A follow-up adaptive scheduler should preserve the tested material-group pass bound, initial paused copy, visibility restart, and all-idle loop settlement as explicit acceptance criteria.
+Glow movement is eligible at most every 250ms per instance. Each renderer frame updates no more than three eligible glows and advances a round-robin cursor. At the characterized 15fps renderer cadence, 25 continuously visible instances receive a glow turn within at most nine rendered frames (about 600ms) while per-frame SVG rasterization work stays bounded. Hidden and paused instances consume no update slot.
+
+## Preserved invariants
+
+- The DPR cap changes backing resolution only; CSS layout dimensions remain unchanged.
+- Material-group pass bounds, the initial paused copy, visibility restart, and all-idle settlement remain covered.
+- The deterministic visual fixtures and cross-browser smoke tests remain the acceptance gate for perceptible regressions.
