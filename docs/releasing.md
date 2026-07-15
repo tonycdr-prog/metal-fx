@@ -7,7 +7,9 @@ registry name. The source repository remains private, while the configured npm p
 
 1. Create or confirm the `tonycdr-prog` user or organization scope on npm.
 2. Grant the publishing account write access to `@tonycdr-prog/metal-fx`.
-3. Add a granular npm access token with publish permission and 2FA bypass as the repository secret `NPM_TOKEN`.
+3. Add a granular npm access token restricted to `@tonycdr-prog/metal-fx`, with publish permission and 2FA bypass,
+   as the repository secret `NPM_TOKEN`. Rotate it regularly; revoke and replace it immediately if exposure is
+   suspected.
 4. Protect the GitHub `npm` environment if release approval is required.
 
 Do not create a release tag until this setup is complete. On 2026-07-15 the registry returned `E404` for this package;

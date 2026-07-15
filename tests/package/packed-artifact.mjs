@@ -30,7 +30,7 @@ function writeFixture(name, packageJson, files) {
 
 function installTarball(fixture) {
   run('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund'], fixture);
-  const installedPath = join(fixture, 'node_modules', '@tonycdr-prog', 'metal-fx');
+  const installedPath = join(fixture, 'node_modules', ...packageName.split('/'));
   if (lstatSync(installedPath).isSymbolicLink()) {
     throw new Error('package fixture installed a workspace symlink instead of the packed tarball');
   }
