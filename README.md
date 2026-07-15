@@ -76,10 +76,10 @@ Color and physical response are separate axes. `preset` selects the palette; `fi
 flows, bands, and separates light:
 
 ```tsx
-<MetalFx finish="polished" />     {/* Mirror-smooth current appearance (default) */}
-<MetalFx finish="brushed" />      {/* Directional machined grain */}
-<MetalFx finish="molten" />       {/* Broad liquid flow */}
-<MetalFx finish="holographic" />  {/* Spectral channel separation */}
+<MetalFx finish="polished"><button>Polished</button></MetalFx>        {/* Mirror-smooth default */}
+<MetalFx finish="brushed"><button>Brushed</button></MetalFx>         {/* Directional machined grain */}
+<MetalFx finish="molten"><button>Molten</button></MetalFx>           {/* Broad liquid flow */}
+<MetalFx finish="holographic"><button>Holographic</button></MetalFx> {/* Spectral channel separation */}
 ```
 
 Instances with the same preset, resolved theme, and finish share one shader pass. Mixing finishes intentionally adds
