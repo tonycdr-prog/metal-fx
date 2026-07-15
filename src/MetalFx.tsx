@@ -1,5 +1,6 @@
 import { type CSSProperties, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import type { GlowHandles } from './engine/glow/glow';
+import { resolveMaterial } from './engine/materials';
 import { addReflectionTarget, removeReflectionTarget } from './engine/reflection/paint';
 import { scheduleReflectionPaint } from './engine/reflection/reflectionScheduler';
 import type { MetalFxInstance } from './engine/renderer/core';
@@ -35,11 +36,12 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
   {
     children,
     variant = 'button',
-    preset = 'chromatic',
-    finish = 'polished',
+    material,
+    preset: presetProp,
+    finish: finishProp,
     interactive = false,
-    theme = 'auto',
-    strength = 1,
+    theme: themeProp,
+    strength: strengthProp,
     paused = false,
     borderRadius,
     normalizeHostStyles = true,
@@ -47,13 +49,20 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     disableGlow = false,
     shaderScale,
     ringCssPx,
-    scale = 1,
+    scale: scaleProp,
     className,
     style,
     ...rest
   },
   forwardedRef
 ) {
+  // RFC 0001 precedence: explicit prop > material token field > default.
+  const materialToken = resolveMaterial(material);
+  const preset = presetProp ?? materialToken?.preset ?? 'chromatic';
+  const finish = finishProp ?? materialToken?.finish ?? 'polished';
+  const strength = strengthProp ?? materialToken?.strength ?? 1;
+  const scale = scaleProp ?? materialToken?.scale ?? 1;
+  const theme = themeProp ?? materialToken?.theme ?? 'auto';
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const glowHostRef = useRef<HTMLDivElement | null>(null);

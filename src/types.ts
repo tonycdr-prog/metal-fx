@@ -1,5 +1,6 @@
 import type { CSSProperties, HTMLAttributes, ReactNode, RefObject } from 'react';
 import type { FinishName } from './engine/finishes';
+import type { MetalFxMaterial, MetalFxMaterialName } from './engine/materials';
 
 /**
  * Variant for the metal effect.
@@ -50,6 +51,17 @@ export interface MetalFxProps extends Omit<HTMLAttributes<HTMLDivElement>, 'chil
    * - `circle`: compact circle with a 2 px ring, scale 1.3
    */
   variant?: MetalFxVariant;
+
+  /**
+   * Material token (RFC 0001): a curated name from the `MATERIALS` registry
+   * (`'obsidian'`, `'molten-chrome'`, ...) or an inline material object.
+   * Pure sugar over the individual axes — precedence is
+   * `explicit prop > material field > component default`, so
+   * `<MetalFx material="obsidian" strength={0.4}>` renders Obsidian with
+   * only its strength overridden. Unknown runtime names (e.g. from a URL)
+   * resolve to the component defaults rather than throwing.
+   */
+  material?: MetalFxMaterialName | MetalFxMaterial;
 
   /**
    * Color preset. All three presets ship both dark and light mode tunings —

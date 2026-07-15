@@ -4,6 +4,13 @@
 export { hexToRgb } from './engine/color';
 export { FINISHES, type FinishName, type FinishProfile } from './engine/finishes';
 export {
+  isMetalFxMaterialName,
+  MATERIALS,
+  type MetalFxMaterial,
+  type MetalFxMaterialName,
+  resolveMaterial
+} from './engine/materials';
+export {
   PRESETS,
   type Preset,
   type PresetMode,
