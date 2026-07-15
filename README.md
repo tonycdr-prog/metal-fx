@@ -70,6 +70,21 @@ Three bundled palettes, each with a tuned dark and light mode block:
 <MetalFx preset="gold" />       {/* Warm gold */}
 ```
 
+## Finishes
+
+Color and physical response are separate axes. `preset` selects the palette; `finish` changes how the shader surface
+flows, bands, and separates light:
+
+```tsx
+<MetalFx finish="polished" />     {/* Mirror-smooth current appearance (default) */}
+<MetalFx finish="brushed" />      {/* Directional machined grain */}
+<MetalFx finish="molten" />       {/* Broad liquid flow */}
+<MetalFx finish="holographic" />  {/* Spectral channel separation */}
+```
+
+Instances with the same preset, resolved theme, and finish share one shader pass. Mixing finishes intentionally adds
+one pass per active material group.
+
 ## Theme
 
 ```tsx

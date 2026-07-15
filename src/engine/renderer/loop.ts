@@ -1,4 +1,6 @@
 /** Animation loop, per-frame compositing, and instance lifecycle. */
+
+import type { FinishName } from '../finishes';
 import { FRAME_INTERVAL_MS, GLOW_SKIP_FRAMES } from '../perfConfig';
 import { PRESETS, type PresetName, type PresetTheme } from '../presets';
 import {
@@ -47,6 +49,7 @@ interface CreateInstanceOptions {
   paused?: boolean;
   scale?: number;
   preset?: PresetName;
+  finish?: FinishName;
   theme?: PresetTheme;
   onAfterFrame?: () => void;
   onFirstCopy?: () => void;
@@ -78,7 +81,7 @@ export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
       scale,
       preset: opts.preset ?? renderer.defaultPresetName,
       theme: opts.theme ?? renderer.defaultPresetTheme,
-      finish: renderer.defaultFinishName,
+      finish: opts.finish ?? renderer.defaultFinishName,
       glowPixels: new Uint8Array(0),
       glowPixelsW: 0,
       glowPixelsH: 0,
@@ -137,6 +140,7 @@ export function updateInstance(
       | 'scale'
       | 'preset'
       | 'theme'
+      | 'finish'
     >
   >
 ): void {
@@ -154,6 +158,7 @@ export function updateInstance(
   if (patch.opacityMul !== undefined) inst.opacityMul = patch.opacityMul;
   if (patch.preset !== undefined) inst.preset = patch.preset;
   if (patch.theme !== undefined) inst.theme = patch.theme;
+  if (patch.finish !== undefined) inst.finish = patch.finish;
   if (patch.paused !== undefined && patch.paused !== inst.paused) {
     inst.paused = patch.paused;
     // Unpausing should kick the loop if it had idled because every visible

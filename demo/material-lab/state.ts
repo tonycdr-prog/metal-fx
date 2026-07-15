@@ -2,6 +2,7 @@ import { findMaterialEnvironment } from './environments';
 import { findMaterialRecipe } from './recipes';
 import type { MaterialLabPreview, MaterialLabState, MaterialLabTheme } from './types';
 
+const FINISHES = new Set(['polished', 'brushed', 'molten', 'holographic']);
 const PRESETS = new Set(['chromatic', 'silver', 'gold']);
 const PREVIEWS = new Set<MaterialLabPreview>(['pill', 'circle', 'content']);
 const THEMES = new Set<MaterialLabTheme>(['dark', 'light']);
@@ -20,6 +21,7 @@ export function isMaterialLabRequested(search: string): boolean {
 export function readMaterialLabState(search: string): MaterialLabState {
   const params = new URLSearchParams(search);
   const preview = params.get('preview');
+  const finish = params.get('finish');
   const preset = params.get('preset');
   const theme = params.get('theme');
   const recipe = findMaterialRecipe(params.get('recipe'));
@@ -28,6 +30,7 @@ export function readMaterialLabState(search: string): MaterialLabState {
   return {
     ...recipe.state,
     environment: environment.id,
+    finish: FINISHES.has(finish ?? '') ? (finish as MaterialLabState['finish']) : recipe.state.finish,
     recipe: recipe.id,
     preview: PREVIEWS.has(preview as MaterialLabPreview) ? (preview as MaterialLabPreview) : recipe.state.preview,
     preset: PRESETS.has(preset ?? '') ? (preset as MaterialLabState['preset']) : recipe.state.preset,
@@ -43,6 +46,7 @@ export function buildMaterialLabSearch(state: MaterialLabState, search = window.
   params.set('fixture', state.fixture);
   params.set('recipe', state.recipe);
   params.set('environment', state.environment);
+  params.set('finish', state.finish);
   params.delete('interaction');
   params.set('preview', state.preview);
   params.set('preset', state.preset);

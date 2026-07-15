@@ -1,4 +1,5 @@
 import type { CSSProperties, HTMLAttributes, ReactNode, RefObject } from 'react';
+import type { FinishName } from './engine/finishes';
 
 /**
  * Variant for the metal effect.
@@ -29,6 +30,9 @@ export type MetalFxTheme = 'dark' | 'light' | 'auto';
  */
 export type MetalFxPreset = 'chromatic' | 'silver' | 'gold';
 
+/** Physical surface response, independent from the selected color preset. */
+export type MetalFxFinish = FinishName;
+
 /**
  * Props for the MetalFx React component.
  */
@@ -53,6 +57,13 @@ export interface MetalFxProps extends Omit<HTMLAttributes<HTMLDivElement>, 'chil
    * @default 'chromatic'
    */
   preset?: MetalFxPreset;
+
+  /**
+   * Physical surface response. `preset` selects color; `finish` selects how
+   * the material flows, bands, and separates light.
+   * @default 'polished'
+   */
+  finish?: MetalFxFinish;
 
   /**
    * Theme mode. `'auto'` (default) resolves via

@@ -35,6 +35,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     children,
     variant = 'button',
     preset = 'chromatic',
+    finish = 'polished',
     theme = 'auto',
     strength = 1,
     paused = false,
@@ -88,8 +89,8 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
 
   useEffect(() => {
     const instance = instanceRef.current;
-    if (instance) updateInstance(instance, { preset, theme: resolvedTheme });
-  }, [preset, resolvedTheme]);
+    if (instance) updateInstance(instance, { preset, theme: resolvedTheme, finish });
+  }, [preset, resolvedTheme, finish]);
 
   useEffect(() => {
     const instance = instanceRef.current;
@@ -121,6 +122,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
     ringCssPx,
     scale,
     preset,
+    finish,
     resolvedTheme,
     resolveRadius,
     setReady,
@@ -176,6 +178,7 @@ export const MetalFx = forwardRef<HTMLDivElement, MetalFxProps>(function MetalFx
       data-variant={variant}
       data-shape={shape}
       data-theme={resolvedTheme}
+      data-finish={finish}
       data-paused={paused ? 'true' : undefined}
       data-fallback={fallback ? 'true' : undefined}
       data-normalize={!fallback && normalizeHostStyles ? 'true' : 'false'}

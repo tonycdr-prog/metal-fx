@@ -2,6 +2,7 @@
 // non-React integrations can drive the same renderer.
 
 export { hexToRgb } from './engine/color';
+export { FINISHES, type FinishName, type FinishProfile } from './engine/finishes';
 export {
   PRESETS,
   type Preset,
@@ -20,6 +21,7 @@ export {
 } from './engine/renderer/loop';
 export { MetalFx } from './MetalFx';
 export type {
+  MetalFxFinish,
   MetalFxPreset,
   MetalFxProps,
   MetalFxTheme,
