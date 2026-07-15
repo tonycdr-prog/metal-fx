@@ -12,7 +12,7 @@ export function Header({ theme }: { theme: Theme }) {
       <nav className="absolute top-4 right-0 flex items-center gap-4 max-sm:top-3" aria-label="External links">
         <a
           className={iconBtnClass}
-          href="https://github.com/Jakubantalik/metal-fx"
+          href="https://github.com/tonycdr-prog/metal-fx"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="GitHub repository"

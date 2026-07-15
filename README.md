@@ -2,12 +2,12 @@
 
 Animated WebGL "liquid metal" effect for React. Wrap a button, chip, or icon and it gets a real-time metal ring with optional proximity reflection on neighbouring elements.
 
-[Live demo](https://metal.jakubantalik.com) · [Repository](https://github.com/Jakubantalik/metal-fx) · [Report an issue](https://github.com/Jakubantalik/metal-fx/issues)
+[Live demo](https://tonycdr-prog.github.io/metal-fx/) · [Repository](https://github.com/tonycdr-prog/metal-fx) · [Report an issue](https://github.com/tonycdr-prog/metal-fx/issues)
 
 ## Install
 
 ```bash
-npm install metal-fx
+npm install @tonycdr-prog/metal-fx
 ```
 
 ## Compatibility
@@ -35,7 +35,7 @@ API/design project; do not treat the current package as compatible with a strict
 ## Quick start
 
 ```tsx
-import { MetalFx } from 'metal-fx';
+import { MetalFx } from '@tonycdr-prog/metal-fx';
 
 function App() {
   return (

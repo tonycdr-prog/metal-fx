@@ -38,6 +38,7 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 ## 6) `[ASK USER]` Questions
 
 1. [ASK USER] Which browser versions are officially supported beyond the Chromium, Firefox, and WebKit versions exercised by Playwright?
+2. [ASK USER] Is the `tonycdr-prog` npm scope owned and ready for the first `@tonycdr-prog/metal-fx` publication? The registry returned `E404` on 2026-07-15; no tag should be created until scope ownership and `NPM_TOKEN` are confirmed.
 
 ## 7) Resolved Hygiene Items
 
