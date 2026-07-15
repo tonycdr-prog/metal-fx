@@ -1,6 +1,6 @@
 # RFC 0001: Material tokens
 
-- Status: Draft
+- Status: Accepted (resolutions recorded below)
 - Date: 2026-07-16
 - Discussion: PR thread for this document
 - Related: #32 (environment honesty), #33 (finish legibility), #34 (public fallback signal)
@@ -32,8 +32,8 @@ interface MetalFxMaterial {
   strength: number;
   /** Master pixel-scale multiplier. Optional; default 1. */
   scale?: number;
-  /** Pin a theme side. Optional; default 'auto'. */
-  theme?: MetalFxTheme;
+  /** Optional theme pin. Omitted (default) = adapt to the host app's mode. */
+  theme?: 'dark' | 'light';
 }
 ```
 
@@ -49,7 +49,7 @@ Named materials ship as a registry, promoted from the Lab recipes:
 import { MATERIALS } from '@tonycdr-prog/metal-fx';
 
 MATERIALS['obsidian'];
-// { preset: 'silver', finish: 'polished', strength: 0.66, theme: 'dark' }
+// { preset: 'silver', finish: 'polished', strength: 0.66 }
 ```
 
 And the component accepts either a name or an object, with explicit props winning:
@@ -71,19 +71,20 @@ Precedence is `explicit prop > material field > component default`, so `material
 - Token names are kebab-case (`molten-chrome`), matching the Lab's recipe ids and URL params.
 - Unknown fields are rejected by the type and ignored at runtime (forward compatibility for additive axes).
 
-### Initial registry (tier 1 unless noted)
+### Initial registry (tier 1)
 
-| token | preset | finish | strength | theme |
-| --- | --- | --- | --- | --- |
-| `molten-chrome` | chromatic | molten | 1.0 | dark |
-| `brushed-metal` | silver | brushed | 0.76 | light |
-| `mercury` | silver | polished | 0.94 | dark |
-| `holographic` | chromatic | holographic | 0.92 | dark |
-| `copper` | gold | brushed | 0.88 | dark |
-| `obsidian` | silver | polished | 0.66 | dark |
-| `electric-plasma` | chromatic | molten | 1.0 | dark |
+| token | preset | finish | strength |
+| --- | --- | --- | --- |
+| `molten-chrome` | chromatic | molten | 1.0 |
+| `brushed-metal` | silver | brushed | 0.76 |
+| `mercury` | silver | polished | 0.94 |
+| `holographic` | chromatic | holographic | 0.92 |
+| `copper` | gold | brushed | 0.88 |
+| `obsidian` | silver | polished | 0.66 |
 
-`electric-plasma` and `molten-chrome` differ today only by Lab staging; before shipping, either differentiate them on a renderer axis or demote one to the Lab. A token that renders identically to another is not a token.
+Registry tokens do not pin `theme`: every preset ships dark and light tunings, so named materials adapt to the host app's mode (resolution 1). The Lab continues to stage each treatment on its designed theme via its presentation layer.
+
+`electric-plasma` is **demoted to a Lab-only treatment**: its renderer state is identical to `molten-chrome` (chromatic × molten × 1.0), differing only in demo staging, and a token that renders identically to another is not a token. It re-enters the registry if and when a renderer axis differentiates it (resolution 3); re-adding is a minor release, so the demotion is cheap to reverse.
 
 ### Stability contract
 
@@ -115,12 +116,12 @@ Estimated core surface: well under the 250-line module gate; no new dependencies
 - **CSS-variable-driven tokens.** Attractive for theming pipelines, but the axes drive a WebGL renderer, not CSS; a custom-property bridge can be layered later without changing the schema.
 - **Do nothing.** The Lab already demonstrates the vocabulary; but every integrator keeps hand-copying prop tuples, and nothing stops named looks from drifting silently.
 
-## Open questions
+## Resolutions (accepted 2026-07-16)
 
-1. Does `theme` belong in the material, or is it always the host app's concern? (Current lean: optional pin, omitted = follow app.)
-2. Should `strength` be renamed in the schema (e.g. `intensity`) or kept aligned with the prop? (Current lean: keep `strength`; schema/prop parity beats naming taste.)
-3. How do `electric-plasma` / `molten-chrome` get differentiated — new renderer axis, tuned values, or demotion?
-4. Do we version the registry independently (a `materialsVersion` export) so tools can detect additions without a package bump inspection?
+1. **Theme:** materials adapt to the host app's mode by default; `theme` remains an optional pin in the schema for consumers who need it, but no registry token pins it. A material that fights the app's light/dark mode causes more surprise than it prevents.
+2. **Naming:** keep `strength`. Schema/prop parity beats naming taste; two names for one knob is worse than a slightly less elegant name.
+3. **`electric-plasma`:** demoted to a Lab-only treatment until a renderer axis differentiates it from `molten-chrome` (see registry section).
+4. **Registry versioning:** skipped. It is plumbing for tooling that does not exist yet; additive and cheap to introduce later if needed.
 
 ## Rollout
 
