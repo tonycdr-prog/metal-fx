@@ -69,6 +69,20 @@ describe('useMaterialInteraction', () => {
       lightIntensity: 1,
       press: 1
     });
+    act(() => wrapper.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, clientX: 30, clientY: 20 })));
+    act(() => window.dispatchEvent(new MouseEvent('pointerup')));
+    expect(engine.updateInstance).toHaveBeenLastCalledWith(instance, { press: 1, lightIntensity: 1 });
+    act(() => window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' })));
+    expect(engine.updateInstance).toHaveBeenLastCalledWith(instance, { press: 0, lightIntensity: 1 });
+
+    act(() => button?.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: ' ' })));
+    act(() => window.dispatchEvent(new Event('blur')));
+    expect(engine.updateInstance).toHaveBeenLastCalledWith(instance, {
+      lightX: 0.5,
+      lightY: 0.5,
+      lightIntensity: 0,
+      press: 0
+    });
 
     act(() => root.render(<Harness enabled={false} instance={instance} />));
     expect(engine.updateInstance).toHaveBeenLastCalledWith(instance, {
