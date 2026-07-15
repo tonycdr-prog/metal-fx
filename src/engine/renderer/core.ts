@@ -56,6 +56,7 @@ export interface MetalFxInstance {
   glowPixelsW: number;
   glowPixelsH: number;
   glowReadbackMs: number;
+  glowUpdateMs: number;
   onAfterFrame?: () => void;
   /** One-shot callback fired after the very first copyShaderToInstance.
    *  Auto-cleared by the loop so it never fires twice. */
@@ -88,7 +89,6 @@ export interface SharedRenderer {
   frameCount: number;
   glowQueue: MetalFxInstance[];
   glowIdx: number;
-  glowSkip: number;
   contextLostListener: EventListener;
   contextRestoredListener: EventListener;
 }
@@ -270,7 +270,6 @@ export function ensureSharedRenderer(): SharedRenderer {
       frameCount: 0,
       glowQueue: [],
       glowIdx: 0,
-      glowSkip: 0,
       contextLostListener: onContextLost,
       contextRestoredListener: onContextRestored
     };

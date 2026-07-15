@@ -1,7 +1,7 @@
 /** Animation loop, per-frame compositing, and instance lifecycle. */
 
 import type { FinishName } from '../finishes';
-import { FRAME_INTERVAL_MS, GLOW_SKIP_FRAMES } from '../perfConfig';
+import { COMPOSITE_DPR_CAP, FRAME_INTERVAL_MS } from '../perfConfig';
 import { PRESETS, type PresetName, type PresetTheme } from '../presets';
 import {
   CANONICAL_PILL_H,
@@ -12,6 +12,7 @@ import {
   setContextRestoredCallback,
   teardownSharedRenderer
 } from './core';
+import { planGlowUpdates } from './glowSchedule';
 import { planRenderGroups } from './groups';
 import { renderSharedFrame } from './render';
 import { ensureGlowPixels } from './sampling';
@@ -77,7 +78,7 @@ export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
       visible: true,
       paused: opts.paused ?? false,
       everCopied: false,
-      dpr: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
+      dpr: Math.min(COMPOSITE_DPR_CAP, typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1),
       scale,
       preset: opts.preset ?? renderer.defaultPresetName,
       theme: opts.theme ?? renderer.defaultPresetTheme,
@@ -86,6 +87,7 @@ export function createInstance(opts: CreateInstanceOptions): MetalFxInstance {
       glowPixelsW: 0,
       glowPixelsH: 0,
       glowReadbackMs: -Infinity,
+      glowUpdateMs: -Infinity,
       onAfterFrame: opts.onAfterFrame,
       onFirstCopy: opts.onFirstCopy,
       onContextFailure: opts.onContextFailure
@@ -218,7 +220,7 @@ export function setGlowCallback(cb: GlowCallback | null): void {
 // ─── Internal rendering ───────────────────────────────────────────────────
 
 function resizeInstanceCanvas(inst: MetalFxInstance): void {
-  inst.dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+  inst.dpr = Math.min(COMPOSITE_DPR_CAP, typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
   const w = Math.max(1, Math.round(inst.cssWidth * inst.dpr));
   const h = Math.max(1, Math.round(inst.cssHeight * inst.dpr));
   if (inst.canvas.width !== w) inst.canvas.width = w;
@@ -300,20 +302,15 @@ function tick(now: number): void {
   if (now - lastFrameMs < FRAME_INTERVAL_MS) return;
   lastFrameMs = now;
 
-  let glowTarget: MetalFxInstance | null = null;
-  if (_glowCallback && SHARED.glowQueue.length > 0 && ++SHARED.glowSkip % GLOW_SKIP_FRAMES === 0) {
-    const queue = SHARED.glowQueue;
-    if (SHARED.glowIdx >= queue.length) SHARED.glowIdx = 0;
-    const candidate = queue[SHARED.glowIdx];
-    SHARED.glowIdx++;
-    // A paused ring keeps its last halo position; hidden instances have no
-    // visible glow to update. The next scheduled turn advances the queue.
-    if (candidate.visible && !candidate.paused) glowTarget = candidate;
-  }
+  const glowPlan = _glowCallback ? planGlowUpdates(SHARED.glowQueue, SHARED.glowIdx, now) : null;
+  const glowTargets = new Set(glowPlan?.instances ?? []);
+  if (glowPlan) SHARED.glowIdx = glowPlan.nextIndex;
 
   for (const group of planRenderGroups(SHARED.instances)) {
     renderSharedFrame(now, group.mode, group.finish);
-    if (glowTarget && group.instances.includes(glowTarget)) ensureGlowPixels(glowTarget);
+    for (const glowTarget of glowTargets) {
+      if (group.instances.includes(glowTarget)) ensureGlowPixels(glowTarget);
+    }
     let frame: CanvasImageSource = SHARED.glCanvas;
     if (SHARED.useOffscreen) frame = (SHARED.glCanvas as OffscreenCanvas).transferToImageBitmap();
     for (const inst of group.instances) {
@@ -323,7 +320,7 @@ function tick(now: number): void {
     if (frame instanceof ImageBitmap) frame.close();
   }
 
-  if (glowTarget) _glowCallback?.(glowTarget, now);
+  for (const glowTarget of glowTargets) _glowCallback?.(glowTarget, now);
 }
 
 function startSharedLoop(): void {

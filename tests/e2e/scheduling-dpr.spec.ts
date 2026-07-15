@@ -103,24 +103,25 @@ test('characterizes shared and destination canvas DPR behavior in Chromium', asy
   expect(three.shared[0]).toEqual({ height: 192, width: 192 });
 
   for (const measurement of [one, three]) {
+    const backingDpr = Math.min(2, measurement.devicePixelRatio);
     for (const shape of ['button', 'circle']) {
       const canvas = measurement.destination.find((candidate) => candidate.shape === shape);
       expect(canvas, `expected a ${shape} destination canvas`).toBeDefined();
-      expect(canvas?.width).toBe(Math.round((canvas?.cssWidth ?? 0) * measurement.devicePixelRatio));
-      expect(canvas?.height).toBe(Math.round((canvas?.cssHeight ?? 0) * measurement.devicePixelRatio));
+      expect(canvas?.width).toBe(Math.round((canvas?.cssWidth ?? 0) * backingDpr));
+      expect(canvas?.height).toBe(Math.round((canvas?.cssHeight ?? 0) * backingDpr));
     }
   }
 
   const pillAtOne = one.destination.find((candidate) => candidate.shape === 'button');
   const pillAtThree = three.destination.find((candidate) => candidate.shape === 'button');
-  expect(pillAtThree?.width).toBe((pillAtOne?.width ?? 0) * 3);
+  expect(pillAtThree?.width).toBe((pillAtOne?.width ?? 0) * 2);
   const paintedAtOne = one.reflection.filter((canvas) => canvas.width > 1 && canvas.height > 1);
   const paintedAtThree = three.reflection.filter((canvas) => canvas.width > 1 && canvas.height > 1);
   expect(paintedAtThree.length).toBeGreaterThan(0);
   expect(paintedAtThree).toHaveLength(paintedAtOne.length);
   for (const [index, canvas] of paintedAtThree.entries()) {
     const atOne = paintedAtOne[index];
-    expect(Math.abs(canvas.width - atOne.width * 3)).toBeLessThanOrEqual(1);
-    expect(Math.abs(canvas.height - atOne.height * 3)).toBeLessThanOrEqual(1);
+    expect(Math.abs(canvas.width - atOne.width * 2)).toBeLessThanOrEqual(1);
+    expect(Math.abs(canvas.height - atOne.height * 2)).toBeLessThanOrEqual(1);
   }
 });

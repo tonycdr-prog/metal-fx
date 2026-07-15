@@ -1,4 +1,6 @@
 /** Proximity reflection — public API and per-frame paint loop. */
+
+import { COMPOSITE_DPR_CAP } from '../perfConfig';
 import type { MetalFxInstance } from '../renderer/core';
 import {
   ATTACH_RANGE_PX,
@@ -163,7 +165,7 @@ export function removeReflectionTarget(el: HTMLElement, anchor: MetalFxInstance)
 
 export function paintReflections(): void {
   if (targets.size === 0) return;
-  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+  const dpr = Math.min(COMPOSITE_DPR_CAP, typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
 
   const anchorRects = new Map<HTMLElement, DOMRect>();
 

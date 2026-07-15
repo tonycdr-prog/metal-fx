@@ -22,10 +22,7 @@ No auth, tenant data, server input, or network trust boundary exists in this cli
 
 ## 4) Performance and Scaling Concerns
 
-| Concern | Evidence | Current symptom | Scaling risk | Suggested improvement |
-|---------|----------|-----------------|-------------|-----------------------|
-| Glow queue updates one instance per rendered frame | `renderer/loop.ts`, `perfConfig.ts` | At ~15 fps, N instances each update at roughly 15/N fps | Many instances produce visibly stale halo movement | Measure and set a documented instance budget or adapt work to elapsed time |
-| Full-resolution instance canvases do not cap DPR | `renderer/loop.ts:resizeInstanceCanvas`, `docs/characterization/scheduling-and-dpr.md` | Chromium DSF 3 evidence confirms GL caps at 2 while destination/reflection buffers retain full scale | Large/high-DPR elements increase memory and 2D copy cost | Establish visual/memory acceptance criteria before considering a cap or configuration |
+No unresolved renderer scaling concern is currently recorded. The enforced DPR and glow budgets remain subject to the regression evidence below.
 
 The existing visibility gating, 15fps throttle, shared GL surface, readback throttle, and last-instance teardown are strong mitigations.
 
@@ -60,6 +57,7 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 - Reflection targets now explicitly track all live owners. The first live owner supplies the reflection; removing it transfers ownership deterministically, while final cleanup removes only MetalFx-created decoration and restores only styles MetalFx still owns.
 - A deterministic visual-regression foundation now captures one fixed Chromium scene containing dark/light pill and circle effects across chromatic, gold, and silver presets. It is intentionally not a cross-engine or cross-GPU compatibility guarantee; Firefox and WebKit retain semantic smoke coverage.
 - WebGL context loss now cancels shared RAF work and restoration publishes a complete rebuilt pipeline before resuming. Rebuild failure releases renderer, glow, reflection, listener, and observer ownership before exposing the native child fallback; deterministic lifecycle tests and Chromium's real `WEBGL_lose_context` extension cover both paths.
+- Destination and reflection backing buffers now cap at DPR 2, reducing their DSF-3 pixel allocation by about 56% without changing CSS geometry. Glow updates are elapsed-time gated and processed in bounded batches of three; 25-instance unit evidence verifies fair queue coverage while browser characterization preserves visual and scheduling invariants.
 
 ## 8) Evidence
 
