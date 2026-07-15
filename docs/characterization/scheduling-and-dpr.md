@@ -17,7 +17,7 @@ The renderer owns one shared RAF loop. On each eligible render it plans active m
 | Shared WebGL surface | 96×96 | 192×192 | The 96 CSS-pixel canonical surface caps at DPR 2. |
 | Circle destination (40×40 CSS px) | 40×40 | 80×80 | Destination backing dimensions cap at DPR 2. |
 | Pill destination (140×40 CSS px) | 140×40 | 280×80 | Shape does not alter the DPR rule; only CSS dimensions differ. |
-| Reflection backing canvas | target-dependent | target-dependent, approximately 2× its DSF-1 allocation | Reflection backing includes observer-derived overscan and caps at DPR 2; one backing pixel can vary with fractional layout rounding. |
+| Reflection backing canvas | target-dependent | target-dependent, approximately 2× its DSF-1 width and height | Reflection backing includes observer-derived overscan and caps at DPR 2; pixel area is approximately 4× DSF 1, and one backing pixel can vary with fractional layout rounding. |
 
 At DSF 3, the cap reduces destination and reflection pixel allocation by about 56% compared with uncapped 3× backing (`2² / 3²`). DOM bounds may not include reflection overscan, so those backing dimensions can remain slightly larger than displayed CSS bounds multiplied by the capped DPR.
 
