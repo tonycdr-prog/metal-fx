@@ -184,8 +184,10 @@ const CSS = /* css */ `
 .metal-fx-root[data-normalize='true'] .metal-fx-content > * {
   background: transparent !important;
   border: 0 !important;
-  outline: 0 !important;
   box-shadow: none !important;
+  /* Outline is deliberately NOT normalized: the frame has no focus affordance
+     of its own, so suppressing the child's outline left wrapped controls with
+     no visible :focus-visible indicator at all (WCAG 2.4.7). */
   /* Sizing: we deliberately DO NOT force \`width: 100%; height: 100%\` on the
      child here. That used to be the contract ("the wrapper is the visible
      button surface; the child stretches to fill it"), but it created a cyclic
