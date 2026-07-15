@@ -10,8 +10,9 @@ registry name. The source repository remains private, while the configured npm p
 3. Add a granular npm access token with publish permission and 2FA bypass as the repository secret `NPM_TOKEN`.
 4. Protect the GitHub `npm` environment if release approval is required.
 
-Do not create a release tag until this setup is complete. The registry currently returns `E404` for this package,
-which is expected before its first publication but does not prove ownership of the scope.
+Do not create a release tag until this setup is complete. On 2026-07-15 the registry returned `E404` for this package;
+recheck it during release preparation because that observation will become stale after first publication. An `E404`
+does not prove ownership of the scope.
 
 ## Release sequence
 
