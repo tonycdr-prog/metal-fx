@@ -187,12 +187,21 @@ export const FRAG_SHADER_SRC = /* glsl */ `
       color = pow(max(color, vec3(0.0)), vec3(u_finishContrast));
     }
     if (u_lightIntensity > 0.0001 || u_press > 0.0001) {
+      /* Localized specular response. The falloff radius is deliberately
+         tight (dist^2 0.16 ~= radius 0.4 uv): instances sample most of the
+         shared canvas, so a wide lobe reads as a flat glow instead of a
+         light that follows the pointer. The additive term is what keeps the
+         hotspot legible on dark palette regions - a pure multiply cannot
+         brighten near-black rim pixels. */
       vec2 lightDelta = uv - u_lightPosition;
-      float lightFalloff = 1.0 - smoothstep(0.0, 0.45, dot(lightDelta, lightDelta));
-      color *= 1.0 + lightFalloff * 0.35 * u_lightIntensity;
+      float lightFalloff = 1.0 - smoothstep(0.0, 0.16, dot(lightDelta, lightDelta));
+      float hotspot = lightFalloff * lightFalloff;
+      color *= 1.0 + lightFalloff * 0.55 * u_lightIntensity;
+      color += hotspot * 0.16 * u_lightIntensity;
       if (u_press > 0.0001) {
-        float compression = 0.86 + lightFalloff * 0.34;
+        float compression = 0.82 + lightFalloff * 0.38;
         color *= mix(1.0, compression, u_press);
+        color += hotspot * 0.08 * u_press;
       }
     }
     return color;
