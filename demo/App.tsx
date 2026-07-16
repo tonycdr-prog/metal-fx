@@ -5,6 +5,7 @@ import { InteractionStates } from './components/experiments/InteractionStates';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { MaterialLab } from './components/material-lab/MaterialLab';
+import { MetalKitShowcase } from './components/metal-kit/MetalKitShowcase';
 import { Playground } from './components/Playground';
 import { VisualTestScene } from './components/VisualTestScene';
 import { useTheme } from './hooks/useTheme';
@@ -14,6 +15,7 @@ export function App() {
   const theme = useTheme();
   const visualTest = new URLSearchParams(window.location.search).has('visual-test');
   const materialLab = isMaterialLabRequested(window.location.search);
+  const metalKit = new URLSearchParams(window.location.search).get('metal-kit') === '1';
   // Strength lives on App so the Playground slider drives both the playground
   // preview AND the hero examples above. Stored as 0..100 to match the slider
   // range; consumers convert to 0..1 via `strength / 100`. Default 90% leaves
@@ -23,6 +25,7 @@ export function App() {
 
   if (visualTest) return <VisualTestScene />;
   if (materialLab) return <MaterialLab />;
+  if (metalKit) return <MetalKitShowcase />;
 
   return (
     <main className="flex flex-col items-center max-w-[883px] mx-auto w-full px-6 pb-16 max-sm:px-4 max-sm:pb-12">
