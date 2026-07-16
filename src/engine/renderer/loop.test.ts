@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { FINISHES } from '../finishes';
 import type { MetalFxInstance } from './core';
 import { createInstance, destroyInstance, setInstanceVisible, updateInstance } from './loop';
 
@@ -184,8 +185,8 @@ describe('shared renderer scheduling characterization', () => {
     expect(drawArrays).toHaveBeenCalledTimes(2);
     expect(contexts.get(polished.canvas)?.drawImage).toHaveBeenCalledTimes(1);
     expect(contexts.get(brushed.canvas)?.drawImage).toHaveBeenCalledTimes(1);
-    expect(uniform1f).toHaveBeenCalledWith('u_finishGrain', 0.16);
-    expect(uniform1f).toHaveBeenCalledWith('u_finishGrainScale', 52);
+    expect(uniform1f).toHaveBeenCalledWith('u_finishGrain', FINISHES.brushed.grain);
+    expect(uniform1f).toHaveBeenCalledWith('u_finishGrainScale', FINISHES.brushed.grainScale);
 
     destroyInstance(polished);
     destroyInstance(brushed);

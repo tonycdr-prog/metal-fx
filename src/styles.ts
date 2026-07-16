@@ -50,7 +50,7 @@ const CSS = /* css */ `
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 .metal-fx-root[data-theme='light']::after {
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 /* Circle variant gets a thicker outer rim than the button variant. */
 .metal-fx-root[data-variant='circle']::after {

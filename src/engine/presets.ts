@@ -6,10 +6,15 @@
  *   • preset-silver-both-modes.json
  *   • preset-gold-both-modes.json
  *
- * Each preset carries a `dark` and `light` mode block. Values are reproduced
- * byte-for-byte (including the `chromatic.dark.scale = 1.6` quirk that gives
- * the dark chromatic preset its noticeably chunkier features compared with
- * the other dark-mode entries).
+ * Each preset carries a `dark` and `light` mode block. Dark-mode values are
+ * reproduced byte-for-byte (including the `chromatic.dark.scale = 1.6` quirk
+ * that gives the dark chromatic preset its noticeably chunkier features
+ * compared with the other dark-mode entries). Light-mode palettes were
+ * retuned in-repo (#42): the canonical light palettes carried no shadow
+ * anchors (every active stop ≥ #adadad), which rendered the rim invisible
+ * against light surroundings. Each light palette now mirrors its dark
+ * counterpart's anchor structure with darker tinted stops between white
+ * speculars; every other light-mode parameter is still canonical.
  *
  * The fragment shader only consumes uniforms 1..5 of `palette`/`alphas` for
  * the Plasma effect, but the JSON ships 7 colors / alphas to stay
@@ -78,7 +83,12 @@ const CHROMATIC: Preset = {
       shaderOpacity: 1
     },
     light: {
-      colors: ['#ffffff', '#ffffff', '#ffffff', '#ffb3b3', '#adadad', '#f5ff70', '#007cff'],
+      /* Light-mode palettes were retuned from the canonical JSON (#42): the
+         originals had no shadow anchors (all stops ≥ #adadad), so the rim
+         disappeared against light surroundings. Contrast now comes from
+         below — darker cool/tinted anchors between white speculars — while
+         keeping the chromatic pastel identity. */
+      colors: ['#8fa0b5', '#ffffff', '#c3d8cd', '#e2989e', '#8b909a', '#f5ff70', '#007cff'],
       alphas: [1, 1, 1, 1, 1, 1, 1],
       direction: 80,
       speed: 1.2,
@@ -117,7 +127,10 @@ const SILVER: Preset = {
       shaderOpacity: 0.88
     },
     light: {
-      colors: ['#f6f6f6', '#ffffff', '#ffffff', '#f7f7f7', '#c9c9c9', '#d0d0d0', '#d1d1d1'],
+      /* Retuned (#42): mirrors the dark palette's anchor structure — steel
+         mid-greys at stops 1/3/5, white speculars between — so brushed
+         grain and the sweep have luminance range to modulate on white. */
+      colors: ['#a4a9af', '#ffffff', '#7f848b', '#f2f3f4', '#b7bbc0', '#d0d0d0', '#d1d1d1'],
       alphas: [1, 1, 1, 1, 1, 1, 1],
       direction: 80,
       speed: 1.2,
@@ -156,7 +169,9 @@ const GOLD: Preset = {
       shaderOpacity: 0.92
     },
     light: {
-      colors: ['#fff8e1', '#fffbe0', '#ffffff', '#fff6d6', '#d2c7a7', '#dcd2bc', '#f9f7e5'],
+      /* Retuned (#42): bronze anchors under cream speculars keep the warm
+         identity while giving the rim real depth on light surfaces. */
+      colors: ['#b09c72', '#fffbe0', '#ffffff', '#d9c491', '#9b8a62', '#dcd2bc', '#f9f7e5'],
       alphas: [1, 1, 1, 1, 1, 1, 1],
       direction: 80,
       speed: 1.2,

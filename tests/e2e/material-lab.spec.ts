@@ -125,3 +125,57 @@ test('leaves the standard demo and visual fixture routes intact', async ({ page 
   await page.goto('./?visual-test=1');
   await expect(page.locator('[data-visual-test-scene]')).toBeVisible();
 });
+
+test('responsive lighting visibly follows the pointer across the material', async ({ browserName, page }) => {
+  test.skip(browserName !== 'chromium', 'Pixel readback timing is only deterministic enough in Chromium.');
+  await page.goto('./?material-lab=1&recipe=mercury&preview=pill&interactive=1&paused=0&strength=100');
+  const frame = page.locator('.material-lab-stage .metal-fx-root').first();
+  await expect(frame).toBeVisible();
+  await expect(frame).not.toHaveAttribute('data-fallback', 'true');
+
+  // Average ring luminance per half over several frames so the ambient
+  // animation cancels out and only the pointer-following term remains.
+  const sideBias = async () => {
+    let bias = 0;
+    for (let sample = 0; sample < 8; sample += 1) {
+      bias += await frame.evaluate((root) => {
+        const canvas = root.querySelector('canvas') as HTMLCanvasElement;
+        const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+        const { width, height } = canvas;
+        const pixels = context.getImageData(0, 0, width, height).data;
+        let left = 0;
+        let right = 0;
+        let leftCount = 0;
+        let rightCount = 0;
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            const index = (y * width + x) * 4;
+            const alpha = pixels[index + 3];
+            if (alpha < 10) continue;
+            const luminance = ((pixels[index] + pixels[index + 1] + pixels[index + 2]) / 3) * (alpha / 255);
+            if (x < width / 2) {
+              left += luminance;
+              leftCount += 1;
+            } else {
+              right += luminance;
+              rightCount += 1;
+            }
+          }
+        }
+        return left / Math.max(1, leftCount) - right / Math.max(1, rightCount);
+      });
+      await page.waitForTimeout(180);
+    }
+    return bias / 8;
+  };
+
+  const box = (await frame.boundingBox()) as { x: number; y: number; width: number; height: number };
+  await page.mouse.move(box.x + box.width * 0.08, box.y + box.height / 2, { steps: 4 });
+  const biasWithPointerLeft = await sideBias();
+  await page.mouse.move(box.x + box.width * 0.92, box.y + box.height / 2, { steps: 4 });
+  const biasWithPointerRight = await sideBias();
+
+  // The lit side must follow the pointer: left-bias when the pointer is on
+  // the left must exceed left-bias when it is on the right by a clear margin.
+  expect(biasWithPointerLeft).toBeGreaterThan(biasWithPointerRight + 4);
+});
