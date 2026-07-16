@@ -102,6 +102,15 @@
 .material-lab-preview-light .material-lab-content-card span {
   color: rgba(18, 18, 18, 0.56);
 }
+/* Pill and circle need the same light-theme treatment as the card: the
+   library's light surface is white and normalization strips the child's own
+   dark fill, so without these the label renders white-on-white. */
+.material-lab-preview-light .material-lab-pill,
+.material-lab-preview-light .material-lab-circle {
+  background: #f8f8f6;
+  border-color: rgba(18, 18, 18, 0.12);
+  color: #171719;
+}
 .material-lab-preview-details {
   align-items: start;
   display: flex;
