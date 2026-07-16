@@ -92,6 +92,50 @@ describe('MetalFx', () => {
     expect(container.querySelector('.metal-fx-root')?.getAttribute('data-finish')).toBe('brushed');
   });
 
+  it('applies material tokens with explicit props taking precedence (RFC 0001)', () => {
+    act(() =>
+      root.render(
+        <MetalFx material="copper">
+          <button type="button">Use effect</button>
+        </MetalFx>
+      )
+    );
+    const rootEl = container.querySelector('.metal-fx-root') as HTMLElement;
+    expect(rootEl.getAttribute('data-finish')).toBe('brushed');
+    expect(rootEl.style.getPropertyValue('--mfx-strength')).toBe('0.88');
+    expect(engine.updateInstance).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ preset: 'gold', finish: 'brushed' })
+    );
+
+    act(() =>
+      root.render(
+        <MetalFx material="copper" finish="polished" strength={0.4}>
+          <button type="button">Use effect</button>
+        </MetalFx>
+      )
+    );
+    expect(rootEl.getAttribute('data-finish')).toBe('polished');
+    expect(rootEl.style.getPropertyValue('--mfx-strength')).toBe('0.4');
+    expect(engine.updateInstance).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ preset: 'gold', finish: 'polished' })
+    );
+  });
+
+  it('falls back to component defaults for unknown runtime material names', () => {
+    act(() =>
+      root.render(
+        <MetalFx material={'typo-material' as never}>
+          <button type="button">Use effect</button>
+        </MetalFx>
+      )
+    );
+    const rootEl = container.querySelector('.metal-fx-root') as HTMLElement;
+    expect(rootEl.getAttribute('data-finish')).toBe('polished');
+    expect(rootEl.style.getPropertyValue('--mfx-strength')).toBe('1');
+  });
+
   it('releases its reflection ownership by instance across StrictMode cleanup and remount', () => {
     const target = { current: document.createElement('button') };
     act(() =>
