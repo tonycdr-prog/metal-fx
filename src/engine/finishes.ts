@@ -29,11 +29,15 @@ export const FINISHES: Record<FinishName, FinishProfile> = {
   },
   brushed: {
     name: 'brushed',
-    grain: 0.16,
-    grainScale: 52,
+    /* Grain is the identity of this finish, and it has to survive being
+       sampled into a 1-2 px ring: stronger banding at a lower spatial
+       frequency keeps individual brush lines wider than a device pixel.
+       The previous 0.16 / 52 tuning read as polished at ring width. */
+    grain: 0.34,
+    grainScale: 30,
     flow: 0.03,
     spectral: 0,
-    contrast: 0.9,
+    contrast: 0.97,
     speed: 0.42
   },
   molten: {
