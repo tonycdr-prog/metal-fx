@@ -71,6 +71,10 @@ export function MaterialLabPreview({
           theme={state.theme}
           variant={state.preview === 'circle' ? 'circle' : 'button'}
           strength={state.strength / 100}
+          // The content card is ~2.3x the canonical pill footprint; without a
+          // matching scale it receives the same 1px ring and pattern density
+          // as a small button, which reads as no material at all.
+          scale={state.preview === 'content' ? 1.75 : 1}
         >
           <PreviewContent preview={state.preview} />
         </MetalFx>
