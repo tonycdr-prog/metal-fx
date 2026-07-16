@@ -5,7 +5,7 @@ import type { MaterialLabRecipe, MaterialLabState } from '../../material-lab/typ
 import './material-lab-preview.css';
 
 interface MaterialLabPreviewProps {
-  environment: { animated: boolean; id: MaterialLabEnvironment; label: string; surface: string };
+  environment: { animated: boolean; id: MaterialLabEnvironment; label: string; surface: string; lightSurface: string };
   pageVisible: boolean;
   recipe: MaterialLabRecipe;
   reducedMotion: boolean;
@@ -59,7 +59,7 @@ export function MaterialLabPreview({
       <div
         className={`material-lab-stage ${animateEnvironment ? 'material-lab-environment-moving' : ''}`}
         data-testid="material-lab-stage"
-        style={{ background: environment.surface }}
+        style={{ background: state.theme === 'light' ? environment.lightSurface : environment.surface }}
       >
         <MetalFx
           disableGlow={reducedMotion}
@@ -78,13 +78,18 @@ export function MaterialLabPreview({
         >
           <PreviewContent preview={state.preview} />
         </MetalFx>
-        <aside
-          aria-label="Supported reflection target"
-          className="material-lab-reflection-target"
-          ref={reflectionTarget}
-        >
-          Nearby surface
-        </aside>
+        {/* Reflections only render in dark mode, so the chip only appears
+            there — showing a "reflection target" that receives nothing was
+            misleading in light previews. */}
+        {state.theme === 'dark' && (
+          <aside
+            aria-label="Supported reflection target"
+            className="material-lab-reflection-target"
+            ref={reflectionTarget}
+          >
+            Nearby surface
+          </aside>
+        )}
       </div>
       <footer className="material-lab-preview-details">
         <p>{recipe.description}</p>
