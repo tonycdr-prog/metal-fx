@@ -133,3 +133,9 @@
   cursor: not-allowed;
   opacity: 0.45;
 }
+.material-lab-controls button:disabled,
+.material-lab-controls select:disabled,
+.material-lab-controls input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
