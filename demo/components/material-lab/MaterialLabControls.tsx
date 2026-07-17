@@ -19,10 +19,18 @@ interface MaterialLabControlsProps {
    *  Shape, backdrop and theme still affect the static presentation. */
   fallback?: boolean;
   onChange: (patch: Partial<MaterialLabState>) => void;
+  /** prefers-reduced-motion forces the preview static; the pause toggle is
+   *  disabled rather than pretending it still governs motion (#35). */
+  reducedMotion?: boolean;
   state: MaterialLabState;
 }
 
-export function MaterialLabControls({ fallback = false, onChange, state }: MaterialLabControlsProps) {
+export function MaterialLabControls({
+  fallback = false,
+  onChange,
+  reducedMotion = false,
+  state
+}: MaterialLabControlsProps) {
   return (
     <form className="material-lab-controls" aria-label="Material Lab controls">
       <header>
@@ -145,7 +153,7 @@ export function MaterialLabControls({ fallback = false, onChange, state }: Mater
       <button
         aria-pressed={state.paused}
         className="material-lab-motion-toggle"
-        disabled={fallback}
+        disabled={fallback || reducedMotion}
         onClick={() => onChange({ paused: !state.paused })}
         type="button"
       >

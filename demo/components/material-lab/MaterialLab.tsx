@@ -57,7 +57,7 @@ export function MaterialLab() {
           reducedMotion={reducedMotion}
           state={state}
         />
-        <MaterialLabControls fallback={fallback} onChange={updateState} state={state} />
+        <MaterialLabControls fallback={fallback} onChange={updateState} reducedMotion={reducedMotion} state={state} />
       </div>
     </main>
   );
