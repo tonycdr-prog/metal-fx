@@ -13,7 +13,8 @@ describe('Material Lab query state', () => {
       preset: 'chromatic',
       theme: 'dark',
       strength: 100,
-      paused: false
+      paused: false,
+      zoom: 1
     });
     expect(readMaterialLabState('?material-lab=1&strength=').strength).toBe(100);
   });
@@ -44,7 +45,8 @@ describe('Material Lab query state', () => {
       preset: 'chromatic',
       theme: 'dark',
       strength: 100,
-      paused: false
+      paused: false,
+      zoom: 1
     });
   });
 
@@ -60,16 +62,24 @@ describe('Material Lab query state', () => {
         preset: 'gold',
         theme: 'light',
         strength: 62,
-        paused: true
+        paused: true,
+        zoom: 1.5
       },
       '?source=review&interaction=press-hold'
     );
     expect(search).toBe(
-      '?source=review&material-lab=1&fixture=foundation&recipe=copper&environment=spectral-wash&finish=brushed&interactive=1&preview=circle&preset=gold&theme=light&strength=62&paused=1'
+      '?source=review&material-lab=1&fixture=foundation&recipe=copper&environment=spectral-wash&finish=brushed&interactive=1&preview=circle&preset=gold&theme=light&strength=62&paused=1&zoom=1.5'
     );
     expect(readMaterialLabState('?material-lab=1&interaction=press-hold')).toEqual(
       readMaterialLabState('?material-lab=1')
     );
     expect(isMaterialLabRequested(search)).toBe(true);
+  });
+
+  it('snaps the zoom override to the nearest supported step', () => {
+    expect(readMaterialLabState('?material-lab=1&zoom=2').zoom).toBe(2);
+    expect(readMaterialLabState('?material-lab=1&zoom=1.4').zoom).toBe(1.5);
+    expect(readMaterialLabState('?material-lab=1&zoom=99').zoom).toBe(2);
+    expect(readMaterialLabState('?material-lab=1&zoom=junk').zoom).toBe(1);
   });
 });

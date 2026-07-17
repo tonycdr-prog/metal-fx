@@ -24,7 +24,12 @@ export interface MaterialLabState {
   recipe: MaterialLabRecipeId;
   strength: number;
   theme: MaterialLabTheme;
+  /** Material inspection scale (1 | 1.5 | 2). Not part of a recipe: it is a
+   *  viewing tool that survives treatment switches. */
+  zoom: MaterialLabZoom;
 }
+
+export type MaterialLabZoom = 1 | 1.5 | 2;
 
 export interface MaterialLabRecipe {
   description: string;
@@ -35,5 +40,5 @@ export interface MaterialLabRecipe {
     content: string;
     surface: string;
   };
-  state: Omit<MaterialLabState, 'recipe'>;
+  state: Omit<MaterialLabState, 'recipe' | 'zoom'>;
 }
