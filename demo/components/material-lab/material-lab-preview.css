@@ -25,6 +25,8 @@
   border-radius: 13px;
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.05);
   display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
   justify-content: center;
   min-height: 450px;
   overflow: hidden;
@@ -47,10 +49,12 @@
   font-size: 10px;
   letter-spacing: 0.06em;
   padding: 8px 11px;
-  position: absolute;
-  right: 18px;
+  /* In flow beside the control: proximity reflections fall off with
+     distance, so a corner-parked "nearby surface" received nothing and the
+     label was a lie. Adjacent placement mirrors real usage (chips next to a
+     send button). */
+  position: relative;
   text-transform: uppercase;
-  top: 18px;
 }
 .material-lab-pill,
 .material-lab-circle,
