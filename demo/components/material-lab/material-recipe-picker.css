@@ -47,3 +47,17 @@
   outline: 2px solid rgba(255, 255, 255, 0.72);
   outline-offset: 2px;
 }
+@media (max-width: 780px) {
+  /* The row scrolls with hidden scrollbars; fade the trailing edge so the
+     off-screen treatments are discoverable rather than accidental (#35). */
+  .material-recipe-picker div {
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 32px), transparent);
+  }
+  .material-recipe-picker button {
+    /* Safari ignores min-height on plain buttons; flex display restores it. */
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    min-height: 44px;
+  }
+}

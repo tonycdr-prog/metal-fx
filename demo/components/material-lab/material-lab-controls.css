@@ -110,6 +110,22 @@
   .material-lab-controls {
     position: static;
   }
+  /* 44px touch targets at the touch-first breakpoint (#35). */
+  .material-lab-controls button,
+  .material-lab-controls select {
+    min-height: 44px;
+  }
+  .material-lab-controls select {
+    /* Safari also ignores min-height on selects; they are single-line, so a
+       fixed height is safe. */
+    height: 44px;
+  }
+  .material-lab-controls button {
+    /* Safari ignores min-height on plain buttons; flex display restores it. */
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+  }
 }
 .material-lab-controls button:disabled,
 .material-lab-controls select:disabled,

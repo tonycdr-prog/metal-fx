@@ -220,3 +220,22 @@ test('reports the static fallback and disables shader-only controls when WebGL i
   await expect(page).toHaveURL(/preview=circle/);
   expect(errors).toEqual([]);
 });
+
+test('applies touch-first affordances on mobile and honors forced-static reduced motion', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('./?material-lab=1');
+  const main = page.getByRole('main');
+
+  const picker = main.getByRole('navigation', { name: 'Experimental material treatments' });
+  const pickerButton = picker.getByRole('button', { name: 'Molten chrome' });
+  const pickerBox = (await pickerButton.boundingBox()) as { height: number };
+  expect(pickerBox.height).toBeGreaterThanOrEqual(44);
+  await expect(picker.locator('div')).toHaveCSS('mask-image', /linear-gradient/);
+
+  const finishBox = (await main.getByLabel('Finish').boundingBox()) as { height: number };
+  expect(finishBox.height).toBeGreaterThanOrEqual(44);
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(main.getByText('Reduced motion: static')).toBeVisible();
+  await expect(main.getByRole('button', { name: 'Pause preview motion' })).toBeDisabled();
+});
