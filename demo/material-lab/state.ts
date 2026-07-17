@@ -1,6 +1,6 @@
 import { findMaterialEnvironment } from './environments';
 import { findMaterialRecipe } from './recipes';
-import type { MaterialLabPreview, MaterialLabState, MaterialLabTheme } from './types';
+import type { MaterialLabPreview, MaterialLabState, MaterialLabTheme, MaterialLabZoom } from './types';
 
 const FINISHES = new Set(['polished', 'brushed', 'molten', 'holographic']);
 const PRESETS = new Set(['chromatic', 'silver', 'gold']);
@@ -12,6 +12,14 @@ function clampStrength(value: string | null, fallback: number): number {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.round(Math.min(100, Math.max(0, parsed)));
+}
+
+const ZOOMS: readonly MaterialLabZoom[] = [1, 1.5, 2];
+
+function clampZoom(value: string | null): MaterialLabZoom {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  return ZOOMS.reduce((best, zoom) => (Math.abs(zoom - parsed) < Math.abs(best - parsed) ? zoom : best), ZOOMS[0]);
 }
 
 export function isMaterialLabRequested(search: string): boolean {
@@ -36,6 +44,7 @@ export function readMaterialLabState(search: string): MaterialLabState {
     preset: PRESETS.has(preset ?? '') ? (preset as MaterialLabState['preset']) : recipe.state.preset,
     theme: THEMES.has(theme as MaterialLabTheme) ? (theme as MaterialLabTheme) : recipe.state.theme,
     strength: clampStrength(params.get('strength'), recipe.state.strength),
+    zoom: clampZoom(params.get('zoom')),
     interactive: params.get('interactive') === '1',
     paused: params.get('paused') === '1'
   };
@@ -55,5 +64,6 @@ export function buildMaterialLabSearch(state: MaterialLabState, search = window.
   params.set('theme', state.theme);
   params.set('strength', String(state.strength));
   params.set('paused', state.paused ? '1' : '0');
+  params.set('zoom', String(state.zoom));
   return `?${params.toString()}`;
 }

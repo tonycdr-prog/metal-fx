@@ -41,6 +41,10 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   await expect(stage).toHaveClass(/material-lab-environment-moving/);
   await lab.getByRole('button', { name: 'Pause preview motion' }).click();
   await expect(stage).not.toHaveClass(/material-lab-environment-moving/);
+  await lab.getByRole('button', { name: '2×' }).click();
+  await expect(page).toHaveURL(/zoom=2/);
+  await expect(lab.getByRole('button', { name: '2×' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(lab.getByRole('button', { name: '1×', exact: true })).toHaveAttribute('aria-pressed', 'false');
   expect(errors).toEqual([]);
 });
 

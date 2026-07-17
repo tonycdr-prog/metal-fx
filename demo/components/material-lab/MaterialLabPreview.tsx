@@ -73,8 +73,10 @@ export function MaterialLabPreview({
           strength={state.strength / 100}
           // The content card is ~2.3x the canonical pill footprint; without a
           // matching scale it receives the same 1px ring and pattern density
-          // as a small button, which reads as no material at all.
-          scale={state.preview === 'content' ? 1.75 : 1}
+          // as a small button. The zoom factor is the Lab's inspection
+          // control (#33): it thickens the ring and grows pattern features
+          // via the public scale prop without faking DOM zoom.
+          scale={(state.preview === 'content' ? 1.75 : 1) * state.zoom}
         >
           <PreviewContent preview={state.preview} />
         </MetalFx>

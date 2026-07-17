@@ -1,6 +1,6 @@
 import type { MetalFxFinish, MetalFxPreset } from '../../../src';
 import { MATERIAL_ENVIRONMENTS } from '../../material-lab/environments';
-import type { MaterialLabPreview, MaterialLabState, MaterialLabTheme } from '../../material-lab/types';
+import type { MaterialLabPreview, MaterialLabState, MaterialLabTheme, MaterialLabZoom } from '../../material-lab/types';
 import './material-lab-controls.css';
 
 const PREVIEWS: { label: string; value: MaterialLabPreview }[] = [
@@ -12,6 +12,7 @@ const PREVIEWS: { label: string; value: MaterialLabPreview }[] = [
 const PRESETS: MetalFxPreset[] = ['chromatic', 'silver', 'gold'];
 const FINISHES: MetalFxFinish[] = ['polished', 'brushed', 'molten', 'holographic'];
 const THEMES: MaterialLabTheme[] = ['dark', 'light'];
+const ZOOMS: MaterialLabZoom[] = [1, 1.5, 2];
 
 interface MaterialLabControlsProps {
   onChange: (patch: Partial<MaterialLabState>) => void;
@@ -101,6 +102,17 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
           value={state.strength}
         />
       </div>
+
+      <fieldset>
+        <legend>Material scale</legend>
+        <div className="material-lab-segmented">
+          {ZOOMS.map((zoom) => (
+            <button aria-pressed={state.zoom === zoom} key={zoom} onClick={() => onChange({ zoom })} type="button">
+              {zoom}×
+            </button>
+          ))}
+        </div>
+      </fieldset>
 
       <button
         aria-pressed={state.interactive}
