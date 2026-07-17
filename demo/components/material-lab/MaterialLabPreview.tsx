@@ -1,10 +1,13 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MetalFx } from '../../../src';
 import type { MaterialLabEnvironment } from '../../material-lab/environments';
 import type { MaterialLabRecipe, MaterialLabState } from '../../material-lab/types';
 import './material-lab-preview.css';
 
 interface MaterialLabPreviewProps {
+  /** Reports the library's WebGL-fallback state so the Lab can disable
+   *  shader-only controls instead of offering silent no-ops (#34). */
+  onFallbackChange?: (fallback: boolean) => void;
   environment: { animated: boolean; id: MaterialLabEnvironment; label: string; surface: string; lightSurface: string };
   pageVisible: boolean;
   recipe: MaterialLabRecipe;
@@ -37,6 +40,7 @@ function PreviewContent({ preview }: Pick<MaterialLabState, 'preview'>) {
 
 export function MaterialLabPreview({
   environment,
+  onFallbackChange,
   pageVisible,
   recipe,
   reducedMotion,
@@ -45,6 +49,25 @@ export function MaterialLabPreview({
   const isPaused = reducedMotion || state.paused;
   const reflectionTarget = useRef<HTMLElement>(null);
   const reflectionTargets = useMemo(() => [reflectionTarget], []);
+  const metalRef = useRef<HTMLDivElement>(null);
+  const [fallback, setFallback] = useState(false);
+
+  // The public fallback signal is the root's data-fallback attribute; watch
+  // it so the status line and controls reflect reality on WebGL-less
+  // browsers instead of claiming active motion (#34).
+  useEffect(() => {
+    const root = metalRef.current;
+    if (!root) return;
+    const read = () => {
+      const next = root.dataset.fallback === 'true';
+      setFallback(next);
+      onFallbackChange?.(next);
+    };
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(root, { attributeFilter: ['data-fallback'], attributes: true });
+    return () => observer.disconnect();
+  }, [onFallbackChange]);
   const animateEnvironment = environment.animated && pageVisible && !reducedMotion && !isPaused;
   return (
     <section
@@ -54,7 +77,15 @@ export function MaterialLabPreview({
     >
       <div className="material-lab-preview-meta">
         <span>{recipe.label}</span>
-        <span>{reducedMotion ? 'Reduced motion: static' : isPaused ? 'Motion paused' : 'Motion active'}</span>
+        <span>
+          {fallback
+            ? 'Static fallback — WebGL unavailable'
+            : reducedMotion
+              ? 'Reduced motion: static'
+              : isPaused
+                ? 'Motion paused'
+                : 'Motion active'}
+        </span>
       </div>
       <div
         className={`material-lab-stage ${animateEnvironment ? 'material-lab-environment-moving' : ''}`}
@@ -62,6 +93,7 @@ export function MaterialLabPreview({
         style={{ background: state.theme === 'light' ? environment.lightSurface : environment.surface }}
       >
         <MetalFx
+          ref={metalRef}
           disableGlow={reducedMotion}
           finish={state.finish}
           interactive={state.interactive}

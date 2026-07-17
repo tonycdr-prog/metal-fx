@@ -15,11 +15,14 @@ const THEMES: MaterialLabTheme[] = ['dark', 'light'];
 const ZOOMS: MaterialLabZoom[] = [1, 1.5, 2];
 
 interface MaterialLabControlsProps {
+  /** WebGL fallback: shader-only controls are inert, so disable them (#34).
+   *  Shape, backdrop and theme still affect the static presentation. */
+  fallback?: boolean;
   onChange: (patch: Partial<MaterialLabState>) => void;
   state: MaterialLabState;
 }
 
-export function MaterialLabControls({ onChange, state }: MaterialLabControlsProps) {
+export function MaterialLabControls({ fallback = false, onChange, state }: MaterialLabControlsProps) {
   return (
     <form className="material-lab-controls" aria-label="Material Lab controls">
       <header>
@@ -44,7 +47,11 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
 
       <label>
         Finish
-        <select onChange={(event) => onChange({ finish: event.target.value as MetalFxFinish })} value={state.finish}>
+        <select
+          disabled={fallback}
+          onChange={(event) => onChange({ finish: event.target.value as MetalFxFinish })}
+          value={state.finish}
+        >
           {FINISHES.map((finish) => (
             <option key={finish} value={finish}>
               {finish[0].toUpperCase() + finish.slice(1)}
@@ -55,7 +62,11 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
 
       <label>
         Preset
-        <select onChange={(event) => onChange({ preset: event.target.value as MetalFxPreset })} value={state.preset}>
+        <select
+          disabled={fallback}
+          onChange={(event) => onChange({ preset: event.target.value as MetalFxPreset })}
+          value={state.preset}
+        >
           {PRESETS.map((preset) => (
             <option key={preset} value={preset}>
               {preset[0].toUpperCase() + preset.slice(1)}
@@ -93,6 +104,7 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
         <label htmlFor="material-lab-strength">Strength</label>
         <output htmlFor="material-lab-strength">{state.strength}%</output>
         <input
+          disabled={fallback}
           id="material-lab-strength"
           max="100"
           min="0"
@@ -107,7 +119,13 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
         <legend>Material scale</legend>
         <div className="material-lab-segmented">
           {ZOOMS.map((zoom) => (
-            <button aria-pressed={state.zoom === zoom} key={zoom} onClick={() => onChange({ zoom })} type="button">
+            <button
+              aria-pressed={state.zoom === zoom}
+              disabled={fallback}
+              key={zoom}
+              onClick={() => onChange({ zoom })}
+              type="button"
+            >
               {zoom}×
             </button>
           ))}
@@ -117,6 +135,7 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
       <button
         aria-pressed={state.interactive}
         className="material-lab-motion-toggle"
+        disabled={fallback}
         onClick={() => onChange({ interactive: !state.interactive })}
         type="button"
       >
@@ -126,6 +145,7 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
       <button
         aria-pressed={state.paused}
         className="material-lab-motion-toggle"
+        disabled={fallback}
         onClick={() => onChange({ paused: !state.paused })}
         type="button"
       >

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { findMaterialEnvironment } from '../../material-lab/environments';
 import { findMaterialRecipe } from '../../material-lab/recipes';
 import { buildMaterialLabSearch, readMaterialLabState } from '../../material-lab/state';
@@ -12,6 +12,8 @@ import { MaterialRecipePicker } from './MaterialRecipePicker';
 
 export function MaterialLab() {
   const [state, setState] = useState(() => readMaterialLabState(window.location.search));
+  const [fallback, setFallback] = useState(false);
+  const handleFallbackChange = useCallback((next: boolean) => setFallback(next), []);
   const reducedMotion = useReducedMotion();
   const pageVisible = usePageVisible();
   const recipe = findMaterialRecipe(state.recipe);
@@ -49,12 +51,13 @@ export function MaterialLab() {
       <div className="material-lab-workspace">
         <MaterialLabPreview
           environment={environment}
+          onFallbackChange={handleFallbackChange}
           pageVisible={pageVisible}
           recipe={recipe}
           reducedMotion={reducedMotion}
           state={state}
         />
-        <MaterialLabControls onChange={updateState} state={state} />
+        <MaterialLabControls fallback={fallback} onChange={updateState} state={state} />
       </div>
     </main>
   );

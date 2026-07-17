@@ -183,3 +183,40 @@ test('responsive lighting visibly follows the pointer across the material', asyn
   // the left must exceed left-bias when it is on the right by a clear margin.
   expect(biasWithPointerLeft).toBeGreaterThan(biasWithPointerRight + 4);
 });
+
+test('reports the static fallback and disables shader-only controls when WebGL is unavailable', async ({ page }) => {
+  await page.addInitScript(() => {
+    const block = (prototype: { getContext: (...args: unknown[]) => unknown }) => {
+      const original = prototype.getContext;
+      prototype.getContext = function blockedGetContext(type: string, ...args: unknown[]) {
+        if (String(type).includes('webgl')) return null;
+        return Reflect.apply(original, this, [type, ...args]);
+      };
+    };
+    block(HTMLCanvasElement.prototype);
+    if (typeof OffscreenCanvas !== 'undefined') block(OffscreenCanvas.prototype);
+  });
+  const errors: string[] = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  page.on('pageerror', (error) => errors.push(error.message));
+
+  await page.goto('./?material-lab=1');
+  const lab = page.getByLabel('Live Material Lab preview');
+  await expect(lab.locator('.metal-fx-root')).toHaveAttribute('data-fallback', 'true');
+  await expect(lab.getByText('Static fallback — WebGL unavailable')).toBeVisible();
+
+  const main = page.getByRole('main');
+  await expect(main.getByLabel('Finish')).toBeDisabled();
+  await expect(main.getByLabel('Preset')).toBeDisabled();
+  await expect(main.getByLabel('Strength')).toBeDisabled();
+  await expect(main.getByRole('button', { name: 'Enable responsive lighting' })).toBeDisabled();
+  await expect(main.getByRole('button', { name: 'Pause preview motion' })).toBeDisabled();
+  // Presentation controls still work: the static child and backdrop are real.
+  await expect(main.getByLabel('Backdrop')).toBeEnabled();
+  await expect(main.getByRole('button', { name: 'Circle' })).toBeEnabled();
+  await main.getByRole('button', { name: 'Circle' }).click();
+  await expect(page).toHaveURL(/preview=circle/);
+  expect(errors).toEqual([]);
+});
