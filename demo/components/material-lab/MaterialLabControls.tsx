@@ -64,7 +64,7 @@ export function MaterialLabControls({ onChange, state }: MaterialLabControlsProp
       </label>
 
       <label>
-        Environment
+        Backdrop
         <select
           onChange={(event) => onChange({ environment: event.target.value as MaterialLabState['environment'] })}
           value={state.environment}

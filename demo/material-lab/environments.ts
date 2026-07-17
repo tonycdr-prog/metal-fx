@@ -1,3 +1,8 @@
+/* Backdrops are presentation surfaces behind the preview control. They do
+ * NOT feed the shader — the material renders identically on every backdrop.
+ * The Lab's control is labeled "Backdrop" to keep that honest (#32);
+ * environment-reactive material lighting is tracked as a separate roadmap
+ * feature. Ids are stable URL state; do not rename them. */
 export type MaterialLabEnvironment =
   | 'studio-sweep'
   | 'warm-cool-split'

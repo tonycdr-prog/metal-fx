@@ -33,7 +33,7 @@ test('opens a deterministic Material Lab fixture and keeps one preview interacti
   await expect(page).toHaveURL(/preview=content/);
   await lab.getByRole('button', { name: 'Resume preview motion' }).click();
   await expect(lab.getByRole('button', { name: 'Pause preview motion' })).toHaveAttribute('aria-pressed', 'false');
-  const environment = lab.getByLabel('Environment');
+  const environment = lab.getByLabel('Backdrop');
   const stage = lab.getByTestId('material-lab-stage');
   await expect(stage).toHaveCSS('transform', 'none');
   await expect(page).not.toHaveURL(/[?&]interaction=/);
