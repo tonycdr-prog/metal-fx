@@ -1,23 +1,17 @@
 # Releasing metal-fx
 
 The package identity is `@tonycdr-prog/metal-fx`. It intentionally does not reuse the upstream unscoped `metal-fx`
-registry name. Both the audited MIT-licensed source repository and the configured npm package are public so npm can
-attach provenance to the published artifact.
+registry name. The audited MIT-licensed source repository and release artifact are public.
 
-## One-time npm setup
+## One-time GitHub setup
 
-1. Create or confirm the `tonycdr-prog` user or organization scope on npm.
-2. Grant the publishing account write access to `@tonycdr-prog/metal-fx`.
-3. Add a granular npm access token restricted to `@tonycdr-prog/metal-fx`, with publish permission and 2FA bypass,
-   as the repository secret `NPM_TOKEN`. Rotate it regularly; revoke and replace it immediately if exposure is
-   suspected.
-4. Protect the GitHub `npm` environment if release approval is required.
-5. Confirm `tonycdr-prog/metal-fx` remains public; npm cannot generate the required provenance from a private source
-   repository.
+1. Keep `tonycdr-prog/metal-fx` public so consumers can download the package without credentials.
+2. Enable immutable releases in the repository settings. This locks a published release's tag and assets and creates
+   a GitHub release attestation.
+3. Protect `main` and require the Node 22, Node 24 and browser checks before merge.
 
-Do not create a release tag until this setup is complete. On 2026-07-15 the registry returned `E404` for this package;
-recheck it during release preparation because that observation will become stale after first publication. An `E404`
-does not prove ownership of the scope.
+No npm account, npm token, GitHub Actions secret or consumer GitHub credential is required for this pilot
+distribution. Do not create a release tag until release immutability and branch protection are confirmed.
 
 ## Release sequence
 
@@ -35,18 +29,21 @@ does not prove ownership of the scope.
 
 4. Merge only after required CI and senior review are green.
 5. Create and push the exact matching annotated tag `vX.Y.Z` from the reviewed main commit.
-6. Approve the protected `npm` environment, if configured, and inspect the workflow provenance and package contents.
+6. Inspect the immutable GitHub release, release attestation, checksum and package contents.
 
 The publish workflow rejects a tag that does not exactly match `package.json` and runs the complete quality gate on
-Node 22 and 24 before the single Node 24 publish job. Pull requests, branches, and unmatched tags cannot publish.
+Node 22 and 24 before the single Node 24 release job. It creates a draft, attaches the package and checksum, publishes
+the now-immutable release, then verifies both assets against GitHub's attestation. Pull requests, branches and
+unmatched tags cannot publish.
 
 ## First-release checks
 
-- Confirm the npm package page shows public visibility and the expected scope.
-- Install the exact released version into clean CommonJS, ESM, and strict TypeScript fixtures.
-- Confirm the provenance points to `tonycdr-prog/metal-fx` and the tagged commit.
+- Confirm the release is marked immutable and its tag points to the reviewed `main` commit.
+- Verify the downloaded tarball with `gh release verify-asset` and the published SHA-256 checksum.
+- Install the exact release-asset URL into clean CommonJS, ESM, strict TypeScript and React 19 fixtures.
+- Confirm the GitHub release attestation points to `tonycdr-prog/metal-fx` and the tagged commit.
 - Confirm the six-file tarball allowlist is unchanged.
 - Confirm the GitHub Pages demo is already deployed from the same main history.
 
-Publishing, tagging, creating the npm scope, and adding credentials are external release actions; repository validation
-does not perform them automatically.
+Tagging and publishing the immutable GitHub release are external release actions. Repository validation does not
+perform them automatically.

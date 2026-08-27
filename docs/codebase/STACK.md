@@ -28,7 +28,7 @@ There are no bundled runtime `dependencies`; React and React DOM are externalize
 | Tailwind CSS 4 | Demo styling only | `demo/tailwind.css`, `vite.config.demo.ts` |
 | Biome 2.4.9 | Pinned formatter/linter enforced by npm scripts and pull-request CI | `biome.json`, `package.json`, `.github/workflows/quality.yml` |
 | Wrangler 4 | Optional Cloudflare Pages deployment | `package.json` |
-| GitHub Actions | Demo deployment and npm publishing | `.github/workflows/pages.yml`, `.github/workflows/publish.yml` |
+| GitHub Actions | Demo deployment and immutable package release | `.github/workflows/pages.yml`, `.github/workflows/publish.yml` |
 
 ## 4) Key Commands
 
@@ -50,7 +50,8 @@ There is no automated behavior-test command yet. `npm run check` enforces format
 
 - Config sources: `package.json`, `tsconfig.json`, `tsconfig.build.json`, `vite.config.ts`, `vite.config.demo.ts`, `biome.json`.
 - Required runtime env vars: none found; there is no env template and no environment-variable read in `src/` or `demo/`.
-- Release credential: the npm workflow reads `secrets.NPM_TOKEN` from GitHub Actions.
+- Release authority: the immutable-release workflow uses repository-scoped
+  `github.token` with `contents: write`; no package-registry credential exists.
 - Deployment/runtime constraints: the effect requires client-side browser APIs and WebGL; the intended supported browser/Node matrix is [TODO].
 
 ## 6) Evidence

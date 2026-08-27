@@ -38,13 +38,15 @@ The existing visibility gating, 15fps throttle, shared GL surface, readback thro
 ## 6) `[ASK USER]` Questions
 
 1. [ASK USER] Which browser versions are officially supported beyond the Chromium, Firefox, and WebKit versions exercised by Playwright?
-2. [ASK USER] Is the `tonycdr-prog` npm scope owned and ready for the first `@tonycdr-prog/metal-fx` publication? The registry returned `E404` on 2026-07-15; no tag should be created until scope ownership and `NPM_TOKEN` are confirmed.
+2. [RESOLVED] Pilot distribution uses a public immutable GitHub release asset,
+   checksum and release attestation, so it requires neither an npm scope nor an
+   `NPM_TOKEN`.
 
 ## 7) Resolved Hygiene Items
 
 - Biome 2.4.9 is pinned, the formatted tree passes, and `npm run check` is enforced in pull-request CI.
 - The stale playground script was removed.
-- Hosting redirects moved to the demo and library builds no longer copy the public directory into the npm package.
+- Hosting redirects moved to the demo and library builds no longer copy the public directory into the release package.
 - Unreferenced/duplicate header assets were removed and public assets are checked for references and duplicate bytes.
 - `MetalFx` theme resolution and shared glow registry were extracted; remaining large files have recorded reasons and revisit triggers.
 - Module boundaries, explicit public exports, dependency usage, test locations, package contents, and script config references now have executable checks.

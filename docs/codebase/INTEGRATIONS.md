@@ -6,7 +6,7 @@
 |--------|------|---------|------------|-------------|----------|
 | Browser WebGL + Canvas APIs | Client runtime | Shader generation, per-instance rings, sampling, reflections | None | High | `src/engine/renderer/*.ts`, `src/engine/reflection/paint.ts` |
 | Browser frame/observer APIs | Client runtime | Animation, sizing, visibility, theme, and target-style invalidation | None | High | `src/MetalFx.tsx`, `src/engine/reflection/observers.ts` |
-| npm registry | Package distribution | Publishes tagged releases with provenance | `NPM_TOKEN` GitHub secret + OIDC provenance | High | `.github/workflows/publish.yml` |
+| GitHub immutable releases | Package distribution | Publishes a versioned tarball, checksum and release attestation for reviewed tags | Repository-scoped `github.token`; public downloads need no credential | High | `.github/workflows/publish.yml` |
 | GitHub Pages | Public static hosting | Deploys the demo to `https://tonycdr-prog.github.io/metal-fx/` only after Quality succeeds on `main` | GitHub Actions OIDC permissions | Medium | `.github/workflows/pages.yml`, `.github/workflows/quality.yml`, `vite.config.demo.ts` |
 | Cloudflare Pages | Optional static hosting | Manual `npm run deploy` path via Wrangler | Wrangler account authentication outside repo | Low | `package.json` |
 
@@ -21,7 +21,7 @@ No runtime HTTP APIs, databases, queues, analytics, or observability services we
 ## 3) Secrets and Credentials Handling
 
 - Runtime credential sources: none.
-- Release credential: `secrets.NPM_TOKEN` is injected only into the npm publish step.
+- Release authority: the tag workflow receives repository-scoped `contents: write` through `github.token`; there is no package-registry credential.
 - No hardcoded secret or environment-variable read was found in source/config searches.
 - Rotation/lifecycle: managed outside this repository; [TODO] for team policy.
 

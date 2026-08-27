@@ -7,8 +7,11 @@ Animated WebGL "liquid metal" effect for React. Wrap a button, chip, or icon and
 ## Install
 
 ```bash
-npm install @tonycdr-prog/metal-fx
+npm install https://github.com/tonycdr-prog/metal-fx/releases/download/v1.1.0/tonycdr-prog-metal-fx-1.1.0.tgz
 ```
+
+The versioned public asset belongs to an immutable GitHub release. Its tag,
+tarball and checksum are locked and covered by GitHub's release attestation.
 
 ## Compatibility
 
