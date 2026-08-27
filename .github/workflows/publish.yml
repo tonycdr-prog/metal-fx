@@ -1,8 +1,8 @@
-name: Publish to npm
+name: Publish immutable GitHub package
 
-# Publishes the package on every git tag matching v* (e.g. v0.1.0, v1.0.0).
-# `--provenance` requires `id-token: write` and a registry-url with HTTPS,
-# and produces an attestation linking the tarball to this workflow run.
+# Builds a public package tarball for every reviewed v* tag. Repository-level
+# release immutability locks the tag and assets and adds GitHub's release
+# attestation when the draft is published.
 
 on:
   push:
@@ -35,20 +35,18 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
       - run: npm run check
 
-  publish:
+  release:
     needs: verify
     runs-on: ubuntu-latest
-    environment: npm
     permissions:
-      contents: read
-      id-token: write
+      contents: write
     steps:
       - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v7
         with:
           node-version: 24.x
-          registry-url: 'https://registry.npmjs.org'
+          cache: npm
 
       - run: npm ci
 
@@ -60,9 +58,32 @@ jobs:
 
       - run: npm run package:check
 
-      # Scoped packages default to private visibility, so --access public is
-      # explicit. NPM_TOKEN must be a granular token with publish rights and
-      # 2FA bypass for @tonycdr-prog/metal-fx.
-      - run: npm publish --provenance --access public
+      - name: Pack the approved public artifact
+        run: |
+          mkdir release
+          npm pack --pack-destination release
+
+      - name: Record the artifact checksum
+        working-directory: release
+        run: sha256sum ./*.tgz > SHA256SUMS
+
+      - name: Publish the immutable release
+        run: |
+          gh release create "$RELEASE_TAG" release/*.tgz release/SHA256SUMS \
+            --draft \
+            --generate-notes \
+            --title "$RELEASE_TAG" \
+            --verify-tag
+          gh release edit "$RELEASE_TAG" --draft=false
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+
+      - name: Verify the immutable release assets
+        run: |
+          for asset in release/*.tgz release/SHA256SUMS; do
+            gh release verify-asset "$RELEASE_TAG" "$asset"
+          done
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}

@@ -17,10 +17,7 @@ if (manifest.name !== expected.name) errors.push(`package name must be ${expecte
 if (manifest.repository?.url !== expected.repository) errors.push(`repository must be ${expected.repository}`);
 if (manifest.homepage !== expected.homepage) errors.push(`homepage must be ${expected.homepage}`);
 if (manifest.private === true) errors.push('package.json must not set private=true for a public release');
-if (manifest.publishConfig?.access !== 'public') errors.push('publishConfig.access must be public');
-if (manifest.publishConfig?.registry !== 'https://registry.npmjs.org/') {
-  errors.push('publishConfig.registry must be the public npm registry');
-}
+if (manifest.publishConfig) errors.push('publishConfig must be absent for GitHub release distribution');
 if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(manifest.version)) {
   errors.push(`package version is not a supported semver release: ${manifest.version}`);
 }

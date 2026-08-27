@@ -73,8 +73,8 @@ The executable policy is `scripts/check-hygiene.mjs`; do not weaken it solely to
 
 - `npm run build` creates the library in `dist/`.
 - `npm run build:demo` creates the showcase in `dist-demo/`.
-- The npm package may contain only the manifest, README, license, declarations, and runtime bundles approved by `package:check`.
-- GitHub Actions publishes tags and deploys the demo. Never place credentials in the repository; npm publishing reads `NPM_TOKEN` from GitHub Actions secrets.
+- The release package may contain only the manifest, README, license, declarations, and runtime bundles approved by `package:check`.
+- GitHub Actions publishes an immutable, attested release asset for reviewed tags and deploys the demo. Never add a package-registry credential; public consumers install the exact GitHub release asset without authentication.
 
 ## Pull Requests
 

@@ -236,7 +236,7 @@ Mechanical cleanup is deliberately separated from architectural changes. This al
 
 ### External Systems
 
-- **EXT-001**: npm registry package format and conditional exports.
+- **EXT-001**: Immutable GitHub release package format, checksum, attestation and conditional exports.
 - **EXT-002**: GitHub Actions pull-request and release workflows.
 - **EXT-003**: Browser WebGL, Canvas 2D, RAF, media query, and observer APIs.
 
@@ -248,7 +248,7 @@ Mechanical cleanup is deliberately separated from architectural changes. This al
 
 ### Compliance Dependencies
 
-- **COM-001**: MIT license and npm provenance behavior must remain intact.
+- **COM-001**: MIT licence plus immutable GitHub release and attestation behavior must remain intact.
 
 ## 9. Examples & Edge Cases
 
