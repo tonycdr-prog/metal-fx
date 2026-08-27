@@ -1,7 +1,8 @@
 # Releasing metal-fx
 
 The package identity is `@tonycdr-prog/metal-fx`. It intentionally does not reuse the upstream unscoped `metal-fx`
-registry name. The source repository remains private, while the configured npm package is public.
+registry name. Both the audited MIT-licensed source repository and the configured npm package are public so npm can
+attach provenance to the published artifact.
 
 ## One-time npm setup
 
@@ -11,6 +12,8 @@ registry name. The source repository remains private, while the configured npm p
    as the repository secret `NPM_TOKEN`. Rotate it regularly; revoke and replace it immediately if exposure is
    suspected.
 4. Protect the GitHub `npm` environment if release approval is required.
+5. Confirm `tonycdr-prog/metal-fx` remains public; npm cannot generate the required provenance from a private source
+   repository.
 
 Do not create a release tag until this setup is complete. On 2026-07-15 the registry returned `E404` for this package;
 recheck it during release preparation because that observation will become stale after first publication. An `E404`

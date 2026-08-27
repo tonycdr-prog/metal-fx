@@ -30,11 +30,11 @@ test('metal-kit prototype renders live components with working activation and vi
 
   // Keyboard: focus is visible and Enter activates.
   const target = page.getByRole('button', { name: 'mercury' });
-  const tabKey = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
-  for (let presses = 0; presses < 40; presses += 1) {
-    await page.keyboard.press(tabKey);
-    if (await target.evaluate((element) => element === document.activeElement)) break;
-  }
+  const forwardTab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
+  const reverseTab = browserName === 'webkit' ? 'Alt+Shift+Tab' : 'Shift+Tab';
+  await target.focus();
+  await page.keyboard.press(forwardTab);
+  await page.keyboard.press(reverseTab);
   await expect(target).toBeFocused();
   const outline = await target.evaluate((element) => {
     const style = getComputedStyle(element);
