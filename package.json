@@ -1,6 +1,6 @@
 {
   "name": "@tonycdr-prog/metal-fx",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Animated WebGL metal shader effect for React buttons and UI components",
   "type": "module",
   "main": "./dist/index.cjs",
